@@ -1,0 +1,8 @@
+**/*.xml
+**/*.zip
+.Rproj.user
+.DS_Store
+data
+ballet_990_released_20230208
+*.RDS
+companies.csv

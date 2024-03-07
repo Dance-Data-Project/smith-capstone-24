@@ -1,0 +1,405 @@
+---
+title: "Explore Endowment Values Over Time"
+author: "Quinn White"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: hide
+    css: !expr here::here('css', 'template.css')
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "./output_html")})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
+library(tidyverse)
+library(kableExtra)
+library(scales)
+library(plotly)
+library(here)
+library(glue)
+
+all_plots <- FALSE
+
+```
+
+
+```{r read data, eval=FALSE}
+
+# starting by only exploring the CY* variables
+endowment_data <- read_rds(here("data", 
+                                "endowments_by_most_recent_filings.RDS")) 
+
+companies_to_ein <- read_csv(here("data", "companies.csv")) %>%
+  mutate(EIN = as.character(EIN), organization_name = as.character(Company)) %>%
+  select(EIN, organization_name)
+
+```
+
+
+```{r, eval=FALSE}
+
+endowment_data <- read_rds(here("data", 
+                                "endowment_filter_data_990.RDS")) %>%
+  select(EIN, fiscal_year, contains("CY"))
+
+
+# only include EINs that have at least one observation of 
+# one of the endowment variables
+include_eins <- endowment_data %>%
+  pivot_longer(-c(EIN,fiscal_year)) %>%
+  group_by(EIN) %>%
+  summarize(na_count = sum(is.na(value)),
+             total_rows = n()) %>%
+  filter(na_count < total_rows) %>%
+  pull(EIN) %>% unique()
+
+
+# taking most recently available information from the CY* variables
+# this is to take into account findings from cross referencing that 
+# values are not always in correspondence
+# when they are in correspondence, this will be equivalent to just taking
+# the CY data from each fiscal year 
+endowment_data <- endowment_data %>%
+  filter(EIN %in% include_eins) %>% 
+    group_by(EIN) %>%
+    pivot_longer(3: ncol(.),
+                 names_to = "variable_name") %>%
+    mutate(source = ifelse(grepl("CYM", variable_name),
+                           substr(variable_name, 1,4), "CY"),
+           # get the year lag from the CYM variable name
+           # CYM1 corresponds to 1 year lag
+           year_lag = ifelse(grepl("CYM", variable_name), 
+                             substr(source, 4,4), 0),
+           year_lag = as.numeric(year_lag),
+           fiscal_year = as.numeric(paste0(fiscal_year)),
+           # get rid of CY or CMX part of the variable name (where X is a year)
+           variable_name = gsub("CY|CYM.", "", variable_name)) %>%
+    mutate(value_year = fiscal_year -year_lag
+           ) %>%
+  group_by(EIN, value_year, variable_name) %>%
+  arrange(EIN, variable_name, fiscal_year) %>%
+  # pick the most recent one available
+  slice_max(n = 1, order_by = fiscal_year)  %>%
+  select(EIN, value_year, variable_name, source, value) %>%
+  rename(fiscal_year=value_year) %>%
+  ungroup() %>%
+  # add company names
+  left_join(companies_to_ein)
+  
+
+```
+
+```{r}
+
+companies_to_ein <- read_csv(here("data", "companies.csv")) %>%
+  mutate(EIN = as.character(EIN), organization_name = as.character(Company)) %>%
+  select(EIN, organization_name)
+
+
+endowment_data <- read_rds(here("data", 
+                                "endowments_by_most_recent_filings.RDS")) %>%
+  select(-c(EndowmentsHeldUnrelatedOrgInd, EndowmentsHeldRelatedOrgInd)) %>%
+  pivot_longer(-c(EIN, fiscal_year),
+               names_to = "variable_name") %>%
+  left_join(companies_to_ein)
+
+```
+
+
+
+```{r, include= FALSE, eval =FALSE}
+  
+# function development scratch code
+
+var <- "BeginningYearBalanceAmt"
+
+eins_with_variable <- endowment_data %>%
+  filter(variable_name == var) %>%
+    group_by(EIN) %>%
+    summarize(number_observations = sum(!is.na(value))) %>%
+    filter(number_observations != 0) %>%
+    pull(EIN)
+  
+  
+
+
+endowment_data %>%
+  filter(EIN %in% eins_with_variable & variable_name == var) %>%
+  filter(EIN == "860367773") %>%
+  group_by(EIN) %>%
+  mutate(EIN_mean = mean(value,na.rm= TRUE)) %>%
+  ungroup() %>%
+  group_by(variable_name) %>%
+  mutate(quantile_group = ntile(EIN_mean, n = 4)) %>%
+  group_by(EIN) %>% 
+  # make sure EIN has single quantile group
+  mutate(quantile_group = sample(quantile_group,1)) %>%
+  mutate(quantile_group_labels = factor(paste0("Quantile ", quantile_group))) %>%
+  ggplot(aes(x = fiscal_year, y = value, group = EIN, color = EIN)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~fct_reorder(
+    quantile_group_labels,
+    .x = quantile_group), scales="free_y") +
+  scale_y_continuous(labels = comma) +
+  viridis::scale_color_viridis(option = "mako", discrete = TRUE ) +
+  theme_bw() +
+  labs(title = paste0("Change in ", var, " Over Time\n"),
+       x = "Fiscal Year")+
+  theme(plot.title = element_text(size = 16, hjust = .5, face="bold"),
+        plot.subtitle = element_text(hjust = .5, face="italic"),
+        axis.text.x = element_text(size = 13),
+        axis.title = element_text(size = 16, face = "bold"),
+        legend.position = "none")
+
+```
+
+```{r}
+
+# this function splits the data into 4 groups based on the mean value for that EIN 
+# and plots the variable over time, faceted by group
+# this is to handle the fact that the values are on very different scales,
+# so if we plot them all together, it masks any interesting trends
+# dotted lines represent where there was a missing year between observations
+plot_variable <- function(var) {
+  
+  # get eins with at least one observation of the variable
+  eins_with_variable <- endowment_data %>%
+  filter(variable_name == var) %>%
+    group_by(EIN) %>%
+    summarize(number_observations = sum(!is.na(value))) %>%
+    filter(number_observations != 0) %>%
+    pull(EIN)
+  
+  # split into quantiles based on EIN mean
+  data <- endowment_data %>%
+      filter(EIN %in% eins_with_variable & variable_name == var) %>%
+      group_by(EIN) %>%
+      mutate(EIN_mean = mean(value,na.rm= TRUE)) %>%
+      ungroup() %>%
+      group_by(variable_name) %>%
+      mutate(quantile_group = ntile(EIN_mean, n = 4)) %>%
+      group_by(EIN) %>% 
+      # make sure EIN has single quantile group
+      mutate(quantile_group = max(quantile_group)) %>%
+      mutate(quantile_group_labels = factor(paste0("Quantile ", quantile_group))) %>%
+      mutate(organization_name = ifelse(is.na(organization_name),
+                                        "Not Available", 
+                                        organization_name)) %>%
+    ungroup()
+  
+  # data with no nas so we can connect the values wehre there was a missing year
+  # instead of just having no line connecting points from years on each side of the gap
+  data_no_nas <- data %>% filter(!is.na(value))
+  
+  data %>%
+    ggplot(aes(x = fiscal_year, y = value, color = EIN, label = organization_name)) +
+    geom_line(data = data_no_nas,
+              aes( 
+                  x = fiscal_year,
+                  y = value, group = EIN),
+              color = "darkgray",
+              linetype = "dotted") +
+    geom_point(size = .9) +
+    geom_line() +
+    facet_wrap(~fct_reorder(
+      quantile_group_labels,
+      .x = quantile_group), scales="free_y", ncol = 2) +
+    scale_y_continuous(labels = comma) +
+    scale_x_continuous(breaks = seq.int(2010, 2021, by =2)) +
+    viridis::scale_color_viridis(option = "mako", discrete = TRUE, end=.94) +
+    theme_bw() +
+    labs(title = paste0("Change in ", var, " Over Time"),
+         x = "Fiscal Year",
+         y = paste0("value of ", var)) +
+    theme(plot.title = element_text(size = 18, 
+                                    hjust = .5, face="bold",
+                                    margin =margin(.1,.1,10,.1)),
+          plot.subtitle = element_text(hjust = .5, face="italic"),
+          axis.text.x = element_text(size = 13),
+          axis.title = element_text(size = 13, face = "bold"),
+          legend.position = "none")
+}
+
+```
+
+# Static Plots
+
+```{r, fig.width = 12, fig.height = 6}
+
+# plot each variable over time
+walk(unique(endowment_data$variable_name),
+     ~{plt <- plot_variable(.x) 
+     print(plt)
+     }
+)
+
+```
+
+# Interactive Plots
+
+```{r}
+
+# margins
+m <- list(
+    l = 50,
+    r = 50,
+    b = 200,
+    t = 150,
+    pad = 0.5
+)
+
+
+# https://github.com/plotly/plotly.R/issues/570
+plotlist <- map(unique(endowment_data$variable_name),
+     ~{plt <- plot_variable(.x) 
+      plt <- ggplotly(plt) %>% layout(height = 450,
+                                      margin =m)
+
+     }
+)
+
+htmltools::tagList(setNames(plotlist, NULL))
+
+
+
+
+```
+
+
+<br><br><br><br><br><br>
+
+
+# Plot Variables Against Each Other
+
+```{r, eval= FALSE, include = TRUE}
+
+
+# function development 
+
+endowment_data_wide <- endowment_data %>% 
+  pivot_wider(names_from=variable_name,
+              values_from=value) 
+
+```
+
+```{r, eval=FALSE,include=FALSE}
+
+
+# function development 
+
+endowment_data %>% 
+  pivot_wider(names_from=variable_name,
+              values_from=value) %>%
+  pull(EndYearBalanceAmt) %>% range(na.rm=TRUE)
+
+
+endowment_data %>% 
+  pivot_wider(names_from=variable_name,
+              values_from=value) %>%
+  pull(ContributionsAmt) %>% range(na.rm=TRUE)
+
+
+endowment_data %>% 
+  pivot_wider(names_from=variable_name,
+              values_from=value) %>%
+  group_by(EIN) %>%
+  mutate(mean = mean(EndYearBalanceAmt,na.rm=TRUE)) %>%
+  ungroup() %>%
+  mutate( tile = ntile(mean,4)) %>%
+  group_by(EIN) %>%
+  mutate(tile = sample(tile,1)) %>%
+  ggplot(aes(x =ContributionsAmt, EndYearBalanceAmt, color = EIN)) +
+  geom_point(alpha = .9) +
+ # geom_line(alpha = .5) +
+  facet_wrap(~tile, scales="free") +
+  viridis::scale_color_viridis(discrete=TRUE,
+                               option = "rocket",
+                               end = .9) +
+  theme_bw()+
+    theme(plot.title = element_text(size = 18, 
+                                    hjust = .5, face="bold",
+                                    margin =margin(.1,.1,10,.1)),
+          plot.subtitle = element_text(hjust = .5, face="italic"),
+          axis.title = element_text(size = 13, face = "bold"),
+          legend.position = "none") +
+  scale_x_continuous(labels=comma) +
+  scale_y_continuous(labels=comma) +
+  labs(title = paste0(var1, " versus ", var2))
+  
+```
+
+```{r}
+
+endowment_data_wide <- endowment_data %>% 
+  pivot_wider(names_from=variable_name,
+              values_from=value) 
+
+# function to plot variables of interest against each other
+plot_combo <- function(var1, var2, data) {
+  
+  var2 <- sym(var2)
+  var1_range <- data %>% 
+    pull(var1) %>% 
+    range(na.rm=TRUE)
+  var1_range <- var1_range[2]- var1_range[1]
+  
+  var2_range <-  data %>%
+    pull(var2) %>%
+    range(na.rm=TRUE)
+  var2_range <- var2_range[2]- var2_range[1]
+  
+  quantile_var <- ifelse(var1_range > var2_range, var1, var2 )
+
+  data %>%
+    group_by(EIN) %>%
+    mutate(maxval = max(!!sym(quantile_var),na.rm=TRUE)) %>%
+    ungroup() %>%
+    mutate( tile = ntile(maxval, 4)) %>%
+    group_by(EIN) %>%
+    mutate(tile = sample(tile, 1)) %>%
+    filter(!is.na(tile)) %>%
+    ggplot(aes(x = !!sym(var1), y = !!sym(var2), color = EIN)) +
+    geom_point(alpha = .9) +
+   # geom_line(alpha = .5) +
+    facet_wrap(~tile, scales="free") +
+    viridis::scale_color_viridis(discrete=TRUE,
+                                 option = "rocket",
+                                 end = .9) +
+    theme_bw()+
+      theme(plot.title = element_text(size = 18, 
+                                      hjust = .5, face="bold",),
+            plot.subtitle = element_text(hjust = .5, 
+                                         face="italic",
+                                         size = 16),
+            axis.title = element_text(size = 13, 
+                                      face = "bold"),
+            legend.position = "none") +
+    scale_x_continuous(labels=comma) +
+    scale_y_continuous(labels=comma) +
+    labs(title = paste0(var2, " versus ", var1),
+         subtitle = "Fill by EIN")
+  
+  
+}
+
+```
+
+```{r, fig.show='hold', out.width = '50%'}
+
+
+# all pairwise combinations of variables
+variable_combinations <- t(combn(unique(endowment_data$variable_name), 2)) %>%
+  as.data.frame()
+
+pwalk(variable_combinations, ~{ 
+ plt <- plot_combo(var1 = .x, var2 = .y, data = endowment_data_wide)
+ print(plt)
+ }
+)
+
+```

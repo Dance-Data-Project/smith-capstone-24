@@ -1,0 +1,5 @@
+
+/* expand content to screenwidth rather than cutting it off */
+#content{
+max-width:2300px;
+}

@@ -1,0 +1,409 @@
+---
+title: "Data Dictionary"
+author: "Quinn White"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: hide
+    css: !expr here::here('css', 'template.css')
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "output_html")})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(xml2)
+library(rvest)
+library(kableExtra)
+library(here)
+```
+
+## Useful Resources for Reference
+
+* [example form](https://www.irs.gov/pub/irs-pdf/f990sd.pdf)
+* [variable definitions w/ reference to which questions they are derived from]( http://www.irsx.info/metadata/forms.html#ReturnHeader990x)
+
+## More Information on Variables
+
+**ScheduleD Part XII Reconciliation of Expenses per Audited Financial Statements with Expenses per Return**
+
+* `ExpensesSubtotalAmt`: question from section XII, 2e:
+  * Amounts included as total expenses according to aduited financial statements, but not included on the form 990 'Other Assets' section -- this is the sum of those expenses related to donates services and use of facilities, prior year adjustments, other losses, other. The variable is taken as the sum across these kinds of expenses.
+  * If the organization didn't get audited financial statements for the reporting year of the 990, doesn't have to do Part XI (Reconciliation of Revenue per Audited Financial Statements With Revenue per Return) or XII (Reconciliation of Expenses per Audited Financial Statements With Expenses per Return. ) receive audited financial statements for the reporting year for which it is completing this Form 990, it isn't required to complete Part XI or XII, even if it prepared Form 990 in accordance with FASB ASC 958.
+  * Total expenses according to the 990 is taken to be the sum `ExpensesSubtotalAmt` + `ExpensesNotReportedAmt` = `TotalExpensesPerForm990Amt`
+* `TotExpnsEtcAuditedFinclStmtAmt`:  Total expenses and losses according to audited financial statements
+* `TotalExpensesPerForm990Amt`: total expenses reported on form 990
+
+
+**ScheduleD Part XI Reconciliation of Revenue per Audited Financial Statements with Revenue per Return**
+
+* `RevenueSubtotalAmt`: question from Part XI Line 3, total revenue, gains, and other support per audited financial statements - amounts not included on the form 990 in Part VIII (Investments—Program Related) 
+  * This result is part of the revenue reported on the form 990. Total revenue according to the 990 is taken to be the sum `RevenueSubtotalAmt` + `RevenueNotReportedAmt`, should equal `TotalRevenuePerForm990Amt`
+* `TotalRevEtcAuditedFinclStmtAmt` 
+  * Total revenue, gains and other support per audited financial statements
+
+
+```{r testing, include=FALSE,eval=FALSE}
+
+# function development for single file 
+
+varnames <- read_html(here("infrastructure_rmds", "data_dict_html", "irs_info_xi.html")) 
+
+
+content_table <- varnames %>%
+  html_element("body") %>%
+  html_table() %>%
+  select(-X1, html = X2)
+
+res <- content_table %>%
+  # put EMPTY on empty lines to have separator to split on
+  mutate(html = ifelse(html == "", "EMPTY", html)) %>%
+  # remove lines without useful information
+  filter(!grepl("div|Type", html)) %>%
+  # remove class and link
+  mutate(html = gsub('<p class=.*Variable', "<p> Variable", html),
+        html= gsub('<a href.*html\">', "", html),
+        html = gsub("</a>", "", html, fixed=TRUE)) %>%
+  pull(html) %>%
+  paste0(collapse = "") 
+
+res %>%
+  strsplit(split = "EMPTY") %>%
+  unlist() %>%
+  tibble("variable_content" = .) %>%
+  filter(grepl("Variable Name", variable_content)) %>%
+  separate(variable_content, sep = "<br>",
+           into = c("var_name", 
+                    "line_number", 
+                    "description",
+                    "xpath")) %>%
+  mutate(xpath = gsub("Xpath: |</p>", "", xpath),
+         variable = gsub(".*./", "", xpath)) %>%
+  # clean variable description
+  mutate(description = gsub("Description: ", "", description),
+         description = gsub("</p>", "", description)) %>%
+  select(-var_name)
+
+```
+
+## Variable Descriptions and Corresponding Line Numbers
+
+The [IRSx site](http://www.irsx.info/metadata/forms.html#ReturnHeader990x) has useful information linking variable descriptions to names. We can also look at the exact question the variable is based on to get more context for the interpretation.
+
+```{r}
+
+# extract variable names, line numbers, and descriptions from html files
+# html files are from http://www.irsx.info/metadata/forms.html#ReturnHeader990x
+get_var_info <- function(link) {
+  
+  varnames <- read_html(link) 
+  
+  # read html and generate table
+  content_table <- varnames %>%
+    html_element("body") %>%
+    html_table() %>%
+    select(-X1, html = X2)
+  
+  res <- content_table %>%
+    # put EMPTY on empty lines to have separator to split on
+    mutate(html = ifelse(html == "", "EMPTY", html)) %>%
+    # remove lines without useful information
+    filter(!grepl("div|Type", html)) %>%
+    # remove class and link
+    mutate(html = gsub('<p class=.*Variable', "<p> Variable", html),
+          html= gsub('<a href.*html\">', "", html),
+          html = gsub("</a>", "", html, fixed=TRUE)) %>%
+    pull(html) %>%
+    # paste into single string so we can split where information
+    # for each variable is on a single line rather than split across
+    # multiple lines
+    paste0(collapse = "") 
+  
+  res %>%
+    strsplit(split = "EMPTY") %>%
+    unlist() %>%
+    # vector where each line corresponds to info
+    # for a particular variable
+    tibble("variable_content" = .) %>%
+    filter(grepl("Variable Name", variable_content)) %>%
+    # separate splits a column into multiple columns
+    separate(variable_content, sep = "<br>",
+             into = c("var_name", 
+                      "line_number", 
+                      "description",
+                      "xpath")) %>%
+    mutate(xpath = gsub("Xpath: |</p>", "", xpath),
+           # remove up until last /
+           variable = gsub(".*./", "", xpath)) %>%
+    # clean variable description
+    mutate(description = gsub("Description: ", "", description),
+           description = gsub("</p>", "", description)) %>%
+    select(-var_name)
+
+}
+
+```
+
+```{r}
+
+# make kable table with consistent formatting
+make_table <- function(..., title = "") {
+  title <- paste0("<center><span style = 'font-size:150%;color:black'><b>",
+                  title,
+                  "</span></b><center>")
+   as_tibble(...) %>%
+    kbl(caption = title) %>%
+    kable_material() %>%
+    row_spec(row=0, background = "#43494C" ,
+             color = "white", bold = TRUE)
+}
+
+```
+
+```{r}
+# iterate through all html files in html directory and extract variable information
+variable_descriptions <- map_df(
+  dir(here("infrastructure_rmds", "data_dict_html"), full.names= TRUE),
+  get_var_info)
+
+saveRDS(variable_descriptions, here("data", "schedule_d_variable_descriptions.RDS"))
+
+# make table
+variable_descriptions %>%
+  select(`Variable Name` = variable,
+         `Line Number` = line_number,
+         Description = description) %>%
+  make_table() %>%
+  scroll_box(height = "450px")
+
+
+```
+
+
+## Reformatting Variable Names to be More Readable for Future Plots and Tables
+
+```{r}
+
+# resources:
+# example form: https://www.irs.gov/pub/irs-pdf/f990sd.pdf
+
+
+# same variables as extracted for the endowment data
+variables_no_path <- c("ReturnTs", 
+                       "EIN",
+                       "DonorRstrOrQuasiEndowmentsInd",
+                       "CYBeginningYearBalanceAmt", 
+                       "CYContributionsAmt", 
+                       "CYInvestmentEarningsOrLossesAmt",
+                       "CYOtherExpendituresAmt",
+                       "CYEndYearBalanceAmt",
+                       
+                       "CYM1BeginningYearBalanceAmt", 
+                       "CYM1ContributionsAmt", 
+                       "CYM1InvestmentEarningsOrLossesAmt",
+                       "CYM1OtherExpendituresAmt",
+                       "CYM1EndYearBalanceAmt",
+                       
+                       "CYM2BeginningYearBalanceAmt", 
+                       "CYM2ContributionsAmt", 
+                       "CYM2InvestmentEarningsOrLossesAmt",
+                       "CYM2OtherExpendituresAmt",
+                       "CYM2EndYearBalanceAmt",
+                       
+                       "CYM3BeginningYearBalanceAmt", 
+                       "CYM3ContributionsAmt", 
+                       "CYM3InvestmentEarningsOrLossesAmt",
+                       "CYM3OtherExpendituresAmt",
+                       "CYM3EndYearBalanceAmt",
+                       
+                       "CYM4BeginningYearBalanceAmt", 
+                       "CYM4ContributionsAmt", 
+                       "CYM4InvestmentEarningsOrLossesAmt",
+                       "CYM4OtherExpendituresAmt",
+                       "CYM4EndYearBalanceAmt",
+                       
+                       "BoardDesignatedBalanceEOYPct",
+                       "PrmnntEndowmentBalanceEOYPct",
+                       "TermEndowmentBalanceEOYPct",
+                       "EndowmentsHeldUnrelatedOrgInd",
+                       "EndowmentsHeldRelatedOrgInd",
+                       
+                       "AmendedReturnInd",
+                       "ReturnTypeCd"
+)
+
+
+# generate readable names by reformatting abbreviations and time period
+
+readable_names <- tibble(original_variable = variables_no_path) %>%
+  # add clearer interpretation of the time period given
+  mutate(time_period = case_when(
+    grepl("CYM1", original_variable) ~ "(1 year before current)",
+    grepl("CYM3", original_variable) ~ "(2 years before current)",
+    grepl("CYM3", original_variable) ~ "(3 years before current)",
+    grepl("CY", original_variable) ~ "(current year)"
+  )) %>%
+  # remove time period since separate column holds that information
+  mutate(variable = gsub("CYM1|CYM2|CYM3|CYM4|CY", "", original_variable),
+         # split into words where there is capitalization
+         var_split = gsub("([[:upper:]])", " \\1", variable),
+         # change shortened words to readable format
+         readable = gsub("E I N", "EIN", var_split) %>%
+             gsub("Rstr", "Restricted",.) %>%
+             gsub("Amt", "Amount", .) %>%
+             gsub("Ind", "Index", .) %>%
+             gsub("Org", "Organization", .) %>%
+             gsub("Pct", "Percentage", .) %>%
+             gsub("E O Y", "End of Year", .) %>%
+             gsub("Prmnnt", "Permanent", .) %>%
+            gsub(" Ts", " Timestamp", .),
+         readable = ifelse(!is.na(time_period), 
+                           paste(readable, time_period), 
+                           readable)) %>% 
+  select(original_variable, readable)
+
+saveRDS(readable_names, here("data", "readable_names.RDS")) 
+
+readable_names
+
+```
+
+## All Variables Available in Schedule D
+
+To see what variables might be of interest and are well-represented in the dataset, we can look at the variable names and the number of files that have a given variable.
+
+It may be good to get a sense for the variables that are present in the most of our files. The table below ranks the variables extracted by how many files have that variable.
+
+```{r,include = FALSE, eval=FALSE}
+
+############################################
+# FUNCTION DEVELOPMENT W/ TEST EXAMPLE
+############################################
+
+files <- dir(here("990archivesfeb2024"),
+               full.names = TRUE)
+
+example_file <- xml2::read_xml(files[10]) %>% xml_ns_strip()
+
+# look at all variable names in schedule D
+IRS990ScheduleD_vars <- example_file %>% 
+  xml_find_all("//ReturnData//IRS990ScheduleD")  %>%
+  xml_contents() %>% 
+  xml_path() 
+
+# look at variable names of children nodes of the schedule D nodes
+IRS990ScheduleD_var_children <- IRS990ScheduleD_vars %>% 
+  map(~xml_find_all(example_file,
+                    xpath = gsub("/", 
+                                 "//" ,
+                                 .x, 
+                                 fixed = TRUE) ) %>%
+        xml_children() %>% 
+        xml_path()) %>%
+  unlist()
+
+# include both first level schedule D nodes and children nodes
+vars <- c(IRS990ScheduleD_vars, IRS990ScheduleD_var_children)
+
+```
+
+```{r}
+################################################################################
+# extract variables in the IRS990ScheduleD node from the given file
+################################################################################
+# output is a dataframe with the filename and name of each variable extracted
+
+collect_sched_d_vars <- function(input_file) {
+  example_file <- xml2::read_xml(input_file)%>% xml_ns_strip()
+
+  # look at all variable names in schedule D
+  IRS990ScheduleD_vars <- example_file %>% 
+    xml_find_all("//ReturnData//IRS990ScheduleD")  %>%
+    xml_contents() %>% 
+    xml_path() 
+  
+  # look at variable names of children nodes of the schedule D nodes
+  IRS990ScheduleD_var_children <- IRS990ScheduleD_vars %>% 
+    map(~xml_find_all(example_file,
+                      xpath = gsub("/", 
+                                   "//" ,
+                                   .x, 
+                                   fixed = TRUE) ) %>%
+          xml_children() %>% 
+          xml_path()) %>%
+    unlist()
+  
+    # include both first level schedule D nodes and children nodes
+    vars <- c(IRS990ScheduleD_vars, IRS990ScheduleD_var_children)
+    
+    tibble(variables = vars,
+           filename = input_file)
+}
+
+# file paths in the directory
+files <- dir(here("990archivesfeb2024"),
+               full.names = TRUE)
+
+# iterate over all files and extract variables present
+# output is a data frame with a file name column and variable name column
+all_vars <- map_df(files, collect_sched_d_vars)
+
+all_vars
+```
+
+```{r,include=FALSE}
+
+##################################################
+# print data frame to show frequency of different 
+# variables in the dataset 
+##################################################
+
+# version that does not include parent node
+# interpretation is more difficult 
+# all_vars %>% 
+#    rename(Variable = variables) %>%
+#    group_by(Variable) %>% 
+#    summarize(`Number of Files` = n())  %>%
+#    mutate(Variable = gsub("*.*\\/", "", Variable)) %>%
+#   arrange(desc(`Number of Files`))
+
+```
+
+## Table of Variables by Frequency
+
+```{r}
+# sort variables by the number of files that have a given variable
+# include parent variable for ease of interpretation
+vars_count<-all_vars %>% 
+   rename(Variable = variables) %>%
+   group_by(Variable) %>% 
+  # number of files that have each variable
+   summarize(files = n()) %>%
+  # split variable paths
+  #second to last element is parent, last element is variable
+   mutate(Variable = strsplit(Variable, split = "/"),
+           Parent = map_chr(Variable, ~.x[length(.x)-1]),
+           Variable = map_chr(Variable, ~.x[length(.x)])) %>%
+  select(Parent, Variable, `Number of Files` = files ) %>%
+  arrange(desc(`Number of Files`))
+
+
+vars_count %>% 
+  filter(Parent == "OtherLandBuildingsGrp" | Parent == "BuildingsGrp" | Parent == "LandGrp") %>% 
+  arrange(desc(`Number of Files`))
+```
+
+```{r}
+vars_count
+```
+
+```{r}
+vars_count %>% 
+  group_by(Parent) %>% 
+  summarise(parent_count = n()) %>% 
+  arrange(desc(`parent_count`))
+```

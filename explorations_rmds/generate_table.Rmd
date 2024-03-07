@@ -1,0 +1,491 @@
+---
+title: "Generate Table from XML Files"
+author: "Quinn White"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: hide
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "output_html")})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{css,echo=FALSE}
+
+/* CSS for formatting of the knitted html file; changing default colors of readthedown */
+
+#sidebar h2 { background: #3B5561 !important;}
+#main .nav-pills > li.active > a,
+#main .nav-pills > li.active > a:hover,
+#main .nav-pills > li.active > a:focus {
+    background-color: #22983B;
+}
+
+#main .nav-pills > li > a:hover {
+    background-color: #22983B;
+}
+
+// font color to dark blue 
+h1, h2, h3, h4, h5, h6, legend {
+    color: #334B56;
+}
+
+
+#table-of-contents h2 {
+    background-color: #3B5561;
+}
+
+/* expand content to screenwidth rather than cutting it off */
+#content{
+max-width:2300px;
+}
+
+
+
+```
+
+
+```{r}
+
+library(tidyverse)
+library(xml2)
+library(kableExtra)
+library(lubridate)
+library(forcats)
+library(here)
+
+
+```
+
+```{r}
+all_data_filtered <- read_rds(here("data", "data_filter_990.RDS"))
+```
+
+```{r}
+
+# make kable table with consistent formatting
+make_table <- function(..., title = "") {
+  title <- paste0("<center><span style = 'font-size:150%;color:black'><b>",
+                  title,
+                  "</span></b><center>")
+   as_tibble(...) %>%
+    kbl(caption = title) %>%
+    kable_material() %>%
+    row_spec(row=0, background = "#43494C" , color = "white", bold = TRUE)
+}
+
+```
+
+
+
+# 1. Filings per Year
+
+## Filings by Fiscal Year
+
+```{r}
+
+############################################################
+# TABLE: Number of Filings by Year of Return Date
+############################################################
+all_data_filtered %>%
+  group_by(fiscal_year) %>%
+  summarize(`Number of Filings`= n()) %>%
+  rename(`Year of Return Date` = fiscal_year) %>%
+  make_table(title = "Number of Filings by Fiscal Year")
+
+
+```
+
+```{r, fig.width = 10, fig.height = 6}
+
+############################################################
+# PLOT: Number of Filings by Year of Return Date
+############################################################
+all_data_filtered %>%
+  group_by(fiscal_year) %>%
+  summarize(`Number of Filings`= n()) %>%
+  rename(`Fiscal Year` = fiscal_year) %>%
+  ggplot(aes(x =`Fiscal Year`, y = `Number of Filings`)) +
+  geom_bar(stat = "identity", fill = "#3D6071") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        axis.text.x = element_text(size = 15),
+        axis.text.y=element_text(size = 12)) +
+  labs(title = "Number of Filings by Fiscal Year") +
+  scale_y_continuous(n.breaks = 6)
+
+
+```
+
+# 2. Companies per Year
+
+```{r, fig.width = 10, fig.height = 6}
+
+
+####################################################
+# TABLE OF (DISTINCT) EINS PER YEAR
+####################################################
+all_data_filtered %>%
+  group_by(fiscal_year) %>%
+  summarize(`Number of Companies` = n_distinct(EIN)) %>%
+  rename(`Fiscal Year` = fiscal_year) %>%
+  make_table(title = "Number of Companies by Fiscal Year")
+
+
+####################################################
+# PLOT OF (DISTINCT) EINS PER YEAR
+####################################################
+all_data_filtered %>%
+  group_by(fiscal_year) %>%
+  summarize(`Number of Distinct EINs` = n_distinct(EIN)) %>%
+  rename(`Fiscal Year` = fiscal_year) %>%
+  ggplot(aes(x = `Fiscal Year`, y = `Number of Distinct EINs`)) +
+  geom_bar(stat = "identity", fill = "#3D6071") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        axis.text.x = element_text(size = 15)) +
+  labs(title = "Number of Companies by Fiscal Year") 
+     
+
+
+```
+
+# 3. Companies with More than One Filing in a Year
+
+We can see the EINs and names of the companies with more than one filing in some fiscal year in the table below.
+
+```{r}
+############################################################
+# TABLE WITH COMPANIES WITH MORE THAN ONE FILING, BY YEAR
+############################################################
+all_data_filtered %>%
+  group_by(fiscal_year, EIN) %>%
+  # number of filings for each company for each year
+  summarize(n_filings =n(),.groups="drop") %>%
+  filter(n_filings > 1) %>%
+  rename(`Fiscal Year` = fiscal_year,
+         `Number of Filings` = n_filings) %>%
+  arrange( `Fiscal Year`, desc(`Number of Filings`)) %>%
+  make_table(
+    title = "Companies with More than One Filing<br>by Fiscal Year") %>%
+  scroll_box(height = "450px")
+
+```
+
+<br><br><br>
+
+
+We can also look at the trends in the number of companies with 1 filing or 2 filings by  fiscal year in the plot below.
+
+
+```{r, fig.width = 12, fig.height = 6}
+
+
+all_data_filtered %>%
+  group_by(fiscal_year, EIN) %>%
+  # number of filings for each company for each year
+  summarize(n_filings =n(),.groups="drop") %>% 
+  group_by(n_filings, fiscal_year) %>%
+  # number of companies with n_filings for each year
+  summarize(n_companies = n(), .groups="drop") %>%
+  mutate(n_filings = factor(n_filings)) %>%
+  ggplot(aes(x = n_filings, 
+             y =n_companies,
+             fill = n_filings)) +
+  geom_bar(stat = "identity",
+           position = "dodge",
+           show.legend=FALSE) +
+  facet_wrap(~fiscal_year, nrow =1) +
+  scale_fill_manual(
+    values = c("#72e5ef",
+               "#1e438d", 
+               "#58df8c")) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 15),
+        strip.text = element_text(face="bold",size = 18)) +
+  labs(y = "Number of Companies",
+       x = "Number of Filings",
+       title = "Companies by Number of Filings per Year",
+       subtitle = "By Fiscal Year")
+
+```
+
+
+# 4. Gaps in Filings 
+
+## Gaps in Filings for All Companies {.tabset}
+
+### By EIN 
+
+```{r, fig.height = 16,  fig.width = 10}
+
+all_data_filtered %>% 
+  # compute coverage so we can order the plot by days of total coverage by EIN
+  select(EIN, 
+         TaxPeriodBeginDt, 
+         TaxPeriodEndDt) %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  mutate(sum_coverage = sum(time))%>%
+  ggplot(aes(xmin = TaxPeriodBeginDt, 
+             xmax = TaxPeriodEndDt, 
+             y = fct_reorder(EIN, sum_coverage))) +
+  geom_linerange(size = 1, alpha = .8) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 11,angle=20, vjust = .7),
+        axis.text.y = element_text(size = 4),
+        strip.text = element_text(face="bold",size = 18)) +
+  scale_x_date(date_breaks = "12 months",
+               date_labels = "%b %Y") +
+  labs(y = "EIN",
+       x = "Date",
+       title = "Gaps in Coverage by EIN")
+  # scale_x_date(date_breaks = "9 months",
+  #              date_labels = "%b %Y") +
+
+```
+
+### By Company Name
+
+
+```{r, fig.height = 16,  fig.width = 10}
+
+
+ein_to_name <- all_data_filtered %>%
+  select(EIN, BusinessName) %>%
+  group_by(EIN) %>%
+  mutate(n_names = n_distinct(BusinessName)) %>%
+  slice_head(n=1) %>%
+  select(EIN, BusinessName)
+
+
+all_data_filtered %>% 
+  # compute coverage so we can order the plot by days of total coverage by EIN
+  select(EIN, 
+         TaxPeriodBeginDt, 
+         TaxPeriodEndDt) %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  mutate(sum_coverage = sum(time))%>%
+  left_join(ein_to_name) %>%
+  ggplot(aes(xmin = TaxPeriodBeginDt, 
+             xmax = TaxPeriodEndDt, 
+             y = fct_reorder(BusinessName, sum_coverage))) +
+  geom_linerange(size = 1, alpha = .8) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 11,angle=20, vjust = .7),
+        axis.text.y = element_text(size = 4),
+        strip.text = element_text(face="bold",size = 18)) +
+  scale_x_date(date_breaks = "12 months",
+               date_labels = "%b %Y") +
+  labs(y = "Business Name",
+       x = "Date",
+       title = "Gaps in Coverage by Business Name") 
+  # scale_x_date(date_breaks = "9 months",
+  #              date_labels = "%b %Y") +
+
+```
+
+
+## Companies with at Least One Gap Year
+
+To check for gap years, we can take the difference between `TaxPeriodBeginDt` and the lagged `TaxPeriodEndDt` for each EIN.
+
+```{r}
+
+###################################################
+# TABLE WITH COMPANIES WITH AT LEAST ONE GAP YEAR
+###################################################
+all_data_filtered %>% 
+  # do not include ammended returns for this computation
+  filter(is.na(AmendedReturnInd) & ReturnTypeCd != "990T") %>%
+  # compute coverage so we can order the plot by days of total coverage by EIN
+  select(EIN, 
+         TaxPeriodBeginDt, 
+         TaxPeriodEndDt) %>%
+  group_by(EIN) %>%
+  arrange(TaxPeriodBeginDt) %>%
+  mutate(before =  lag(TaxPeriodEndDt, n =1),
+        gap = interval(before, TaxPeriodBeginDt),
+        gap = as.numeric(gap, "days")) %>%
+  filter(gap >=365)  %>% 
+  select(EIN,
+         `Previous End of Fiscal Year` = before,
+         `Beginning of Fiscal Year` = TaxPeriodBeginDt,
+         `Gap Between Filings (Days)` = gap) %>%
+  make_table(title = "Companies with a Gap of One Year or More Between Filings") %>%
+  scroll_box(height = "450px")
+
+# vector of EINs corresponding to companies with at least one gap year
+ein_with_gap <- all_data_filtered %>% 
+  # do not include ammended returns for this computation
+  filter(is.na(AmendedReturnInd) & ReturnTypeCd != "990T") %>%
+  # compute coverage so we can order the plot by days of total coverage by EIN
+  select(EIN, 
+         TaxPeriodBeginDt, 
+         TaxPeriodEndDt) %>%
+  group_by(EIN) %>%
+  arrange(TaxPeriodBeginDt) %>%
+  mutate(before =  lag(TaxPeriodEndDt, n =1),
+        gap = interval(before, TaxPeriodBeginDt),
+        gap = as.numeric(gap, "days")) %>%
+  filter(gap >=365) %>%
+  pull(EIN)
+
+```
+
+
+### Plotting Gaps in Coverage for Companies with at Least One Gap Year {.tabset}
+ 
+#### By EIN
+
+```{r, fig.width = 11}
+
+############################################################
+# PLOT COVERAGE FOR COMPANIES WITH 1+ GAP YEAR (BY EIN)
+############################################################
+all_data_filtered %>% 
+  filter(EIN %in% ein_with_gap) %>%
+  # compute coverage so we can order the plot by days of total coverage by EIN
+  select(EIN, 
+         TaxPeriodBeginDt, 
+         TaxPeriodEndDt) %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  mutate(sum_coverage = sum(time))%>%
+  ggplot(aes(xmin = TaxPeriodBeginDt, 
+             xmax = TaxPeriodEndDt, 
+             y = fct_reorder(EIN, sum_coverage))) +
+  geom_linerange(size = 1, alpha = .8) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 16, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 11,angle=20, vjust = .7),
+        axis.text.y = element_text(size = 8),
+        strip.text = element_text(face="bold",size = 18)) +
+  scale_x_date(date_breaks = "12 months",
+               date_labels = "%b %Y") +
+  labs(y = "EIN",
+       x = "Date",
+       title = "Gaps in Coverage for Companies\nwith at Least One Gap Year")
+
+# gap_cvg_basicplot <- all_data_filtered
+#   ggplot(aes(xmin = TaxPeriodBeginDt, 
+#              xmax = TaxPeriodEndDt, 
+#              y = fct_reorder(EIN, sum_coverage))) +
+#   geom_linerange(size = 1, alpha = .8) +
+#   theme_bw() +
+#   theme(plot.title = element_text(size = 16, face = "bold", hjust = .5),
+#         axis.title = element_text(size = 16, face = "bold"),
+#         plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+#         axis.text.x = element_text(size = 11,angle=20, vjust = .7),
+#         axis.text.y = element_text(size = 8),
+#         strip.text = element_text(face="bold",size = 18)) +
+#   scale_x_date(date_breaks = "12 months",
+#                date_labels = "%b %Y") +
+#   labs(y = "EIN",
+#        x = "Date",
+#        title = "Gaps in Coverage for Companies\nwith at Least One Gap Year")
+# 
+# gap_cvg_basicplot
+# ggsave("gap_cvg_basicplot.png", path = here("final_report", "images"))
+
+```
+
+#### By Business Name
+
+```{r, fig.width = 11}
+
+############################################################
+# PLOT COVERAGE FOR COMPANIES WITH 1+ GAP YEAR (BY NAME)
+############################################################
+all_data_filtered %>% 
+  filter(EIN %in% ein_with_gap) %>%
+  # compute coverage so we can order the plot by days of total coverage by EIN
+  select(EIN, 
+         TaxPeriodBeginDt, 
+         TaxPeriodEndDt) %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  mutate(sum_coverage = sum(time))%>%
+  left_join(ein_to_name) %>%
+  ggplot(aes(xmin = TaxPeriodBeginDt, 
+             xmax = TaxPeriodEndDt, 
+             y = fct_reorder(BusinessName, sum_coverage))) +
+  geom_linerange(size = 1, alpha = .8) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 16, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 11,angle=20, vjust = .7),
+        axis.text.y = element_text(size = 8),
+        strip.text = element_text(face="bold",size = 18)) +
+  scale_x_date(date_breaks = "12 months",
+               date_labels = "%b %Y") +
+  labs(y = "EIN",
+       x = "Date",
+       title = "Gaps in Coverage for Companies\nwith at Least One Gap Year")
+
+```
+
+
+## Distribution of Gaps Between Filings
+
+```{r}
+#####################################
+# HISTOGRAM OF GAPS BETWEEN FILINGS
+#####################################
+all_data_filtered %>% 
+  # do not include ammended returns for this computation
+  filter(is.na(AmendedReturnInd) & ReturnTypeCd != "990T") %>%
+  # compute coverage so we can order the plot by days of total coverage by EIN
+  select(EIN, 
+         TaxPeriodBeginDt, 
+         TaxPeriodEndDt) %>%
+  group_by(EIN) %>%
+  arrange(TaxPeriodBeginDt) %>%
+  mutate(before =  lag(TaxPeriodEndDt, n =1),
+        gap = interval(before, TaxPeriodBeginDt),
+        gap = as.numeric(gap, "days")) %>%
+  ggplot(aes(x =gap )) +
+  geom_histogram( fill = "#3D6071") +
+  theme_bw() +
+  labs(x = "Gap Between Filings (Days)",
+       y = "Number of Companies",
+       title = "Distribution of the Gap Between Filings") +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 11, vjust = .7),
+        axis.text.y = element_text(size = 12),
+        strip.text = element_text(face="bold",size = 18)) +
+  scale_x_continuous(n.breaks = 10)
+
+
+
+
+
+```
+

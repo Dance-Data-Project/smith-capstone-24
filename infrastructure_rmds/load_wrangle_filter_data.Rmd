@@ -1,0 +1,406 @@
+---
+title: "Loading, Wrangling, & Filtering Data"
+author: "Rose Evard"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: hide
+    css: !expr here::here('css', 'template.css')
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "output_html")})
+---
+
+By the end of this file, you should have three RDS's:  
+- The initial metadata table  
+- The filtered metadata table  
+- The filtered endowment information 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(xml2)
+library(kableExtra)
+library(lubridate)
+library(forcats)
+library(here)
+
+
+source(here('GET_VARS.R'))
+
+```
+
+
+# Generate Metadata Table for All Files  
+```{r get_df function for extracting data from xml files,eval=FALSE, class.source = "fold-show" }
+
+
+##########################################################
+# ITERATE THROUGH ALL FILES AND EXTRACT GIVEN VARIABLES
+##########################################################
+
+
+#' @param variables character vector of variables to extract from the xml files
+#' @param filename string containing full path to xml file to be read
+#' @param include_paths logical; whether to include paths to extracted variables in data frame
+
+get_df <- function(variables,
+                   filename, 
+                   include_paths = TRUE) {
+  
+  # create column names with just the variables (no paths)
+  variables_no_path <- gsub("*.*\\/", "", variables )
+  
+  xml_file <- read_xml(filename)
+  xml_file <- xml_ns_strip(xml_file)
+  
+  # extract each variable; if it isn't present, put NA 
+  extracted <- map(variables, ~{
+    value <- xml_find_all(
+      xml_file, 
+      xpath =.x)
+    value <- ifelse(length(value) ==0, 
+                    NA, 
+                    xml_text(value)) })
+  
+   names(extracted) <- variables_no_path
+   
+   extracted <- extracted %>%
+     as_tibble()
+ 
+ 
+   # add columns with the paths to each variable within the xml file
+   if(include_paths) {
+      paths <- map(variables, ~ {
+        value <- xml_find_all(
+          xml_file, 
+          xpath = paste0(.x)) 
+         value <- ifelse(length(value) ==0, 
+                      NA, 
+                      xml_path(value)) })
+      
+      names(paths) <- paste0(variables_no_path, "_path")
+      
+      extracted <- extracted %>%
+        bind_cols(as_tibble(paths)) 
+  
+   }
+    
+   # check how many of the entries are NA
+   # if all NA, prefix 'irs:' may be needed
+   columns_not_na <- map_dbl(as.data.frame(extracted), ~!is.na(.x)) %>% sum()
+   
+   # handle case where prefix 'irs' is in front
+   if(columns_not_na == 0){
+     
+       extracted <- map(variables_no_path, ~ {
+        value <- xml_find_all(xml_file, 
+                              xpath = paste0("//irs:", .x)) 
+        value <- ifelse(length(value) ==0, 
+                    NA, 
+                    xml_text(value)) })
+        names(extracted) <- variables_no_path
+        
+         extracted <- extracted %>%
+           as_tibble()
+     
+        if(include_paths) {
+        paths <- map(variables_no_path, ~ {
+          value <- xml_find_all(
+            xml_file, 
+            xpath = paste0("//irs:", .x))
+      
+          value <- ifelse(length(value) ==0, 
+                      NA, 
+                      xml_path(value)) })
+        
+        names(paths) <- paste0(variables_no_path, "_path")  
+        
+      extracted <-  extracted %>%
+        bind_cols(as_tibble(paths)) 
+     }
+   }
+   
+ # add name of file to data frame
+ extracted %>%
+   mutate(filename = gsub("*.*\\/", "", filename))
+}
+```
+
+```{r}
+
+
+# Reference for Field Names
+# https://vtechworks.lib.vt.edu/bitstream/handle/10919/109974/TaxDataFinalReport.pdf?sequence=10&isAllowed=y
+
+# path assumes zip-file is unzipped in smith-capstone-23 directory
+# generates vector of the full paths to all files in the ballet_990_released_20230208 directory
+
+files <- dir(here("990archivesfeb2024"),
+              full.names = TRUE)
+
+# variables to extract from each xml file
+variables_to_extract <- c("//Return//ReturnHeader//ReturnTs",  
+                          "//Return//ReturnHeader//Filer//EIN", 
+                          "//Return//ReturnHeader//ReturnTypeCd",
+                          "//Return//ReturnHeader//TaxPeriodBeginDt",
+                          "//Return//ReturnHeader//TaxPeriodEndDt",
+                          "//AmendedReturnInd",
+                          "//Return//ReturnHeader//BusinessName")
+
+
+# if data directory does not exist in current directory, create it 
+if(!file.exists(here("data"))) {dir.create(here("data"))}
+
+# iterate over all xml files in the directory and extract data
+# each iteration generates one row of the data frame
+all_data <- map_df(files, ~
+                     get_df(variables = variables_to_extract,
+                     filename = .x)) 
+
+# clean timestamp and dates
+# fiscal year is defined as the year of TaxPeriodEndDt
+all_data <- all_data %>%
+  mutate(ReturnDate = as.Date(ReturnTs,
+                              format = "%Y-%m-%d")) %>%
+  mutate(across(c(TaxPeriodBeginDt, 
+                  TaxPeriodEndDt),
+                as.Date, 
+                format = "%Y-%m-%d")) %>%
+  mutate(fiscal_year = year(TaxPeriodEndDt),
+         fiscal_year = factor(fiscal_year),
+         BusinessName = toupper(BusinessName))
+
+# check all files are present in data frame
+# nrow(all_data) == length(files)
+
+# save RDS file to data directory
+saveRDS(all_data, here("data", "data_990.RDS"))
+```
+
+
+# Filtering the metadata table 
+
+
+```{r, filtering}
+## Filtering for most recent version, 
+filter_data <- all_data %>%
+  filter(ReturnTypeCd == "990" | ReturnTypeCd == "990EZ") %>%
+  mutate(amended_return_filled = ifelse(!is.na(AmendedReturnInd),1, 0)) %>%
+  group_by(EIN, fiscal_year) %>%
+  slice_max(order_by =amended_return_filled, n = 1) %>%
+  ungroup()  
+```
+
+```{r}
+## Saving data
+filter_data %>%
+  select(ReturnTs, EIN, filename) %>%
+  saveRDS(here("data", "ein_ts_filter.RDS"))
+
+saveRDS(filter_data, here("data", "data_filter_990.RDS"))
+
+```
+
+# Extracting Endowment Data  
+
+```{r extracting endowment information}
+
+# For variable information, see https://www.irs.gov/pub/irs-pdf/i990sd.pdf Page 4 Part V
+
+##########################################################
+# ITERATE THROUGH ALL FILES AND ENDOWMENT  VARIABLES
+##########################################################
+
+#' @param filename string containing full path to xml file to be read
+
+##Based off of Quinn's strategy to extract metadata
+get_endowment <- function(filename) {
+  
+  # Retrieving the same endowment information for all 
+  variables <- c("//Return//ReturnHeader//ReturnTs", 
+                 "//Return//ReturnHeader//Filer//EIN", 
+                  "//Return//ReturnHeader//TaxPeriodBeginDt",
+                  "//Return//ReturnHeader//TaxPeriodEndDt",
+                 "//Return//ReturnData//IRS990//DonorRstrOrQuasiEndowmentsInd",
+                 "//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//BeginningYearBalanceAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//ContributionsAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//InvestmentEarningsOrLossesAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//OtherExpendituresAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//EndYearBalanceAmt",
+                 
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//BeginningYearBalanceAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//ContributionsAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//OtherExpendituresAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//EndYearBalanceAmt",
+                
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//BeginningYearBalanceAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//ContributionsAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//OtherExpendituresAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//EndYearBalanceAmt",
+                 
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//BeginningYearBalanceAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//ContributionsAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//OtherExpendituresAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//EndYearBalanceAmt",
+                 
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//BeginningYearBalanceAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//ContributionsAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//OtherExpendituresAmt",
+                 "//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//EndYearBalanceAmt",
+                 
+                 "//Return//ReturnData//IRS990ScheduleD//BoardDesignatedBalanceEOYPct",
+                 "//Return//ReturnData//IRS990ScheduleD//PrmnntEndowmentBalanceEOYPct",
+                 "//Return//ReturnData//IRS990ScheduleD//TermEndowmentBalanceEOYPct",
+                 "//Return//ReturnData//IRS990ScheduleD//EndowmentsHeldUnrelatedOrgInd",
+                 "//Return//ReturnData//IRS990ScheduleD//EndowmentsHeldRelatedOrgInd",
+                 
+                 "//AmendedReturnInd",
+                 "//Return//ReturnHeader//ReturnTypeCd"
+                 )
+  
+  # Column name; order matters, needs to align with retrieval order
+  variables_no_path <- c("ReturnTs", 
+                         "EIN",
+                         "TaxPeriodBeginDt",
+                         "TaxPeriodEndDt",
+                         "DonorRstrOrQuasiEndowmentsInd",
+                        "CYBeginningYearBalanceAmt", 
+                        "CYContributionsAmt", 
+                        "CYInvestmentEarningsOrLossesAmt",
+                        "CYOtherExpendituresAmt",
+                        "CYEndYearBalanceAmt",
+                        
+                        "CYM1BeginningYearBalanceAmt", 
+                        "CYM1ContributionsAmt", 
+                        "CYM1InvestmentEarningsOrLossesAmt",
+                        "CYM1OtherExpendituresAmt",
+                        "CYM1EndYearBalanceAmt",
+                        
+                        "CYM2BeginningYearBalanceAmt", 
+                        "CYM2ContributionsAmt", 
+                        "CYM2InvestmentEarningsOrLossesAmt",
+                        "CYM2OtherExpendituresAmt",
+                        "CYM2EndYearBalanceAmt",
+                        
+                        "CYM3BeginningYearBalanceAmt", 
+                        "CYM3ContributionsAmt", 
+                        "CYM3InvestmentEarningsOrLossesAmt",
+                        "CYM3OtherExpendituresAmt",
+                        "CYM3EndYearBalanceAmt",
+                        
+                        "CYM4BeginningYearBalanceAmt", 
+                        "CYM4ContributionsAmt", 
+                        "CYM4InvestmentEarningsOrLossesAmt",
+                        "CYM4OtherExpendituresAmt",
+                        "CYM4EndYearBalanceAmt",
+                        
+                        "BoardDesignatedBalanceEOYPct",
+                        "PrmnntEndowmentBalanceEOYPct",
+                        "TermEndowmentBalanceEOYPct",
+                        "EndowmentsHeldUnrelatedOrgInd",
+                        "EndowmentsHeldRelatedOrgInd",
+                        
+                        "AmendedReturnInd",
+                        "ReturnTypeCd"
+                        )
+  
+  xml_file <- read_xml(filename)
+  xml_file <- xml_ns_strip(xml_file)
+  
+  # extract each variable; if it isn't present, put NA 
+  extracted <- map(variables, ~{
+    value <- xml_find_all(
+      xml_file, 
+      xpath =.x)
+    value <- ifelse(length(value) ==0, 
+                    NA, 
+                    xml_text(value)) })
+  
+   names(extracted) <- variables_no_path
+   
+  # check how many of the entries are NA
+  # if all NA, prefix 'irs:' may be needed
+  columns_not_na <- map_dbl(as.data.frame(extracted), ~!is.na(.x)) %>% sum()
+  
+  # handle case where prefix 'irs' is in front
+  if(columns_not_na == 0){
+    
+    extracted <- map(variables_no_path, ~ {
+      value <- xml_find_all(xml_file, 
+                            xpath = paste0("//irs:", .x)) 
+      value <- ifelse(length(value) ==0, 
+                      NA, 
+                      xml_text(value)) })
+    names(extracted) <- variables_no_path
+    
+    extracted <- extracted %>%
+      as_tibble()
+  }
+   
+   extracted <- extracted %>%
+     as_tibble()
+ # add name of file to data frame
+ extracted %>%
+   mutate(filename = gsub("*.*\\/", "", filename))
+}
+```
+
+```{r retrieving endowment info}
+##Applying get_endowment to entire output 
+files <- dir(here("990archivesfeb2024"),
+              full.names = TRUE)
+
+endowment_data <- map_df(files, ~
+                     get_endowment(.x)) 
+
+##Retriving Ts and EINs for filtered data 
+filter_ids <- filter_data %>%
+  select(ReturnTs, EIN)
+
+## Adjusting data type, filtering to proper 990s
+endowment_data_filtered <- endowment_data %>%
+  mutate(ReturnDate = as.Date(ReturnTs,
+                              format = "%Y-%m-%d"),
+         TaxPeriodBeginDt = as.Date(TaxPeriodBeginDt,
+                                  format = "%Y-%m-%d"),
+         TaxPeriodEndDt = as.Date(TaxPeriodEndDt,
+                                  format = "%Y-%m-%d"),
+         fiscal_year = as.factor(year(TaxPeriodEndDt))) %>%
+  mutate(across(CYBeginningYearBalanceAmt:TermEndowmentBalanceEOYPct,
+                as.numeric)) %>%
+  mutate(across(c(EndowmentsHeldRelatedOrgInd, 
+                  EndowmentsHeldUnrelatedOrgInd,
+                  DonorRstrOrQuasiEndowmentsInd),
+                ~ifelse(.x == "true" | .x == "1", TRUE, FALSE))) %>%
+  
+  filter(ReturnTypeCd == "990" | ReturnTypeCd == "990EZ") %>%
+  right_join(filter_ids, by = c("ReturnTs", "EIN")) %>%
+  #Removing columns needed for filtering
+  select(-c(ReturnTypeCd,AmendedReturnInd)) 
+```
+
+```{r}
+saveRDS(endowment_data_filtered, here("data", "endowment_filter_data_990.RDS"))
+```
+
+```{r}
+
+read_csv(here('data', 'companies.csv')) %>%
+  mutate(EIN = as.character(EIN),
+         EIN = ifelse(nchar(EIN) == 8, paste("0", EIN, sep=""), EIN)) %>%
+  select(Company, EIN) %>%
+  distinct() %>%
+  saveRDS(here('data', 'companies.RDS'))
+
+```
+

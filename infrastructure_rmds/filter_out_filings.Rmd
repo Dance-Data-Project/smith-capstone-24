@@ -1,0 +1,215 @@
+---
+title: "Filtering out Filings"
+author: "Rose Evard"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: hide
+    css: !expr here::here('css', 'template.css')
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "output_html")})
+---
+
+```{css, echo = FALSE}
+
+/* expand content to screenwidth rather than cutting it off */
+#content{
+max-width:2300px;
+}
+
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+
+library(tidyverse)
+library(kableExtra)
+library(here)
+all_data <- readRDS(here("data", "data_990.RDS"))
+
+```
+
+
+```{r}
+
+# make kable table with consistent formatting
+make_table <- function(..., title = "") {
+  title <- paste0("<center><span style = 'font-size:150%;color:black'><b>",
+                  title,
+                  "</span></b><center>")
+   as_tibble(...) %>%
+    kbl(caption = title) %>%
+    kable_material() %>%
+    row_spec(row=0, background = "#43494C" , color = "white", bold = TRUE)
+}
+
+```
+
+## Filtering Amended 990s and 990T  
+
+```{r, filtering}
+## Retain only 990, 990 EZ's that are not marked as amended
+filter_data <- all_data %>%
+  filter(ReturnTypeCd == "990" | ReturnTypeCd == "990EZ")
+```
+
+
+## Companies with Multiple Filings in a Fiscal Year
+
+There are `r filter_data %>% group_by(EIN, fiscal_year) %>% mutate(n=n()) %>% filter(n>1) %>% nrow()` companies that have multiple filings in a year. No company had more than 2 filings for a given fiscal year.
+
+Additionally, in cases where there were 2 filings, one was always an amended filing, as we would expect.
+
+
+```{r}
+
+# check if one of the filings was amended for 
+# every company that had multiple filings  
+
+companies_mult_filings <- filter_data %>%
+  group_by(EIN, fiscal_year) %>%
+  mutate(n=n()) %>% 
+  select(AmendedReturnInd, EIN, n, ReturnDate) %>%
+  arrange(desc(n), EIN, fiscal_year)  %>% 
+  filter(n>1) %>%
+  mutate(amended_return_filled = ifelse(!is.na(AmendedReturnInd),1, 0)) %>%
+  group_by(EIN, fiscal_year) %>%
+  mutate(filled_out_ammended_total_for_year = sum(amended_return_filled)) %>%
+  mutate(form_was_amended = case_when(
+    filled_out_ammended_total_for_year == 1 ~ "Amended Once",
+    filled_out_ammended_total_for_year == 0 ~ "Not Amended",
+    filled_out_ammended_total_for_year > 1 ~ "Amended More than Once")) %>%
+  arrange(desc(n), EIN, fiscal_year, AmendedReturnInd) %>%
+  select(-c(amended_return_filled, filled_out_ammended_total_for_year))
+
+```
+
+```{r class.source = 'fold-show'}
+
+companies_mult_filings %>%
+  filter(form_was_amended != "Amended Once")
+```
+
+```{r}
+
+# table showing companies with multiple filings per year
+companies_mult_filings %>%
+  select(`Fiscal Year` = fiscal_year,
+         `Amended` = AmendedReturnInd,
+         EIN, 
+         `Form was Amended` = form_was_amended,
+         `Return Date` = ReturnDate,
+         `Number of Filings<br>for Fiscal Year` = n
+         ) %>%
+  make_table(title = "Companies with Multiple Filings in a Fiscal Year" ) %>%
+  scroll_box(height = "400px")
+
+
+
+
+```
+
+```{r}
+
+# notice we have 799 filings before filtering based on amended filings
+# from the previous code there were 14 cases where a company filed 
+# 2 times in a single fiscal year
+filter_data %>% nrow() 
+
+# take the amended version
+filter_data_amended <- filter_data %>%
+  mutate(amended_return_filled = ifelse(!is.na(AmendedReturnInd),1, 0)) %>%
+  group_by(EIN, fiscal_year) %>%
+  slice_max(order_by =amended_return_filled, n = 1)
+
+# take the most recent return date
+max_by_date <- filter_data %>%
+  mutate(amended_return_filled = ifelse(!is.na(AmendedReturnInd),1, 0)) %>%
+  group_by(EIN, fiscal_year) %>%
+  slice_max(order_by =ReturnDate, n = 1)
+
+# check that picking max return date is the same as picking the amended one
+all.equal(filter_data_amended, max_by_date)
+
+
+# now we have 799 - 14 = 785 observtions, as we would expect, 
+# because we only took the 14 amended ones
+nrow(filter_data_amended)
+
+eins_with_multiple <- filter_data %>%
+  group_by(EIN, fiscal_year) %>%
+  mutate(n=n()) %>%
+  filter(n > 1) %>%
+  # need both fiscal year and ein number to check
+  # which year/ein combinations had multiple filings
+  mutate(EIN_year =paste0(EIN, fiscal_year)) %>%
+  pull(EIN_year)
+  
+
+# of the eins with multiple filings, now we only have
+# the ones that were ammended (AmendedReturnInd is "X", not NA)
+filter_data_amended %>%
+  mutate(EIN_year =paste0(EIN, fiscal_year)) %>%
+  filter(EIN_year %in% eins_with_multiple) %>%
+  filter(is.na(AmendedReturnInd)) 
+  
+```
+
+
+## Detecting Groups who Changed Fiscal Year  
+
+```{r identify bridging}
+#Finding all companies with any short or abnormally long fiscal years  
+#Note that there were not any long ones
+short_years_filings <- filter_data_amended %>%
+  select(EIN, TaxPeriodBeginDt, TaxPeriodEndDt) %>%
+  mutate(year_len = difftime(TaxPeriodEndDt, TaxPeriodBeginDt, units = "days")) %>%
+  filter(year_len < 364 | year_len > 365)
+
+##Tabling it for the HTML
+short_years_filings %>%
+  kbl(caption = "Short fiscal years") %>%
+  kable_material()
+```
+
+```{r,include=FALSE}
+
+filter_data_amended %>%
+  select(EIN, TaxPeriodBeginDt, TaxPeriodEndDt) %>%
+  mutate(year_len = difftime(TaxPeriodEndDt,
+                             TaxPeriodBeginDt, 
+                             units = "days")) %>%
+  ggplot(aes(x = year_len))+
+  geom_histogram()
+
+```
+
+
+
+There is only one company which has a short fiscal year: 742371103
+
+## Investigating single short fiscal year  
+
+```{r}
+#Filtering to 742371103, utilizing some of Quinn's code to graph gaps
+filter_data_amended %>%
+  filter(EIN == "742371103") %>%
+  select(EIN, 
+         BusinessName,
+       TaxPeriodBeginDt, 
+       TaxPeriodEndDt) %>%
+  arrange(TaxPeriodBeginDt) %>%
+  mutate(year_len = difftime(TaxPeriodEndDt, TaxPeriodBeginDt, units = "days"),
+    before =  lag(TaxPeriodEndDt, n =1),
+        gap = difftime(before, TaxPeriodBeginDt, units = "days"))%>%
+  select(EIN, BusinessName, TaxPeriodBeginDt,TaxPeriodEndDt, year_len, gap) %>%
+  kbl(caption = "Fiscal year length and fiscal gaps for EIN 742371103") %>%
+  kable_material() %>%
+  row_spec(row = 5, background = "red", color = "white", bold = TRUE)
+```
+
+As the shorter fiscal year is still a significant portion of the year, 302 days, I feel it should not be filtered.

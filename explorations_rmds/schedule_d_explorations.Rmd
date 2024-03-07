@@ -1,0 +1,637 @@
+---
+title: "Retrieve Endowment Funds"
+author: "Rose Evard"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::html_clean:
+    df_print: paged
+    code_folding: hide
+    css: !expr here::here('css', 'template.css')
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "output_html")})
+---
+
+```{r, message = FALSE}
+
+library(tidyverse)
+library(kableExtra)
+library(lubridate)
+library(forcats)
+library(here)
+library(viridis)
+
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+```
+
+```{r}
+
+#######################################
+# CREATE BIG PALETTE WITH MANY COLORS
+#######################################
+
+pal1 <- viridis_pal(option="mako", end = .9)(12)
+pal2 <- viridis_pal(option="rocket", end = .8)(12)
+pal3 <- viridis_pal(option="magma", end = .9)(12)
+pal4 <- viridis_pal(option="inferno", end = .8)(12)
+
+set.seed(123)
+pal <- c(pal1, pal2, pal3, pal4)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+```
+
+```{r}
+
+# make kable table with consistent formatting
+make_table <- function(..., title = "", col_names = c("")) {
+  title <- paste0("<center><span style = 'font-size:150%;color:black'><b>",
+                  title,
+                  "</span></b><center>")
+   as_tibble(...) %>%
+    kbl(caption = title,
+        col.names = col_names) %>%
+    kable_material() %>%
+    row_spec(row=0, background = "#43494C" , color = "white", bold = TRUE)
+}
+
+```
+
+> Note: Zero was coded as false and One as true for Checkbox questions.  
+> Additional note: Put the companies.csv file into your data folder 
+
+```{r retrieving endowment info}
+endowment_data <- read_rds(here("data", "endowment_filter_data_990.RDS"))
+names <- readRDS(here("data","companies.RDS"))
+names <- names %>% 
+  rename(organization_name = Company)
+names <- names %>%
+  mutate(organization_name = ifelse(
+    organization_name == "Ballet Hispanico", 
+    "Ballet Hispánico",
+    organization_name))
+
+```
+
+
+```{r, eval = FALSE}
+##Graphing difference between beginning and end periods  
+
+endowment_data %>%
+  select(ReturnDate, EIN, CYBeginningYearBalanceAmt, CYEndYearBalanceAmt) %>%
+  pivot_longer(cols = c(CYBeginningYearBalanceAmt, CYEndYearBalanceAmt), names_to = "Period", values_to = "Balance") %>%
+  mutate(Period = as.factor(Period)) %>%
+  mutate(Year = substr(ReturnDate, 1, 4)) %>%
+  ggplot(aes(x = Period, y = Balance, group = EIN)) +
+  facet_wrap(~Year) +
+  geom_point(alpha = 0.5) + 
+  geom_line(alpha = 0.5) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 35, hjust =1),
+        legend.position = "none") +
+  labs(title = "Comparing Fiscal Year Beginning and End Endowment Totals") +
+  scale_y_continuous(labels = scales::label_dollar())
+
+
+
+```
+
+## Which Years and Companies Filled out Schedule D  
+
+```{r}
+##Identifying those that DID fill out schedule D for Endowment, as they supplied info in any numeric column
+##Assuming the sum of from cols 4-31 (schedule D finances) is not zero
+filed_schd_d <- endowment_data %>%
+ mutate(Filled_Sch_D = ifelse(rowSums(across(CYBeginningYearBalanceAmt:TermEndowmentBalanceEOYPct), na.rm = TRUE) != 0, "Yes", "No")) %>%
+  select(TaxPeriodBeginDt, TaxPeriodEndDt, ReturnDate, EIN, DonorRstrOrQuasiEndowmentsInd, Filled_Sch_D) %>%
+  mutate(Need_Sch_D = case_when(is.na(DonorRstrOrQuasiEndowmentsInd) ~ "NA",
+                                DonorRstrOrQuasiEndowmentsInd == TRUE ~ "Yes",
+                                DonorRstrOrQuasiEndowmentsInd == FALSE ~ "No")) %>%
+  select(-DonorRstrOrQuasiEndowmentsInd)
+```
+
+```{r}
+filed_schd_d %>%
+  select(EIN, Filled_Sch_D) %>%
+  filter(Filled_Sch_D == "Yes") %>%
+  group_by(EIN) %>%
+  summarize(num_times_fil_sche_D = n()) %>%
+  left_join(names, by = "EIN") %>%
+  arrange(desc(num_times_fil_sche_D)) %>%
+  select(EIN, organization_name, num_times_fil_sche_D) %>%
+  make_table(title = "EINs that reported an endowment at least once", col_names = c("EIN", "Organization Name", "# Times an endowment was filled out")) %>%
+  scroll_box(height = "450px")
+
+```
+
+```{r}
+# plot to show same information as previous table
+filed_schd_d %>%
+  select(EIN, Filled_Sch_D) %>%
+  filter(Filled_Sch_D == "Yes") %>%
+  group_by(EIN) %>%
+  summarize(num_times_fil_sche_D = n()) %>%
+  group_by(num_times_fil_sche_D) %>%
+  summarize(num_ein = n()) %>%
+  ggplot(aes(x = num_times_fil_sche_D, y = as.integer(num_ein))) +
+  geom_bar(stat="identity") +
+  scale_x_continuous(breaks = 1:7) +
+  labs(title = "For Companies that Reported and Endowment Least Once,\nNumber of Endowment Reports",
+       x = "Number of Endowment Reports",
+       y = "Number of EINs") +
+  geom_label(aes(label = num_ein)) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 16, hjust = .5, face="bold"),
+        plot.subtitle = element_text(hjust = .5, face="italic"),
+        axis.text.x = element_text(size = 13),
+        axis.title = element_text(size = 16, face = "bold"),
+        legend.position = "none")
+```
+
+There are `r filed_schd_d %>% filter(Filled_Sch_D == "Yes") %>%pull(EIN) %>% unique() %>% length()` EINs which, at one point, have filled out Schedule D. 
+
+```{r}
+#How many unique schedule D's are there
+filed_schd_d %>%
+ select(EIN, Filled_Sch_D) %>%
+  filter(Filled_Sch_D == "Yes") %>%
+  summarize(num_sch_d = n()) %>%
+  make_table(title = "Total Number of Unique Endowment Reports", col_names = c("Total"))  %>%
+  row_spec(row = 0:1, align = "center")
+```
+
+There are 241 uniquely filed Schedule D's. 
+
+```{r}
+filed_schd_d %>%
+  select(TaxPeriodEndDt, EIN, Filled_Sch_D) %>%
+  filter(Filled_Sch_D == "Yes") %>%
+  mutate(year = substr(TaxPeriodEndDt, 1, 4)) %>%
+  group_by(year) %>%
+  summarize(num_sch_d_in_year = n()) %>%
+  arrange(desc(year)) %>%
+  make_table(title = "Years with Endowment Reported", col_names = c("Year", "Total Endowments Reported filed within the year"))
+```
+
+Years represented in the data are 2014-2021, based on the beginning financial year date. 
+
+
+## Determining Which Needed to File Schedule D for Endowment
+
+Not all those that fill out schedule D do so for endowment, so I focused on Question 10 "Did the organization, directly or through a related organization, hold assets in temporarily restricted endowments, permanent endowments, or quasi endowments?  If "yes," complete Schedule D, Part V".  
+
+```{r}
+##Counting those that needed to fill schedule D
+filed_schd_d %>%
+  group_by(Need_Sch_D) %>%
+  summarize(n = n()) %>%
+  arrange(desc(Need_Sch_D)) %>%
+  make_table(title = "Total EINs checked YES on Q10", col_names = c("Need Schedule D on Q10", "Total Filings"))
+```
+
+```{r}
+# plot showing same information as previous table
+filed_schd_d %>%
+  group_by(Need_Sch_D) %>%
+  summarize(`Total Filings` = n()) %>%
+  arrange(desc(Need_Sch_D)) %>%
+  ggplot(aes(x = Need_Sch_D, y = `Total Filings`)) +
+  geom_bar(stat="identity") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 16, hjust = .5, face="bold"),
+        plot.subtitle = element_text(hjust = .5, face="italic"),
+        axis.text.x = element_text(size = 15, face="bold"),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 16, face = "bold")) +
+  labs(x = "Response on Q10",
+       title = "Responses for Whether They Needed Schedule D on Q10") +
+  scale_y_continuous(n.breaks = 6)
+```
+
+```{r}
+
+##Seeing those that DID and or DID NOT need to fill out Schedule D, yet Did or Did Not
+filed_schd_d %>%
+  group_by(Need_Sch_D, Filled_Sch_D) %>%
+  summarize(n = n()) %>%
+  arrange(desc(Need_Sch_D)) %>%
+  make_table(title = "Whether Individual 990 Filings Reported An Endowment", col_names = c("Needed to Report an Endowment", "Reported an Endowment", "Total Reports"))
+
+
+
+```
+
+
+```{r, fig.width = 10}
+# bar plot with same information as table above
+filed_schd_d %>%
+  group_by(Need_Sch_D, Filled_Sch_D) %>%
+  summarize(n = n()) %>%
+  arrange(desc(Need_Sch_D)) %>%
+  ungroup() %>%
+  mutate(Need_Sch_D = paste0("Needed to Report Endowment: ", Need_Sch_D)) %>%
+  ggplot(aes(x = Filled_Sch_D, y = n)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~Need_Sch_D) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 16, hjust = .5, face="bold"),
+        plot.subtitle = element_text(hjust = .5, face="italic"),
+        axis.text.x = element_text(size = 15, face="bold"),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 16, face = "bold"),
+        strip.text = element_text(face="bold",size = 14)) +
+  labs(title = "Number of Filings where Endowments were Reported",
+       subtitle = "By Whether They Actually Needed it by Question 10",
+       x = "Endowment Reported",
+       y = "Number of Filings")
+```
+
+
+
+Total which needed schedule D and proceeded to file it matches total who filed it previously.  
+
+# Examining Gaps in Filing Schedule D's  
+         
+```{r}
+
+filed_schd_d %>%
+  filter(Filled_Sch_D == "Yes") %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  ggplot(aes(xmin = as.Date(TaxPeriodBeginDt, "%Y-%m-%d"), 
+             xmax = TaxPeriodEndDt, 
+             y = EIN)) +
+  geom_linerange(linewidth = 1, alpha = .8) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 11,angle=20, vjust = .7),
+        axis.text.y = element_text(size = 4),
+        strip.text = element_text(face="bold",size = 18)) +
+  scale_x_date(date_breaks = "12 months",
+               date_labels = "%b %Y") +
+  labs(y = "EIN",
+       x = "Date",
+       title = "Endowments reported by EIN\nacross time")
+```
+
+```{r}
+#Getting EINS of those who have filled out Schedule D
+ein_with_sch_d <- filed_schd_d %>%
+  filter(Filled_Sch_D == "Yes") %>%
+  pull(EIN) %>%
+  unique()
+
+#Gap plot
+filed_schd_d %>%
+  filter(EIN %in% ein_with_sch_d) %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  ggplot(aes(xmin = as.Date(TaxPeriodBeginDt, "%Y-%m-%d"), 
+             xmax = TaxPeriodEndDt, 
+             y = EIN)) +
+  geom_linerange(linewidth = 1, alpha = .8) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 11,angle=20, vjust = .7),
+        axis.text.y = element_text(size = 4),
+        strip.text = element_text(face="bold",size = 18)) +
+  scale_x_date(date_breaks = "12 months",
+               date_labels = "%b %Y") +
+  labs(y = "EIN",
+       x = "Date",
+       title = "Filing history for all EINs\nthat reported an endowment at least once")
+```
+
+
+```{r}
+#Retrieving list of schedule D filing gaps 
+filed_schd_d %>%
+  filter(EIN %in% ein_with_sch_d & Filled_Sch_D == "Yes") %>%
+  select(EIN, 
+         TaxPeriodBeginDt, #calc dates b/w schedule d 
+         TaxPeriodEndDt) %>%
+  group_by(EIN) %>%
+  arrange(TaxPeriodBeginDt) %>%
+  mutate(before =  lag(TaxPeriodEndDt, n =1),
+        gap = interval(before, TaxPeriodBeginDt),
+        gap = as.numeric(gap, "days")) %>%
+  filter(gap > 1) %>%
+  left_join(names, by = "EIN") %>%
+  select(EIN, organization_name, gap, before, TaxPeriodBeginDt) %>%
+  make_table(title = "Endowment Reporting Gaps", col_names = c("EIN", "Organization Name", "Gap Length", "Gap Start Date", "Gap End Date"))
+```
+
+```{r}
+#Retrieving list of 990 filing gaps, for those who have once filled out an EIN
+filed_schd_d %>%
+  filter(EIN %in% ein_with_sch_d) %>%
+  select(EIN, 
+         TaxPeriodBeginDt, 
+         TaxPeriodEndDt) %>%
+  group_by(EIN) %>%
+  arrange(TaxPeriodBeginDt) %>%
+  mutate(before =  lag(TaxPeriodEndDt, n =1),
+        gap = interval(before, TaxPeriodBeginDt),
+        gap = as.numeric(gap, "days")) %>%
+  filter(gap > 1) %>%
+  left_join(names, by = "EIN") %>%
+  select(EIN, organization_name, gap, before, TaxPeriodBeginDt) %>%
+  make_table(title = "990 Filing Gaps for EINs\nwhich once reported an Endowment", col_names = c("EIN", "Organization Name", "Gap Length", "Gap Start Date", "Gap End Date"))
+```
+
+# Aligning 990 Filing Gaps and Schedule D Filing Gaps  
+Important note: Filing Schedule D guarantees they filed a 990.  
+
+
+```{r}
+##Plotting both 990 gaps and Schedule D Gaps
+schd_d_gap <- filed_schd_d %>%
+  filter(Filled_Sch_D == "Yes") %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  mutate(sum_coverage = sum(time),
+         type = "Endowment Reported")
+
+##Gap plot  
+gap_plot_fr <- filed_schd_d %>%
+  filter(EIN %in% ein_with_sch_d) %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  mutate(sum_coverage = sum(time),
+         type = "Only 990 Filed") %>%
+  bind_rows(schd_d_gap) %>%
+  left_join(names, by = "EIN") %>%
+  ggplot(aes(xmin = as.Date(TaxPeriodBeginDt, "%Y-%m-%d"), 
+             xmax = TaxPeriodEndDt, 
+             y = organization_name,
+             color = type)) +
+  geom_linerange(linewidth = 1, alpha = .8) +
+  theme_bw() + 
+  theme(plot.title = element_text(size = 20, face = "bold", hjust = .5),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 11,angle=20, vjust = .7),
+        axis.text.y = element_text(size = 4),
+        strip.text = element_text(face="bold",size = 18),
+        legend.text = element_text(size = 5)) +
+  scale_x_date(date_breaks = "12 months",
+               date_labels = "%b %Y") +
+  scale_color_manual(values = c("blue4", "darkgoldenrod1")) +
+  labs(y = "Company",
+       x = "Fiscal Year",
+       title = "Endowment Reporting & 990 Filing",
+       color = "Type of Filing")
+gap_plot_fr
+
+## Table Identifying those that don't line up 
+filed_schd_d %>%
+  filter(EIN %in% ein_with_sch_d) %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  mutate(sum_coverage = sum(time),
+         type = "Only 990 Filed") %>%
+  bind_rows(schd_d_gap) %>%
+  group_by(EIN) %>%
+  arrange(EIN, type, TaxPeriodBeginDt) %>%
+  select(-type) %>%
+  anyDuplicated()  
+
+filed_schd_d %>%
+  filter(EIN %in% ein_with_sch_d) %>%
+  mutate(time = interval(TaxPeriodBeginDt, TaxPeriodEndDt),
+         time = as.numeric(time, "days")) %>%
+  group_by(EIN) %>%
+  mutate(sum_coverage = sum(time),
+         type = "Only 990 Filed") %>%
+  bind_rows(schd_d_gap) %>%
+  select(-c(type, time, sum_coverage)) %>%
+  group_by(TaxPeriodBeginDt, TaxPeriodEndDt, ReturnDate, EIN, Filled_Sch_D, Need_Sch_D) %>%
+  mutate(num_dups = n()) %>%
+  filter(num_dups < 2) %>%
+  left_join(names, by = "EIN") %>%
+  group_by(EIN, organization_name) %>%
+  summarize() %>%
+  make_table(title = "EINS that filled out Schedule D sometimes,\nbut not always", col_names = c("EIN", "Organization Name"))
+
+```
+There are seven EINs which do not always fill out Schedule D when they fill out 990.  
+
+# Checking Endowment Reporting - Is the Math Right?  
+
+```{r}
+## Using Quinn's endowment data 
+endowment_data <- read_rds(here("data", "endowments_by_most_recent_filings.RDS"))
+```
+
+```{r}
+## NOTE:  ASSUMING NA IS ZERO FOR THE SAKE OF THE CALCULATIONS
+# Finding differences in calculation and report
+
+endowment_data$BeginningYearBalanceAmt <- as.numeric(as.character(endowment_data$BeginningYearBalanceAmt))
+endowment_data$ContributionsAmt <- as.numeric(as.character(endowment_data$ContributionsAmt))
+endowment_data$OtherExpendituresAmt <- as.numeric(as.character(endowment_data$OtherExpendituresAmt))
+endowment_data$AdministrativeExpensesAmt <- as.numeric(as.character(endowment_data$AdministrativeExpensesAmt))
+endowment_data$GrantsOrScholarshipsAmt <- as.numeric(as.character(endowment_data$GrantsOrScholarshipsAmt))
+endowment_data$InvestmentEarningsOrLossesAmt <- as.numeric(as.character(endowment_data$InvestmentEarningsOrLossesAmt))
+endowment_data$EndYearBalanceAmt <- as.numeric(as.character(endowment_data$EndYearBalanceAmt))
+
+test_diff <- endowment_data %>%
+  mutate(across(.cols = 3:9, ~ ifelse(is.na(.), 0, .))) %>%
+  mutate(end_bal_calc = (BeginningYearBalanceAmt + 
+           ContributionsAmt + InvestmentEarningsOrLossesAmt - 
+           abs(OtherExpendituresAmt) - abs(AdministrativeExpensesAmt) - abs(GrantsOrScholarshipsAmt)),
+         same_end = ifelse(end_bal_calc == EndYearBalanceAmt, TRUE, FALSE),
+         diff_end = EndYearBalanceAmt - end_bal_calc)
+
+## MEAGHAN FIX THIS CODE BLOCK
+## as_tibble validate vs name_repair error
+
+# Looking at differences
+# test_diff %>%
+#   filter(same_end == FALSE) %>%
+# #  arrange(desc(abs(diff_end))) %>%
+#   left_join(names, by = "EIN") %>%
+#   select(organization_name, fiscal_year, EndYearBalanceAmt, end_bal_calc, diff_end) %>%
+#   make_table("Differences in Reported End Year Balances", 
+#              col_names = c("Organization Name", "Year", "Reported End Balance", 
+#                            "Calculated End Balance", "Difference")) %>%
+#   scroll_box(height = "450px")
+
+## Misreports by company
+test_diff %>%
+  filter(same_end == FALSE) %>%
+  left_join(names, by = "EIN") %>%
+  ggplot(aes(x = organization_name)) + 
+  geom_bar(aes(fill = organization_name), show.legend = FALSE) + 
+  theme_bw() + 
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10, angle = 90),
+        strip.text = element_text(face="bold",size = 5),
+        legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7)) + 
+  scale_fill_viridis_d() +
+  labs( title = "Number of Times Companies Miscalculated End Year Balance",
+        y = "Number of Miscalculations",
+        x = "Company Name")
+
+## Proportion of misreports by company 
+##List of companies
+companies_miscalculate <- test_diff %>%
+  filter(same_end == FALSE) %>%
+  left_join(names, by = "EIN") %>%
+  group_by(organization_name) %>%
+  summarize(n = n()) %>%
+  arrange(n) %>%
+  pull(organization_name) %>%
+  unique()
+
+## Counts per company
+counts <- test_diff %>%
+  left_join(names, by = "EIN") %>%
+  filter(same_end == FALSE) %>%
+  group_by(organization_name) %>%
+  summarize(n = n())
+
+hist_diff_fr <- test_diff %>%
+  left_join(names, by = "EIN") %>%
+  mutate(organization_name = factor(organization_name, level = companies_miscalculate)) %>%
+  filter(organization_name %in% c(companies_miscalculate)) %>%
+  ggplot(aes(x = organization_name, fill = same_end)) + 
+  geom_bar() +
+  theme_bw() + 
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        strip.text = element_text(face="bold",size = 5),
+        legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7),
+        legend.title = element_text(size = 7)) + 
+  scale_fill_viridis_d(labels = c("Yes", "No")) +
+  labs( title = "Number of Times Companies Miscalculated End Year Balance",
+        y = "Total Reports",
+        x = "Company Name",
+        fill = "Was End Balance \nMiscalculated?") +
+  coord_flip()
+hist_diff_fr
+
+#Histograms of all misreports compared (sorta)
+test_diff %>%
+  filter(same_end == FALSE) %>%
+  left_join(names, by = "EIN") %>%
+  select(EIN, fiscal_year, organization_name, EndYearBalanceAmt, end_bal_calc) %>%
+  pivot_longer(cols = c(EndYearBalanceAmt, end_bal_calc),
+               names_to = "type",
+               values_to = "balance") %>%
+  mutate(type = ifelse(type == "EndYearBalanceAmt", "Reported", "Calculated")) %>%
+  ggplot(aes(x = type, y = balance, fill = type)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~organization_name, scales = "free") + 
+  theme_bw() + 
+    theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 5),
+        axis.text.y = element_text(size = 5),
+        strip.text = element_text(face="bold",size = 5),
+        legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7)) +
+  scale_y_continuous(labels = scales::label_dollar()) +
+  scale_fill_manual(values = c("darkgoldenrod1", "blue4"))
+
+
+# Difference Plotted
+calc_diff <- test_diff %>%
+  filter(same_end == FALSE) %>%
+  left_join(names, by = "EIN") %>%
+  select(EIN, fiscal_year, organization_name, EndYearBalanceAmt, diff_end) %>%
+  mutate(name = paste(organization_name, fiscal_year, sep = ", ")) %>%
+  ggplot(aes(y = name, x = diff_end, fill = organization_name)) +
+  geom_col(position = "dodge", show.legend = FALSE) +
+  #facet_wrap(~organization_name, scales = "free") + 
+  theme_bw() + 
+    theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 5),
+        axis.text.y = element_text(size = 5),
+        strip.text = element_text(face="bold",size = 5),
+        legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7)) +
+  scale_x_continuous(labels = scales::label_dollar()) + 
+ # scale_fill_manual(values = pal)+ 
+  labs(title = "Difference Between Calculated and Reported End Balances",
+       x = "Calculated Difference",
+       y = "Company Name and Fiscal Year") + 
+  geom_text(aes(label = scales::dollar(diff_end)), size = 2)
+calc_diff
+
+
+# Relationship between year and misreports?  No
+test_diff %>%
+  filter(same_end == FALSE) %>%
+  left_join(names, by = "EIN") %>%
+  ggplot(aes(x = fiscal_year)) + 
+  geom_bar() + 
+  theme_bw() + 
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10, angle = 90),
+        strip.text = element_text(face="bold",size = 5),
+        legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7)) + 
+  labs( title = "Miscalculations per Year End Year Balance")
+
+##MEAGHAN FIX THIS CODE BLOCK
+## same problem as above
+
+## Table showing same information as plot above, total miscalculations
+# test_diff %>%
+#   filter(same_end == FALSE) %>%
+#   arrange(desc(abs(diff_end))) %>%
+#   left_join(names, by = "EIN") %>%
+#   group_by(organization_name) %>%
+#   summarize(n = n()) %>%
+#   make_table("List of Misreported Companies", 
+#              col_names = c("Organization Name", "Total Miscalculations")) %>%
+#   scroll_box(height = "450px")
+```
+
+# Saving Relevant Images For Report 
+
+## Schedule D Gap Plot  
+
+```{r}
+gap_plot_fr
+ggsave("gap_plot_endowment.png", path = here("final_report", "images"))
+```
+
+
+## Reporting Consistencies
+
+```{r}
+hist_diff_fr
+ggsave("miscalc_end_bal.png", path = here("final_report", "images"))
+```
+
+```{r}
+calc_diff
+ggsave("diff_end_bal.png", path = here("final_report", "images"))
+```
+
+
+
+

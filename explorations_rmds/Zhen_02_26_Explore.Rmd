@@ -1,0 +1,485 @@
+---
+title: "Building Endowment Preliminary Analysis"
+author: "Zhen Nie"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: hide
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "./output_html")})
+---
+```{r library}
+library(dplyr)
+library(readr)
+library(wesanderson)
+library(purrr)
+library(xml2)
+library(tidyverse)
+library(ggplot2)
+library(kableExtra)
+library(plotly)
+library(shiny)
+library(here)
+```
+
+```{r}
+#functions of making graphs and tables
+make_graph <- function(df){
+  graph <- ggplot(df, aes(x = year, y = BookValueSum, color = as.factor(BusinessName))) +
+  geom_line() +
+  theme_bw() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5))
+  return(graph)
+}
+
+
+```
+
+
+## Importing variables related to the endowment of building 
+
+```{r}
+# use get_var
+files<- dir(here("ballet_990_released_20230208"),
+              full.names = TRUE)  
+source(here::here("GET_VARS.R"))
+
+buildings <- map_df(files, ~get_df(filename = .x , 
+                              schedule = 'd')) %>%
+  filter_ein() %>% 
+  select(ReturnTs, EIN,TotalBookValueLandBuildingsAmt,OtherLandBuildingsGrp,TotalBookValueLandBuildingsAmt,BuildingsGrp,fiscal_year)
+
+
+
+```
+
+
+```{r}
+companies <- read_csv(here("data/companies.csv")) %>%
+  mutate(EIN = as.character(ein))
+
+#load in regional information
+# add state information to buildings dataframe
+ein_to_state <- readRDS(here("./data/ein_to_state.RDS")) 
+
+test_state<-buildings %>% 
+  left_join(y = ein_to_state, by = "EIN") %>% 
+  mutate(
+    TotalBookValueLandBuildingsAmt = as.numeric(TotalBookValueLandBuildingsAmt)
+  )
+
+test_state <- unique(test_state) %>% 
+  mutate(name = tolower(name))
+test_state <- unique(test_state)
+```
+
+## Preliminary Analysis of PartIV Data
+
+Term explained: 
+*Book value* is an accounting term used for both a measure of a business's equity and the value of an asset as it appears on a balance sheet. As time goes on, the cost stays the same, but the accumulated depreciation increases, so the book value decreases.
+```{r}
+# filter out all data each year
+data_each_year<-list(
+  data_2015 <- filter(buildings, grepl("2015", ReturnTs)),
+  data_2016 <- filter(buildings, grepl("2016", ReturnTs)),
+  data_2017 <- filter(buildings, grepl("2017", ReturnTs)),
+  data_2018 <- filter(buildings, grepl("2018", ReturnTs)),
+  data_2019 <- filter(buildings, grepl("2019", ReturnTs)),
+  data_2020 <- filter(buildings, grepl("2020", ReturnTs)),
+  data_2021 <- filter(buildings, grepl("2021", ReturnTs)),
+  data_2022 <- filter(buildings, grepl("2022", ReturnTs))
+)
+
+```
+
+
+
+```{r}
+BookValueSum <- list()
+
+# restore each year's sum for each EIN's buildings bookvalue 
+for(i in c(1:8)){
+  data = data_each_year[[i]]
+  df <- data.frame(data %>% 
+    filter(!is.na(TotalBookValueLandBuildingsAmt)) %>% 
+    mutate_at(c("TotalBookValueLandBuildingsAmt"), as.numeric) %>% 
+    group_by(EIN) %>% 
+    summarise(
+      BookValueSum = sum(TotalBookValueLandBuildingsAmt)
+    ) %>% 
+    mutate(year = 2014+i,
+           EIN = as.numeric(EIN)))
+           
+  #print(df)
+  BookValueSum[[i]] = df
+}
+#  convert the list into dataframe
+bookvalues <- do.call(rbind, BookValueSum)
+```
+
+
+```{r mutate bookvalue dataframe with quantile and business name}
+# rank book value based on quantile
+bookvalues<-bookvalues %>%
+  mutate(quantile = ntile(BookValueSum, 10),
+         EIN = as.character(EIN)) %>% 
+  arrange(desc(EIN)) %>% 
+  left_join(y = companies, by = "EIN") %>% 
+  left_join(y = ein_to_state, by = "EIN")
+
+bookvalues<- unique(bookvalues)
+saveRDS(bookvalues,here('data','bookvalues.RDS'))
+```
+
+
+```{r divide bookvalues into high medium and low}
+#dataframe with higher Book Values
+high <- bookvalues %>% 
+  filter(year == 2020) %>% 
+  filter(quantile >= 8) %>% 
+  select(EIN) %>% 
+  inner_join(bookvalues, by = "EIN") %>% 
+  select(EIN, BookValueSum, year, quantile, organization_name.x)
+
+medium <- bookvalues %>% 
+  filter(year == 2020) %>% 
+  filter(quantile > 3 & quantile < 7) %>% 
+  select(EIN) %>% 
+  inner_join(bookvalues, by = "EIN") %>% 
+   select(EIN, BookValueSum, year, quantile, organization_name.x)
+  
+low <- bookvalues %>% 
+  filter(year == 2020) %>% 
+  filter(quantile <= 3) %>% 
+  select(EIN) %>% 
+  inner_join(bookvalues, by = "EIN") %>% 
+   select(EIN, BookValueSum, year, quantile, organization_name.x)
+```
+ 
+
+```{r visualizatoins of the change in buildings book value}
+# visualization of overall book value
+total <- ggplot(bookvalues, aes(x = year, y = BookValueSum, color = as.factor(name))) +
+  geom_line()+
+  #scale_color_brewer(palette="BrBG")+
+  theme_bw()+
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5),
+        legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7)) +
+  labs(y = "Schedule D Sum of Buildings Book Value ($)",
+       x = "Year",
+       title = "Schedule D Sum of Buildings Book Value Change",
+       subtitle = "By Fiscal Year")
+ggplotly(total)
+```
+```{r}
+# separate EIN with medium and low building book value according to previous graph
+# high
+  high<-ggplot(high, aes(x = year, y = BookValueSum, color = as.factor(organization_name.x))) +
+  geom_line() +
+  theme_bw() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Schedule D Sum of Buildings Book Value",
+       x = "Year",
+       title = "Schedule D Sum of Buildings Book Value Change (High)",
+       subtitle = "By Fiscal Year")
+
+ggplotly(high)
+```
+
+
+```{r}
+# medium
+medium <- ggplot(medium, aes(x = year, y = BookValueSum, color = as.factor(organization_name.x))) +
+  geom_line()+
+  theme_bw() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 8, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 7),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Schedule D Sum of Buildings Book Value",
+       x = "Year",
+       title = "Schedule D Sum of Buildings Book Value Change (Medium)",
+       subtitle = "By Fiscal Year")
+
+ggplotly(medium)
+```
+
+
+```{r}
+# low
+  ggplot(low, aes(x = year, y = BookValueSum, color = as.factor(organization_name.x))) +
+  geom_line()+
+  theme_bw() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Schedule D Sum of Buildings Book Value",
+       x = "Year",
+       title = "Schedule D Sum of Buildings Book Value Change (Low)",
+       subtitle = "By Fiscal Year")
+
+```
+The book value will decrease because of depreciation, so the normal trend of an EIN from previous visualization should be a slight downward line. I will filter out EIN with a bizarre trend that should be :
+  1) Abruptly going down
+  2) going up at any point
+  3) appear less than 3 years
+
+## Unusual EIN's
+```{r}
+# rank book value based on quantile
+EIN_appearl_less_than_3<-bookvalues %>%
+  mutate(quantile = ntile(BookValueSum, 10),
+         EIN = as.character(EIN)) %>% 
+  group_by(EIN) %>% 
+  summarise(appear_times = n()) %>% 
+  filter(appear_times < 3) %>% 
+  inner_join(y=companies, by = c("EIN")) %>% 
+  kbl(caption = "Unusual EIN (appear less than 3 times)") %>%
+  kable_material() %>%
+  row_spec(row = 0, background = "red", color = "white", bold = TRUE)
+EIN_appearl_less_than_3
+```
+
+
+## Percentage change of building's book value
+```{r}
+changes <- bookvalues %>% 
+  group_by(EIN) %>% 
+  mutate(change = (BookValueSum - lag(BookValueSum)) / lag(BookValueSum) * 100) %>%
+  select(EIN, organization_name.x, year, BookValueSum, change) %>% 
+  mutate(change_abs = abs(change)) 
+
+#Making an infinite value NA
+changes[145, ]$change = NA
+
+```
+
+```{r}
+# line graph of all percentage change from 2015-2022
+all_changes_pct <- ggplot(changes, aes(x = year, y = changes$change, color =  as.factor(organization_name.x))) +
+  geom_line(na.rm = FALSE, size = 0.2) +
+  ylim(-200, 800)+
+  theme_bw() +
+  theme(legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7))+
+  theme(plot.title = element_text(size = 6, face = "bold", hjust = .5),
+        axis.title = element_text(size = 4, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 4),
+        axis.text.y = element_text(size = 4),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Change in Buildings Book Value Each Year (%)",
+       x = "Year",
+       title = "% Change in Bookvalues of Building Endowment each Fiscal Year",
+       color = "EIN")
+
+ggplotly(all_changes_pct)
+```
+
+```{r}
+# filter out EIN with normal depreciation change
+filtered_changes <- changes %>% 
+  filter(change_abs > 10) %>% 
+  ggplot(aes(x = year, y = change, color = as.factor(organization_name.x))) +
+  geom_line(na.rm = FALSE, size = 0.2) +
+  ylim(-200, 800)+
+  theme_bw() +
+  theme(legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7))+
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 6),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Change in Buildings Book Value Each Year (%)",
+       x = "Year",
+       title = "Change in Bookvalues of Building Endowment each Fiscal Year",
+       color = "EIN")
+
+
+ggplotly(p = filtered_changes)
+```
+
+
+```{r}
+big_change<-changes %>% 
+  filter(change_abs > 10) %>% 
+  kbl(caption = "Changes larger than 10%") %>%
+  kable_material() %>%
+  row_spec(row = 0, background = "red", color = "white", bold = TRUE)
+big_change  
+```
+
+
+## Book Value Changes %
+
+```{r}
+# summarize all companies changes
+summary(changes$change) 
+```
+
+```{r}
+#ranking of all change in book values
+ranking<-changes %>%
+  arrange(desc(change_abs)) %>% 
+  select(EIN, organization_name.x, year, change, BookValueSum) %>% 
+  kbl(caption = "Ranking of Change in Book Value Per Year  (%)") %>%
+  kable_material() %>%
+  row_spec(row = 0, background = "red", color = "white", bold = TRUE)
+ranking
+```
+
+```{r}
+#filter out small changes 
+change_less_than_10<-changes %>% 
+  filter(change_abs <=10)
+
+#istogram of all large changes 
+ggplotly(
+  ggplot(change_less_than_10, aes(x = change_abs)) + 
+  geom_histogram()+
+  theme_bw()
+  )
+```
+
+
+```{r}
+# filter out all % change larger than 10
+change_larger_than_10 <- changes %>% 
+  filter(change_abs > 10)
+
+# generate histogram of all absolute changes 
+ggplotly(
+  ggplot(change_larger_than_10, aes(x = change_abs)) + 
+  geom_histogram()+
+  theme_bw()
+  )
+
+```
+
+
+```{r}
+# All summary statistics 
+changes %>% 
+  drop_na() %>% 
+  group_by(year) %>% 
+  summarise(mean = mean(change),
+            median = median(change),
+            max = max(change),
+            min = min(change)) %>% 
+  kbl(caption = "Summary statistics of Building Book Value Changes (Fiscal Year)") %>%
+  kable_material() %>%
+  row_spec(row = 0, background = "red", color = "white", bold = TRUE)
+```
+
+## Regional Analysis
+
+```{r}
+bookvalues %>% 
+  left_join(y = ein_to_state, by = "EIN")
+```
+```{r}
+test_state <- test_state %>% 
+  mutate(
+    Time = substring(ReturnTs, 1, 10),
+    TotalBookValueLandBuildingsAmt = as.numeric(TotalBookValueLandBuildingsAmt)
+  )
+```
+
+```{r}
+state_bookvalues <- ggplot(test_state, aes(x = factor(fiscal_year, level = c('2014','2015','2016','2017','2018','2019','2020','2021','2022')), y = as.numeric(test_state$TotalBookValueLandBuildingsAmt), color=as.factor(state)))+
+  geom_line(aes(group=1))+
+  theme_bw() +
+  theme(legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7))+
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 6),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Bookvalues of buildings and other lands",
+       x = "Fiscal year")
+
+  
+ggplotly(state_bookvalues)
+  
+```
+
+```{r}
+summary_state <- test_state %>% 
+  group_by(state, fiscal_year, name) %>% 
+  summarise(
+    max = max(TotalBookValueLandBuildingsAmt),
+    min = min(TotalBookValueLandBuildingsAmt),
+    mean = mean(TotalBookValueLandBuildingsAmt),
+    median = median(TotalBookValueLandBuildingsAmt),
+    Number = n()
+  )
+
+ggplotly(
+  summary_state %>% 
+  ggplot(aes(x = fiscal_year, y = median, color = as.factor(state))) + 
+    geom_line(aes(group=1))+ 
+    theme_bw()
+)+
+  labs(
+  title = "Median of Total Book Value of Land and Building each state"
+)
+```
+```{r}
+test_state %>% 
+  group_by(state,fiscal_year) %>% 
+  summarise(
+    max = max(TotalBookValueLandBuildingsAmt, na.rm=TRUE),
+    min = min(TotalBookValueLandBuildingsAmt, na.rm=TRUE),
+    mean = mean(TotalBookValueLandBuildingsAmt, na.rm=TRUE),
+    median = median(TotalBookValueLandBuildingsAmt, na.rm=TRUE),
+  )
+```
+
+
+```{r}
+ggplotly(
+  test_state %>% filter(fiscal_year!=2014) %>% group_by(state, fiscal_year) %>% 
+  summarise(
+    max = max(TotalBookValueLandBuildingsAmt,na.rm = TRUE),
+    min = min(TotalBookValueLandBuildingsAmt,na.rm = TRUE),
+    mean = mean(TotalBookValueLandBuildingsAmt,na.rm = TRUE),
+    median = median(TotalBookValueLandBuildingsAmt,na.rm = TRUE),
+    Number = n()
+  ) %>% 
+  ggplot(aes(x = fiscal_year, y = max, color = factor(state))) + geom_point() + theme_bw()
+)
+```
+
+```{r}
+test_state %>% 
+  group_by(state, fiscal_year) %>% 
+  summarise(
+    sum = sum(TotalBookValueLandBuildingsAmt)
+  ) %>% 
+  arrange(desc(sum))
+```
+
+

@@ -1,0 +1,139 @@
+---
+title: "How to Use GET_VARS"
+author: "Rose Evard"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: show
+    css: !expr here::here('css', 'template.css')
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "output_html")})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+library(here)
+```
+
+## Example for Retrieving and Filtering Variables  
+
+In order to use the `get_df` and `filter_ein` functions in `GET_VARS.R`, you need to first run load the package `here`, then run the following code:  
+
+```{r}
+library(here)
+source(here("GET_VARS.R"))
+```
+
+This will load the functions into your environment.  
+
+To apply the `get_df`, run this: 
+```{r}
+files <- dir("990archivesfeb2024",
+              full.names = TRUE)  
+data <- map_df(files, ~
+                    get_df(variables =  "//Return//ReturnHeader//ReturnTypeCd",
+                           filename = .x
+                           ))
+```
+
+The first function, `dir`, retrieves all the names of the XML files to load in.  The second function, `get_df` which is in `map_df`, actually pulls the variables you specify later on.  The `get_df` parameter `variables` indicates which variables you want to pull.  You need to specify the entire path to the variable, which you separate with slashes.  You can find these paths in two ways:  
+1. Opening an XML file, finding each indented <Category> before your <VariableOfInterest>, then forming it into a path like this: Category//VariableOfInterest.  
+2. Running the RMD data_dictionary through the `all_variables` dataset, then searching for the variable name you want in the search bar, and copying the path.  Again, it will appear like: Category//VariableOfInterest
+
+If you want to pull multiple variables, put them in a vector: `c("Var1", "Var2)` with the pathways.  
+
+The `get_df` parameter `filename` should always be `.x`.  It just means "For a given file".  If you want to have variable names which are different from the variable name the 990 provided, for example if they're incredibly long or if multiple variables have the same name but are in different subcategories, you can add an argument `names = c("name1", "name2")`.  You need to have the same number of names as variables, as well as in the same order.  
+
+```{r}
+##Example with names
+files <- dir(here("990archivesfeb2024"),
+              full.names = TRUE)
+data <- map_df(files, ~
+                    get_df(variables =  "//Return//ReturnHeader//ReturnTypeCd",
+                           filename = .x,
+                           names = c("CD")))
+```
+
+Note that `get_df` automatically adds four additional variables, which you do not need to specify in the `names` parameter: ReturnTs, EIN, fiscal_year and filename.  
+
+After having loaded in your data, you can immediately use `filter_ein`.  You don't need to provide any parameters, just apply the function on your pulled dataset.  This filters to the 785 990s which we are utilizing for our analysis.  
+```{r}
+data <- filter_ein(data)
+```
+
+Overall, you can copy and paste this chunk, specify the variables you want, and choose if you want to specify names: 
+```{r}
+##Example with names  
+library(here)
+source(here("GET_VARS.R"))
+files <- dir(here("990archivesfeb2024"),
+              full.names = TRUE)
+data <- map_df(files, ~
+                    get_df(variables =  "//Return//ReturnHeader//ReturnTypeCd",
+                           filename = .x
+                           ))
+data <- filter_ein(data)
+```
+
+
+
+
+## Example for Retrieving Variables by Schedule
+
+Extract variables associated with given schedule ('a', 'b', 'd', 'g', 'm', 'o', or 'r').
+
+Note that the names of the columns will the the full paths to fully represent the nested structure of the xml files. 
+
+```{r}
+
+schedule_o <- map_df(files, ~get_df(filename = .x , 
+                              schedule = 'o')) %>%
+  filter_ein()
+
+glimpse(schedule_o)
+
+```
+
+Once we examine which columns we actually need, we can clean the names. The `rename_with` function is particularly helpful for batch renaming.
+
+```{r}
+
+schedule_o %>%
+  select(1:9, fiscal_year) %>%
+  # remove text up to slash
+  rename_with(~gsub(".*/","", .)) %>% glimpse()
+
+```
+
+```{r}
+
+schedule_d <- map_df(files, ~get_df(filename = .x , 
+                              schedule = 'd')) %>%
+  filter_ein()
+
+schedule_d %>%
+  # remove /Return/ReturnData/IRS990ScheduleD/ from columns since this is shared
+  # across all columns
+  rename_with(~gsub("/Return/ReturnData/IRS990ScheduleD/", "", .)) %>%
+  glimpse()
+
+```
+
+Depending on which variables you'll want to use, for Schedule D you'll need to be particularly careful about renaming.
+
+
+## Function for Seeing All Children of a Given Node
+
+This is just a quick way to see all children of a node of interest, for example, a schedule node, to help get a better understanding for the structure of the file.
+
+```{r}
+
+get_all_children_by_file(files[1], "//ReturnData//IRS990ScheduleO")
+
+```
+
+
+

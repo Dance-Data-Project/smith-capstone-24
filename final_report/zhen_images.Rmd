@@ -1,0 +1,202 @@
+---
+title: "Building Analysis"
+author: "Zhen Nie"
+date: '`r Sys.Date()`'
+output: html_document
+---
+
+```{r}
+source("GET_VARS.R")
+library(here)
+library(tibble)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+```
+
+```{r}
+schedule_d <- map_df(files, ~get_df(filename = .x , 
+                              schedule = 'd')) %>%
+  filter_ein()
+
+schedule_d <- schedule_d %>%
+  # remove /Return/ReturnData/IRS990ScheduleD/ from columns since this is shared
+  # across all columns
+  rename_with(~gsub("/Return/ReturnData/IRS990ScheduleD/", "", .))
+
+
+```
+
+
+
+```{r}
+
+
+companies <- readRDS(here("data", "companies.RDS")) 
+
+
+buildings<-schedule_d[,c(1,35,2,5,86,87,124,159,160)] %>% 
+  left_join(companies, by = "EIN") %>%
+  filter(!is.na(organization_name))
+
+saveRDS(buildings, "data/buildings.RDS")
+
+```
+
+
+```{r}
+
+buildings <- buildings %>%
+  mutate(across(contains('Amt'), as.numeric)) %>%
+  mutate(fiscal_year = as.numeric(paste0(fiscal_year)))
+
+
+ggplot(buildings, aes(x = fiscal_year,
+                        y =TotalBookValueLandBuildingsAmt,
+                        color = as.factor(organization_name)))+
+    #geom_line()+
+    geom_point(show.legend=FALSE)+
+    theme_bw()+
+    scale_color_viridis(discrete=TRUE) +
+    labs(x = "Fiscal Year", y = "Total Book Value Land Buildings Amount")
+
+```
+
+```{r}
+high <- buildings %>% 
+  mutate(quantile = ntile(TotalBookValueLandBuildingsAmt, 12)) %>% 
+  filter(quantile >= 9)
+
+medium <- buildings %>% 
+  mutate(quantile = ntile(TotalBookValueLandBuildingsAmt, 12)) %>% 
+  filter(quantile > 4 & quantile < 9)
+
+low <- buildings %>% 
+  mutate(quantile = ntile(TotalBookValueLandBuildingsAmt, 12)) %>% 
+  filter(quantile <= 4)
+
+
+```
+
+
+```{r}
+
+ggplot(high,aes(x = fiscal_year,
+                y=TotalBookValueLandBuildingsAmt,
+                color=organization_name,
+                group=organization_name))+
+    geom_line(show.legend=FALSE)+
+    geom_point(show.legend=FALSE)+
+    theme_bw()+
+    scale_color_viridis(discrete=TRUE,begin=.2,end=.8)+
+    labs(x = "Fiscal Year", y = "Total Book Value Land Buildings Amount") +
+  scale_y_continuous(labels = scales::comma)
+
+```
+
+```{r}
+
+ggplot(medium, aes(x = fiscal_year,
+                     y = TotalBookValueLandBuildingsAmt,
+                     color = organization_name,
+                   group=organization_name)) +
+    geom_line(show.legend=FALSE)+
+    geom_point(show.legend=FALSE)+
+    theme_bw()+
+    scale_color_viridis(discrete=TRUE,begin=.2,end=.8)+
+    labs(x = "Fiscal Year", y = "Total Book Value Land Buildings Amount")
+
+```
+
+```{r}
+
+ggplot(low, aes(x = as.character(fiscal_year),
+                y = TotalBookValueLandBuildingsAmt,
+                color = organization_name))+
+    #geom_line()+
+    geom_point()+
+    theme_bw()+
+    scale_color_viridis(discrete=TRUE,begin=.2,end=.8,option = "A")+
+    labs(x = "Fiscal Year", y = "Total Book Value Land Buildings Amount")
+
+
+```
+
+```{r}
+make_table <- function(df, title = "", ...) {
+  title <- paste0("<center><span style = 'font-size:160%;color:black'><b>",
+                  title,
+                  "</span></b><center>")
+   as_tibble(df) %>%
+    kbl(caption = title, ... ) %>%
+    kable_material() %>%
+    row_spec(row=0, background = "#43494C" , color = "white", bold = TRUE)
+}
+```
+
+```{r}
+buildings %>% 
+  group_by(fiscal_year) %>% 
+  summarise(
+    `Reporting companies number` = n(),
+    Mean = mean(as.numeric(TotalBookValueLandBuildingsAmt), na.rm=TRUE),
+    Median = median(as.numeric(TotalBookValueLandBuildingsAmt),na.rm=TRUE),
+    Max = max(as.numeric(TotalBookValueLandBuildingsAmt),na.rm=TRUE),
+    Min = min(as.numeric(TotalBookValueLandBuildingsAmt),na.rm=TRUE)
+  ) %>% 
+  make_table(title = "Summary of Buidings book Values")
+```
+
+```{r}
+options(scipen = 999, digits = 3)
+changes<-buildings %>% 
+  group_by(organization_name) %>% 
+  mutate(change = (as.numeric(TotalBookValueLandBuildingsAmt) - lag(as.numeric(TotalBookValueLandBuildingsAmt))) / lag(as.numeric(TotalBookValueLandBuildingsAmt)) * 100) %>%
+  mutate(change_abs = abs(change))
+changes <- changes[,c(1,2,3,10,11,12)]
+
+
+```
+
+```{r}
+ggplotly(
+  ggplot(changes, aes(x = as.character(fiscal_year), y = change, color = as.factor(organization_name)))+
+    geom_point()+
+    geom_line(stat = "identity")+
+    theme_bw()+
+    scale_color_viridis(discrete=TRUE,begin=.2,end=.8,option = "A")+
+    labs(x = "Fiscal Year", y = "Total Book Value Land Buildings Amount")
+)
+```
+
+```{r}
+smaller<-changes %>% 
+  filter(change_abs <= 100)
+
+bigger<-changes %>% 
+  filter(change_abs > 100)
+```
+
+```{r}
+ggplotly(
+  ggplot(smaller, aes(x = as.character(fiscal_year), y = change, color = as.factor(organization_name)))+
+    geom_point()+
+    geom_line(stat = "identity")+
+    theme_bw()+
+    scale_color_viridis(discrete=TRUE,begin=.2,end=.8,option = "A")+
+    labs(x = "Fiscal Year", y = "Total Book Value Land Buildings Amount")
+)
+```
+
+```{r}
+ggplotly(
+  ggplot(bigger, aes(x = as.character(fiscal_year), y = change, color = as.factor(organization_name)))+
+    geom_point()+
+    geom_line(stat = "identity")+
+    theme_bw()+
+    scale_color_viridis(discrete=TRUE,begin=.2,end=.8,option = "A")+
+    labs(x = "Fiscal Year", y = "Total Book Value Land Buildings Amount")
+)
+```
+
+

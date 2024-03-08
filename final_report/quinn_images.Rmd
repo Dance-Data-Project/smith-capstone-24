@@ -1,0 +1,2196 @@
+---
+title: "Endowment Tme Series for Report"
+author: "Quinn White"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+header-includes:
+  - \usepackage{fontspec}
+  - \setmainfont{Helvetica}
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width =15, fig.height=8)
+
+```
+
+<style>
+.math {
+  font-size: small;
+}
+</style>
+
+
+# Notes on Percent Change
+
+
+We compute the relative change from one year to the next as
+
+$$\text{Relative change} = \dfrac{\text{End Value} - \text{Start Value}}{ \text{Start Value}}.$$ The percent change is then simply $\text{Relative Change} \times 100$. 
+
+
+For a relative change of value $R$, we can interpret it by considering the formula
+
+$$\text{End Value} = (R+1) \times \text{Start Value}.$$
+
+A couple of examples include:
+* If the percent change is $-50\%$, the current year value is half of that in the previous year. 
+* If the percent change is $100\%$, the current year value is twice that in the previous year.
+* If the percent change is $-100\%$, the current year value is zero.
+
+
+
+
+
+
+```{r packages and theme,eval=TRUE}
+library(tidyverse)
+library(kableExtra)
+library(scales)
+library(plotly)
+library(glue)
+library(here)
+library(viridis)
+library(ggrepel)
+library(cowplot)
+
+
+
+# create standard theme for all plots
+theme_c <- function(...){ 
+   # font <- "Helvetica"   #assign font family up front
+    theme_bw() %+replace%    #replace elements we want to change
+    
+    theme(
+      
+      
+      #text elements
+      plot.title = element_text(             #title
+                   size = 14,                #set font size
+                   face = 'bold',            #bold typeface
+                   hjust = .5,
+                   vjust = 3),               
+      
+      plot.subtitle = element_text(          #subtitle
+                   size = 12,
+                   hjust = .5,
+                   face = 'italic',
+                   vjust = 3),               #font size
+      
+      axis.title = element_text(             #axis titles
+                   size =14,
+                   face="bold"),               #font size
+      
+      axis.text.x = element_text(              #axis text
+                   size = 12),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 11, face="bold"),
+      # t, r, b, l
+      plot.margin = unit(c(1,.5,.5,.5), "cm"),
+      legend.position = "right",
+      strip.text.x = element_text(size = 18, 
+                                  # face = "bold",
+                                  color="white",
+                                  margin=margin(4,0,4,0),
+                                  lineheight=1),
+       strip.text.y = element_text(size = 18, 
+                                  # face = "bold",
+                                   color="white", 
+                                   angle=-90, 
+                                   lineheight = 1,
+                                   margin=margin(4,0,4,0)),
+      strip.background = element_rect(fill = "#3E3D3D")
+      ) %+replace%
+      theme(...)
+   
+}
+
+
+
+```
+
+```{r load data}
+
+# load companies file of EIN to name and endowment data
+
+companies_to_ein <- readRDS(here("data", "companies.RDS")) 
+
+companies_to_ein <- companies_to_ein %>%
+  rename(organization_name = Company)
+
+companies_to_ein <- companies_to_ein %>%
+  mutate(organization_name = ifelse(
+    organization_name == "Ballet Hispanico", 
+    "Ballet Hispánico",
+    organization_name))
+
+
+endowment_data <- read_rds(here("data", 
+                                "endowments_by_most_recent_filings.RDS"))
+
+endowment_data$BeginningYearBalanceAmt <- as.numeric(as.character(endowment_data$BeginningYearBalanceAmt))
+endowment_data$ContributionsAmt <- as.numeric(as.character(endowment_data$ContributionsAmt))
+endowment_data$OtherExpendituresAmt <- as.numeric(as.character(endowment_data$OtherExpendituresAmt))
+endowment_data$AdministrativeExpensesAmt <- as.numeric(as.character(endowment_data$AdministrativeExpensesAmt))
+endowment_data$GrantsOrScholarshipsAmt <- as.numeric(as.character(endowment_data$GrantsOrScholarshipsAmt))
+endowment_data$InvestmentEarningsOrLossesAmt <- as.numeric(as.character(endowment_data$InvestmentEarningsOrLossesAmt))
+endowment_data$EndYearBalanceAmt <- as.numeric(as.character(endowment_data$EndYearBalanceAmt))
+endowment_data$EndingBalanceAmt <- as.numeric(as.character(endowment_data$EndingBalanceAmt))
+
+endowment_data <- endowment_data %>% 
+  mutate(across(c(AdministrativeExpensesAmt,ContributionsAmt,OtherExpendituresAmt ), abs)) %>%
+  select(-c(EndowmentsHeldUnrelatedOrgInd, EndowmentsHeldRelatedOrgInd)) %>%
+  pivot_longer(-c(EIN, fiscal_year),
+               names_to = "variable_name") %>%
+  left_join(companies_to_ein) %>%
+  mutate(fiscal_year=as.numeric(paste(fiscal_year)),
+         organization_name = ifelse(is.na(organization_name),
+                                    EIN, organization_name)) 
+
+
+
+
+
+
+```
+
+```{r extract dates,eval=FALSE}
+
+#########################################################
+# this chunk only needs to be run once to get dates.RDS
+#########################################################
+
+# extract return dates
+source(here("GET_VARS.R"))
+
+files <- dir(here("990archivesfeb2024"),
+              full.names = TRUE)
+
+
+dates <- map_df(files,
+                ~get_df(filename = .x, 
+                        variables = c("//Return//ReturnHeader//TaxPeriodEndDt",
+                                      "//Return//ReturnHeader//TaxPeriodBeginDt"))) %>%
+  mutate(fiscal_year = as.numeric(paste(fiscal_year))) %>%
+   filter_ein()
+
+saveRDS(dates, here('data', 'dates.RDS')) 
+
+```
+
+
+
+
+
+
+# Table of Company Communications 
+
+```{r}
+
+################################################
+# table with each company we reached out to
+################################################
+
+ tribble(
+   ~Company, ~Discrepancy,
+  "Aspen Santa Fe",
+"The current year value for other expenditures for fiscal year 2018 is $6,906,449, but in 2019 the prior year value for other expenditures is $6,356,449 and, in accordance with the 2019 report, in 2020 the two years back value is $6,356,449.",
+
+"BalletMet", 
+"In 2015, the current year beginning of year balance is reported as $262,509, but then in 2016, the prior year beginning year balance is said to be $235,225; future year filings are in accordance with the $235,225 value.",
+
+
+"Ballet Arizona",
+"In the 2016 and 2017 filings, the beginning of year balance corresponding to fiscal years 2016 and 2017 were reported as $101,399. However, in the 2018 filing the value for 2016 was reported to be $601,399, and the value corresponding to 2017 was reported as $4,126,424.",
+
+"The Alabama Ballet",
+"In the filings for fiscal years 2016, 2017, and 2018,  the beginning and end of year balances are marked as $250,000 for all included years. However, in 2019, the value reported for the prior year (2018)  is $477,040, and in the filing for fiscal year 2020, the values are not concordant with the $250,000 value.",
+
+
+"Fort Wayne Ballet",
+"In the 2017 filing, the beginning of year balance is $1,264,981. However, in the 2018 filing, the beginning of year balance for the prior year is reported as $1,291,109 (second image below, and then the 2019 and 2020 filings both report the value corresponding to 2017 as $1,413,780. There are similar discrepancies for the end of year balances.",
+
+"Joffrey Ballet",
+"First, in the filing for the 2015 fiscal year, the value corresponding to 2015 is $1,443,297, and the value corresponding to the 2014 filing is recorded as $170,360.  However, in 2016, the value corresponding to 2015 is reported as $1,136,139, and the value for 2014 is reported as $35,600. Additionally, the reported contributions amount (under Part V: endowment funds)  for the filing on fiscal year 2016 is $236,579, but in 2017 the contributions amount reported for the prior year (2016) is $278,281; the value of $278,281 is reported in following years.",
+
+"The San Francisco Ballet",
+"In San the tax filings corresponding to fiscal year 2015, the beginning of year balance for 2013, 2014, and 2015 are reported as $174.  These values are in accordance with the fiscal year 2016 filing, and the beginning of year balance for 2016 is also reported as $174.  However, in the filing for the 2017 fiscal year, the reported beginning of year balance for the prior year (2016) was $107,033,575, for two years back (2015) it was  105,867,946, for three years back (2014) it was 92,513,161, and for four years back (2013) it was $79,137,681.",
+
+"Pittsburgh Ballet Theatre",
+"In the filing for fiscal year 2018, the current year net investment earnings/losses/gains is $475,508, but in the filing for fiscal year 2019, the value $556,273 is reported for the prior year (2018), and in the 2020 filing again we see the value $556,273 for 2 years back (2018). Also, in the filing corresponding to fiscal year 2020, the reported investment earnings/losses/gains is $147,166, but in the 2021 filing the prior year value is reported as $172,248."
+
+) %>%
+  kbl(caption = "\\label{table:discrep}Companies Reached Out to Regarding Discrepancies",
+       format="latex",
+       booktabs=TRUE,
+       escape=TRUE,
+       linesep = "\\addlinespace")  %>%
+  column_spec(2, width ="35em") %>%
+  kable_styling(
+      latex_options="hold_position" )
+
+
+
+```
+
+
+
+
+```{r sp500}
+
+
+####################################################
+# JOIN TO S&P 500 BY PREVIOUS WEEK OF THE S&P 500 
+####################################################
+
+
+dates <- readRDS( here('data', 'dates.RDS')) %>%
+  select(EIN, TaxPeriodEndDt, TaxPeriodBeginDt, fiscal_year) 
+ 
+
+endowment_data <- endowment_data %>%
+  mutate(fiscal_year=as.numeric(paste(fiscal_year))) %>%
+  left_join(dates)
+
+
+endowment_data_wide <- endowment_data %>% 
+  pivot_wider(names_from=variable_name,
+              values_from=value) %>%
+  mutate(begin_week = week(TaxPeriodBeginDt),
+         begin_month = month(TaxPeriodBeginDt),
+         begin_year = year(TaxPeriodBeginDt),
+         end_week = week(TaxPeriodEndDt),
+         end_month = month(TaxPeriodEndDt),
+         end_year = year(TaxPeriodEndDt))
+
+
+
+# no data in sp&500 for week 53 in these years, so change to 52
+years_52 <- c(2011, 2017)
+
+
+# fill week, month from previous years
+# adjust year depending on whether the fiscal year is across years or not
+endowment_data_wide <- endowment_data_wide %>%
+  group_by(EIN) %>%
+  arrange(fiscal_year) %>%
+  mutate(diffyears = any(begin_year != end_year, na.rm=TRUE)) %>%
+  fill(c(begin_month, begin_week, end_month, end_week), .direction="up") %>%
+  mutate(begin_year = ifelse(diffyears == TRUE, fiscal_year - 1, fiscal_year),
+         end_year = fiscal_year) %>%
+  ungroup() %>%
+  mutate(end_week = ifelse(end_week == 53 & end_year %in% years_52, 52, end_week))
+
+
+
+  
+# source: https://www.investing.com/indices/us-spx-500-historical-data
+sp <- read_csv(here('data','SP500_historical.csv'))
+
+
+# read S&P 500 data
+sp <- sp %>%
+  rename_with(tolower) %>%
+  select( sp500 = open, date) %>%
+  mutate(sp500 = as.numeric(sp500),
+         date = as_date(date, format= "%m/%d/%Y")) %>%
+  filter(!is.na(sp500)) %>%
+  mutate(
+         year = year(date),
+         week = week(date))  %>%
+  group_by(week, year) %>%
+  summarize(sp500 = mean(sp500,na.rm=TRUE),
+            .groups ="drop") %>%
+  group_by(year) %>%
+  mutate(maxweek = max(week))
+
+
+# shift up 1 by one week so we are joining by lagged week (i.e. the previous week)
+sp <- sp %>% 
+  mutate(week_new = ifelse(week ==maxweek, 1, week+1),
+         year_new = ifelse(week == maxweek, year+1, year)) %>%
+  select(sp500, week = week_new, year = year_new)
+
+
+
+endowment_data_wide <- endowment_data_wide %>%
+  group_by(EIN) %>%
+  arrange(fiscal_year) %>%
+  mutate(diffyears = any(begin_year != end_year, na.rm=TRUE)) %>%
+  fill(c(begin_month, begin_week, end_month, end_week), .direction="up") %>%
+  mutate(begin_year = ifelse(diffyears == TRUE, fiscal_year - 1, fiscal_year),
+         end_year = fiscal_year) %>%
+  ungroup()
+
+# renaming columns
+sp_start <- sp %>%
+  select(week, year, sp500_begin = sp500)
+sp_end <- sp %>%
+  select(week, year, sp500_end = sp500)
+
+end_sp <- endowment_data_wide %>%
+  left_join(sp_start, by = c('begin_week' = 'week',
+                             'begin_year' = 'year')) %>%
+  left_join(sp_end,  by = c('end_week' = 'week',
+                             'end_year' = 'year'))
+
+
+
+```
+
+
+## Annual Growth Rate
+
+The annual growth rate is the percent change in a year. That is,
+
+$$\text{growth rate} = \frac{\text{Beginning Value}- \text{End Value}}{\text{Beginning Value}}.$$ 
+We can compute this for the S&P 500 for the same time interval. Here, we use mean value of the S&P 500 to the previous week compared to the beginning and end dates of each company's fiscal year. 
+
+
+
+To account for withdrawals and contributions, we add back withdrawals and subtract contributions, so we calculate the annual growth rate as
+
+$$\scriptsize{\text{Annual Growth Rate} = \frac{ ( \text{End Value} + \text{Other Expenditures} + \text{Grants and Scholarships} + \text{Administrative Expenses} - \text{Contributions} ) -\text{Beginning Value}}{\text{Beginning Value}}}$$ 
+This adjustment is important because we want to see how much of the change from the beginning of year balance to the end of year balance is due to the investments, not, for example, a large contribution.
+
+
+```{r, fig.height = 17, fig.cap = "\\label{fig:annual-growth-endowment}Annual growth rate of a company's endowment when adjusting for contributions and withdrawals, compared to the annual growth S\\&P 500 for the corresponding time period.", fig.pos="h"}
+
+end_sp$BeginningYearBalanceAmt <- as.numeric(as.character(end_sp$BeginningYearBalanceAmt))
+end_sp$ContributionsAmt <- as.numeric(as.character(end_sp$ContributionsAmt))
+end_sp$OtherExpendituresAmt <- as.numeric(as.character(end_sp$OtherExpendituresAmt))
+end_sp$AdministrativeExpensesAmt <- as.numeric(as.character(end_sp$AdministrativeExpensesAmt))
+end_sp$GrantsOrScholarshipsAmt <- as.numeric(as.character(end_sp$GrantsOrScholarshipsAmt))
+end_sp$InvestmentEarningsOrLossesAmt <- as.numeric(as.character(end_sp$InvestmentEarningsOrLossesAmt))
+end_sp$EndYearBalanceAmt <- as.numeric(as.character(end_sp$EndYearBalanceAmt))
+
+
+
+# replace NAs with 0's
+end_sp <-  end_sp %>%
+  mutate(across(c(AdministrativeExpensesAmt, OtherExpendituresAmt,
+                  ContributionsAmt, GrantsOrScholarshipsAmt,
+                  BeginningYearBalanceAmt, EndYearBalanceAmt), ~ifelse(is.na(.x), 0, .x))) %>%
+  filter(BeginningYearBalanceAmt != 0)
+
+
+with_mean <- end_sp %>%
+ # rename(organization_name = Company)
+  group_by(organization_name) %>%
+  summarize(mean_balance = mean(BeginningYearBalanceAmt, na.rm=TRUE)) 
+
+
+#######################################################
+# annual growth over time, faceted by company
+#######################################################
+end_sp %>%
+  inner_join(with_mean) %>%
+  mutate(pct_change_adjusted = (EndYearBalanceAmt + OtherExpendituresAmt + 
+                     GrantsOrScholarshipsAmt +  AdministrativeExpensesAmt
+                   - ContributionsAmt - BeginningYearBalanceAmt ) / BeginningYearBalanceAmt
+         ) %>%
+  mutate(organization_name = fct_reorder(organization_name,mean_balance, .desc=TRUE)) %>%
+  mutate(pct_change_sp = (sp500_end - sp500_begin) / sp500_begin) %>%
+  select(contains("pct_change"), organization_name, fiscal_year) %>%
+  pivot_longer(c(contains('pct_change'))) %>%
+  mutate(name = case_when(
+    name == "pct_change_sp" ~ "Growth Rate of S&P 500",
+    name == "pct_change_adjusted" ~ "Growth Rate of Adjusted Endowment Balance"
+  )) %>%
+  ggplot(aes(x = fiscal_year, y = value, color = name)) +
+  geom_line() +
+  geom_point(alpha = .5, size = .3, show.legend=FALSE) +
+  geom_hline(linetype=2, color="darkred", yintercept=.05, alpha=.5) +
+  facet_wrap(~organization_name, scales= "free_y", ncol=4) +
+  theme_c() +
+  scale_x_continuous(breaks = 2010:2023) +
+  scale_y_continuous(labels=scales::percent) +
+  scale_color_manual(values=c("#51B09A","#C59742")) +
+  labs(x = "Date",
+       y = "Percent Change",
+       color = "",
+       title = "Annual Growth of the S&P 500 Compared to the Annual Growth in Endowments") +
+  theme(legend.position = "top",
+        plot.title = element_text(size = 25),
+        plot.subtitle = element_text(size =20),
+        legend.text=element_text(size =20),
+        axis.text.x = element_text(size = 8, angle=30),
+        strip.text.x = element_text(size =13),
+        axis.title = element_text(size =20)) +
+  guides(color = guide_legend(override.aes = list(linewidth=3))) +
+  ylim(-.1,.25)
+ggsave(here('final_report/images/annual-growth_mb.pdf'))
+
+
+```
+
+
+
+## Compound Growth Rate
+
+Letting $t$ denote the number of years considered, 
+$$\small{\text{Compound Annual Growth Rate} = \left( \frac{\text{End Value}}{\text{Beginning Value}}\right)^{\frac{1}{t}}-1}$$
+
+Now, we note that we can compute the withdrawals using other variables reported in the 990:
+$$\small{\text{Withdrawals} = \text{Other Expenditures} +\text{Administrative Expenses} +\text{Administrative Expenses} + \text{Grants and Scholarships}}.$$
+
+
+To adjust for contributions and expenditures, we define the Compound Annual Growth Rate as
+$$\small{\left( \frac{\text{End Value} + \sum_{i=1}^{t-1} \text{Withdrawals} - \sum_{i=1}^{t-1} \text{Contributions}  }{\text{Beginning Value}} \right)^{\frac{1}{t}}-1}$$
+
+<!-- $$tiny{\left( \frac{\text{End Value} + \sum_{i=1}^{t-1} \text{Other Expenditures} +  \sum_{i=1}^{t-1}\text{Grants and Scholarships} +  \sum_{i=1}^{t-1} \text{Administrative Expenses} - \sum_{i=1}^{t-1} \text{Contributions}  }{\text{Beginning Value}} \right)^{\frac{1}{t}}-1}$$
+-->
+
+We visualize the compound growth rates for all companies in Figure \ref{fig:compound-growth}. Notably, San Francisco Ballet, Joffrey Ballet, and 
+
+```{r, fig.cap = "\\label{fig:compound-growth}Compound annual growth rates for all organizations compared to the compound annual growth rate for the S\\&P 500 for three time periods. Not all companies are present in each plot, since not all companies have data going back the same number of years. Of note, year to year differences in the compound annual growth rate of the S\\&P 500 are due to differences in companies' fiscal years.", fig.width = 15, fig.height=18}
+
+##################################################################
+# computing compound annual growth for different time intervals
+##################################################################
+# 
+# cagr_2011_2023 <- end_sp %>%
+#     filter(fiscal_year <= 2023 & fiscal_year >= 2011) %>%
+#   group_by(organization_name) %>%
+#   mutate(minyear = min(fiscal_year),
+#          maxyear = max(fiscal_year)) %>%
+#   mutate(across(c(AdministrativeExpensesAmt, OtherExpendituresAmt,
+#                   ContributionsAmt, GrantsOrScholarshipsAmt), ~ifelse(fiscal_year == maxyear, NA, .x))) %>%
+#   filter(BeginningYearBalanceAmt != 0) %>%
+#   select(minyear, maxyear, organization_name, contains("Amt"), fiscal_year, contains('sp')) %>%
+#   group_by(organization_name, minyear, maxyear) %>%
+#   summarize(cont = sum(ContributionsAmt, na.rm = TRUE),
+#             exp = sum(OtherExpendituresAmt, na.rm= TRUE),
+#             grants = sum(GrantsOrScholarshipsAmt, na.rm=TRUE),
+#             admin = sum(AdministrativeExpensesAmt, na.rm=TRUE),
+#             endowment_begin = BeginningYearBalanceAmt[which.min(fiscal_year)],
+#             endowment_end = BeginningYearBalanceAmt[which.max(fiscal_year)],
+#             sp_begin = sp500_begin[which.min(fiscal_year)],
+#             sp_end = sp500_begin[which.max(fiscal_year)],
+#             .groups="drop",
+#             n_years = unique(maxyear)- unique(minyear)) %>%
+#   filter(n_years == 9) %>%
+#   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
+#          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
+
+
+cagr_2011_2020 <- end_sp %>%
+    filter(fiscal_year <= 2020 & fiscal_year >= 2011) %>%
+  group_by(organization_name) %>%
+  mutate(minyear = min(fiscal_year),
+         maxyear = max(fiscal_year)) %>%
+  mutate(across(c(AdministrativeExpensesAmt, OtherExpendituresAmt,
+                  ContributionsAmt, GrantsOrScholarshipsAmt), ~ifelse(fiscal_year == maxyear, NA, .x))) %>%
+  filter(BeginningYearBalanceAmt != 0) %>%
+  select(minyear, maxyear, organization_name, contains("Amt"), fiscal_year, contains('sp')) %>%
+  group_by(organization_name, minyear, maxyear) %>%
+  summarize(cont = sum(ContributionsAmt, na.rm = TRUE),
+            exp = sum(OtherExpendituresAmt, na.rm= TRUE),
+            grants = sum(GrantsOrScholarshipsAmt, na.rm=TRUE),
+            admin = sum(AdministrativeExpensesAmt, na.rm=TRUE),
+            endowment_begin = BeginningYearBalanceAmt[which.min(fiscal_year)],
+            endowment_end = BeginningYearBalanceAmt[which.max(fiscal_year)],
+            sp_begin = sp500_begin[which.min(fiscal_year)],
+            sp_end = sp500_begin[which.max(fiscal_year)],
+            .groups="drop",
+            n_years = unique(maxyear)- unique(minyear)) %>%
+  filter(n_years == 9) %>%
+  mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
+         cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
+
+
+cagr_2015_2020 <- end_sp %>%
+    filter(fiscal_year>= 2015 & fiscal_year <= 2020) %>%
+  group_by(organization_name) %>%
+  mutate(minyear = min(fiscal_year),
+         maxyear = max(fiscal_year)) %>%
+  mutate(across(c(AdministrativeExpensesAmt, OtherExpendituresAmt,
+                  ContributionsAmt, GrantsOrScholarshipsAmt), ~ifelse(fiscal_year == maxyear, NA, .x))) %>%
+  filter(BeginningYearBalanceAmt != 0) %>%
+  select(minyear, maxyear, organization_name, contains("Amt"), fiscal_year, contains('sp')) %>%
+  group_by(organization_name, minyear, maxyear) %>%
+  summarize(cont = sum(ContributionsAmt, na.rm = TRUE),
+            exp = sum(OtherExpendituresAmt, na.rm= TRUE),
+            grants = sum(GrantsOrScholarshipsAmt, na.rm=TRUE),
+            admin = sum(AdministrativeExpensesAmt, na.rm=TRUE),
+            endowment_begin = BeginningYearBalanceAmt[which.min(fiscal_year)],
+            endowment_end = BeginningYearBalanceAmt[which.max(fiscal_year)],
+            sp_begin = sp500_begin[which.min(fiscal_year)],
+            sp_end = sp500_begin[which.max(fiscal_year)],
+            .groups="drop",
+            n_years = unique(maxyear)- unique(minyear)) %>%
+  filter(n_years == 5) %>%
+  mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
+         cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
+
+
+cagr_2017_2020 <- end_sp %>%
+    filter(fiscal_year>= 2017 & fiscal_year <= 2020) %>%
+  group_by(organization_name) %>%
+  mutate(minyear = min(fiscal_year),
+         maxyear = max(fiscal_year)) %>%
+  mutate(across(c(AdministrativeExpensesAmt, OtherExpendituresAmt,
+                  ContributionsAmt, GrantsOrScholarshipsAmt), ~ifelse(fiscal_year == maxyear, NA, .x))) %>%
+  filter(BeginningYearBalanceAmt != 0) %>%
+  select(minyear, maxyear, organization_name, contains("Amt"), fiscal_year, contains('sp')) %>%
+  group_by(organization_name, minyear, maxyear) %>%
+  summarize(cont = sum(ContributionsAmt, na.rm = TRUE),
+            exp = sum(OtherExpendituresAmt, na.rm= TRUE),
+            grants = sum(GrantsOrScholarshipsAmt, na.rm=TRUE),
+            admin = sum(AdministrativeExpensesAmt, na.rm=TRUE),
+            endowment_begin = BeginningYearBalanceAmt[which.min(fiscal_year)],
+            endowment_end = BeginningYearBalanceAmt[which.max(fiscal_year)],
+            sp_begin = sp500_begin[which.min(fiscal_year)],
+            sp_end = sp500_begin[which.max(fiscal_year)],
+            .groups="drop",
+            n_years = unique(maxyear)- unique(minyear)) %>%
+  filter(n_years == 3) %>%
+  mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
+         cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
+
+
+
+plot_cagr <- function(df, title = "") {
+  df %>% 
+    select(cagr_adj, cagr_sp, organization_name) %>%
+    mutate(order = cagr_adj) %>%
+    pivot_longer(contains('cagr')) %>%
+    mutate(name=case_when(
+      name == "cagr_adj" ~ "Compound Annual Growth Rate\nfor Endowment",
+      name == "cagr_sp" ~ "Compound Annual Growth Rate\nin S&P 500"
+    )) %>%
+    mutate(xlab = ifelse(value > 0, value+ .007, value-.014)) %>%
+    ggplot(aes(y = fct_reorder(organization_name, order),
+               x = value, fill = name)) +
+    geom_bar(stat="identity", position="dodge") +
+   # geom_bar(stat="identity",position = position_dodge(.9), width=.8)+
+    labs(y = "",
+         title = title,
+         x= "Compound Annual Growth Rate",
+         fill = "") +
+     theme_c(legend.spacing.y = unit(.5, 'cm')) +
+    theme(legend.text=element_text(size = 14),
+          legend.position="top",
+          axis.title = element_text(size = 18),
+          plot.title = element_text(size = 25)) +
+    guides(fill = guide_legend(byrow=TRUE)) +
+    theme(axis.text.y  =element_text(size = 14),
+          legend.text=element_text(size = 14)) +
+    scale_fill_manual(values=c("#51B09A","#C59742")) +
+    scale_x_continuous(labels = scales::percent, n.breaks = 6) +
+    geom_text(aes(y= organization_name, x =xlab, 
+                  label=paste0(round(100*value), '%')),
+              #nudge_x = .1,
+              size = 2.5,
+              position=position_dodge(.9),
+              hjust=0) 
+}
+
+
+plt1 <- cagr_2011_2020 %>%
+  plot_cagr(title = "2011 to 2020") +
+  theme(legend.position="none")
+
+
+
+plt2 <- cagr_2015_2020 %>%
+  plot_cagr(title = "2015 to 2020")+
+  theme(legend.position="none")
+
+
+
+
+title_gg <- ggplot() + 
+  labs(title = "Compound Annual Growth Rate") + 
+  theme(plot.title=element_text(face="bold", hjust = .5, size = 22, margin =margin(5,0,2,0)))
+
+
+plt3 <- cagr_2017_2020 %>%
+  plot_cagr(title = "2017 to 2020") +
+  theme(legend.text=element_text(size=16))
+
+
+
+legend <- get_legend(plt3) 
+
+plt3 <- plt3 + theme(legend.position='none')
+
+row <- plot_grid(plt1,plt2,plt3)
+
+
+
+plot_grid(title_gg,
+          legend, 
+          row,
+           rel_heights= c(.03, .05, .92),
+          nrow=3)
+
+
+ggsave(here('final_report/images/compound-growth.pdf'))
+
+```
+
+We see immediately in Figure \ref{fig:compound-growth} that some companies have a compound growth rate is indistinguishable from zero. This includes:
+
+- Oregon Ballet: reported no investment earnings/losses for any year
+- Harlem Ballet: investment earnings/gains were extremely small ($\pm 13$ dollars)
+- First State Ballet Theatre: reported no investment earnings/losses for any year
+- Eugene Ballet: only reported investment earnings/losses for 2020 and 2021
+- American Repertory Ballet: reported no investment earnings/losses for any year
+
+We see in Figure \ref{fig:annual-growth-endowment} that each of these companies annual growth rates are essentially zero when accounting for contributions and withdrawals.
+
+```{r plot_ranks function}
+
+# function to plot variables of interest against each other
+plot_ranks <- function(var1, var2, data) {
+
+  
+   plt <- data %>%
+    group_by(fiscal_year) %>%
+   # arrange(var1) %>%
+    mutate("{var1}_rank" := rank(-!!sym(var1)), na.last = "keep") %>%
+#    arrange(var2) %>%
+    mutate("{var2}_rank"  := rank(-!!sym(var2)),  na.last = "keep") %>%
+    ggplot(aes(x = !!sym(glue("{var1}_rank" )), y =!!sym(glue("{var2}_rank" )),
+               color  = organization_name,
+               label =EIN
+               )) +
+    geom_point() +
+    geom_function(fun=function(x)x,color="darkred", alpha = .8) +
+    labs(x = paste0(var1, " Rank"),
+         y =  paste0(var2, " Rank")) +
+    theme_bw() +
+    labs(title = glue("Rank of {var2} vs. Rank of {var1}")) +
+    viridis::scale_color_viridis(discrete=TRUE,
+                                 option = "rocket",
+                                 end = .9) +
+     facet_wrap(~fiscal_year)+
+      theme(plot.title = element_text(size = 14, 
+                                      hjust = .5, face="bold",),
+            plot.subtitle = element_text(hjust = .5, 
+                                         face="italic",
+                                         size = 14),
+            axis.title = element_text(size = 13, 
+                                      face = "bold")) 
+  
+  ggplotly(plt, margin = m, height = 550) %>%
+    partial_bundle()
+
+}
+
+
+plot_ranks_by_consistency <- function(var1, var2, data) {
+
+   plt <- data %>%
+     filter(fiscal_year > 2010 & fiscal_year < 2021) %>%
+    group_by(fiscal_year) %>%
+    mutate("{var1}_rank" := rank(-!!sym(var1)), na.last = "keep") %>%
+    mutate("{var2}_rank"  := rank(-!!sym(var2)),  na.last = "keep")  %>%
+     mutate(rank_diff = !!sym(glue("{var2}_rank")) - !!sym(glue("{var1}_rank" ))) %>%
+   group_by(EIN) %>%
+   mutate(sum_pos = sum(rank_diff >0, na.rm=TRUE),
+          sum_neg = sum(rank_diff < 0,  na.rm=TRUE),
+          sum_zero = sum(rank_diff ==0, na.rm=TRUE))%>%
+     ungroup() %>% 
+   mutate(prop_positive = sum_pos / (sum_pos + sum_neg + sum_zero)) %>%
+    ggplot(aes(x = !!sym(glue("{var1}_rank" )), y =!!sym(glue("{var2}_rank" )),
+               color  = prop_positive,
+               group =organization_name
+               )) +
+    geom_function(fun=function(x)x,color="darkred", alpha = .8, n =201) +
+    geom_point() +
+    labs(x = paste0(var1, " Rank"),
+         y =  paste0(var2, " Rank"),
+         title = glue("Rank of {var2} vs. Rank of {var1}"),
+         color = glue("Proportion of Years Where\n{var1}\nRanked Higher than\n{var2}")) +
+    theme_c(legend.text=element_text(size =8)) +
+    scale_color_gradient2(high="#5935CF", low="#D18E01", mid="#E2E2E2", limits=c(0,1), midpoint=.5) +
+     facet_wrap(~fiscal_year, ncol=5)+
+      theme(plot.title = element_text(size = 12, 
+                                      hjust = .5, face="bold",),
+            plot.subtitle = element_text(hjust = .5, 
+                                         face="italic",
+                                         size = 14),
+            axis.title = element_text(size = 13, 
+                                      face = "bold")) +
+     scale_x_reverse() +
+     scale_y_reverse()
+  
+  return(plt)
+
+}
+
+
+
+
+```
+
+
+
+
+```{r, eval=TRUE}
+
+vars <-  unique(endowment_data$variable_name)[!grepl("EOY|Admin|Grants", unique(endowment_data$variable_name))]
+
+# pairwise combinations of variables
+variable_combinations <- t(combn(vars, 2)) %>%
+  as.data.frame()
+
+
+
+```
+
+
+
+### Where Endowments are Held
+
+
+```{r,eval=FALSE}
+
+  
+
+#######################################
+# CREATE BIG PALETTE WITH MANY COLORS
+#######################################
+
+pal1 <- viridis_pal(option="mako", end = .9)(12)
+pal2 <- viridis_pal(option="rocket", end = .8)(12)
+pal3 <- viridis_pal(option="magma", end = .9)(12)
+pal4 <- viridis_pal(option="inferno", end = .8)(12)
+
+set.seed(123)
+pal <- c(pal1, pal2, pal3, pal4)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+```
+
+```{r}
+
+
+
+#######################################
+# CREATE BIG PALETTE WITH MANY COLORS
+#######################################
+pal1 <- viridis_pal(option="mako", end = .9, begin=.2)(10)
+pal2 <- viridis_pal(option="rocket", end = .9, begin=.2)(8)
+pal3 <- viridis_pal(option="magma", end = .9, begin=.2)(8)
+pal4 <- viridis_pal(option="inferno", end = .9, begin=.2)(8)
+
+set.seed(999)
+pal <- c(pal1, pal2, pal3, pal4)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+
+```
+
+
+
+```{r, results='asis', fig.cap="\\label{table:endowment-type-table}"}
+
+
+
+###################################################################################################
+# table of organization that had endowment in single category for all years on file
+###################################################################################################
+
+all_category <- endowment_data_wide %>%
+  filter(!if_all(contains("EOY"), is.na)) %>%
+  select(contains("EOY"),fiscal_year, 
+         EIN, organization_name) %>%
+   group_by(organization_name) %>%
+    summarize(n_years = sum(!is.na(BoardDesignatedBalanceEOYPct) |
+                              !is.na(PrmnntEndowmentBalanceEOYPct) |
+                              !is.na(TermEndowmentBalanceEOYPct)),
+              across(contains("EOY"),~ mean(.x, na.rm=TRUE))) %>%
+   filter(if_any(contains("EOY"), ~.x==1 )) %>%
+   pivot_longer(contains("EOY")) %>%
+  filter(!is.na(value) & value !=0) %>%
+  mutate(name = case_when(
+    name == "TermEndowmentBalanceEOYPct" ~ "Temporarily restricted endowment",
+    name == "PrmnntEndowmentBalanceEOYPct" ~ "Permanent endowment",
+    name == "BoardDesignatedBalanceEOYPct" ~ "Board designated or quasi-endowment"
+  )) %>%
+  group_by(name, n_years) %>%
+  summarize(organization_name = paste0(organization_name, collapse =", ")) %>%
+  arrange(name, desc(n_years)) %>%
+  select(`Organization Name`=organization_name,
+         `Endowment Type` = name,
+         `Number of Years on File` = n_years) %>%
+  ungroup()
+
+all_category %>%
+  select(-`Endowment Type`) %>%
+   kbl(caption = "Organizations with $100\\%$ of their Endowments in One Category for All Years on File",
+       format="latex",
+       booktabs=TRUE,
+       escape=FALSE,
+       linesep = "\\addlinespace") %>%
+  column_spec(2, width = "4cm") %>%
+    pack_rows(index = table(all_category$`Endowment Type`),  hline_after=TRUE,
+                latex_gap_space = "0.5em",
+)
+
+
+
+```
+
+```{r, fig.width=12, fig.height=5, fig.cap="\\label{fig:endowment-type}The percent of endowments held in temporarily restricted endowment, permanent endowment, or board designated or quasi-endowment. The median across all companies by fiscal year is shown in red."}
+
+
+# eins that have endowments that are in a single category for all years
+all_in_one_category <- endowment_data_wide %>%
+  select(contains("EOY"),fiscal_year, 
+         EIN, organization_name) %>%
+   group_by(organization_name) %>%
+   summarize(across(contains("EOY"),~ mean(.x, na.rm=TRUE))) %>%
+   filter(if_any(contains("EOY"), ~.x==1 )) %>%
+  pull(organization_name) %>% 
+  unique()
+
+endowment_data_wide_filt <- endowment_data_wide %>%
+  filter(!organization_name %in% all_in_one_category)
+
+####################################################################################
+# split labels into 2 groups, one labeled on earliest date, one on latest
+####################################################################################
+set.seed(999)
+all_eins <- unique(endowment_data_wide_filt$EIN)
+all_eins <- endowment_data_wide_filt %>% 
+  pull(EIN) %>%
+  unique()
+
+indexes_all <- 1:length(all_eins)
+first <- sample.int(floor(length(all_eins)/2), replace=FALSE)
+ein_beginning <- all_eins[first]
+ein_end <- all_eins[indexes_all[!indexes_all %in% first]]
+ein_end = all_eins[indexes_all]
+
+
+ranks <- endowment_data_wide_filt %>%
+  filter(fiscal_year <= 2020) %>%
+  group_by(organization_name) %>%
+  summarize(fiscal_year = max(fiscal_year),
+            BeginningYearBalanceAmt = BeginningYearBalanceAmt[which.max(fiscal_year)]) %>%
+  mutate(rank = rank(-BeginningYearBalanceAmt)) 
+
+top_20 <- ranks %>% filter(rank <= 15)
+not_top_20 <- ranks %>% filter(rank >15)
+
+  
+
+dat <- endowment_data_wide_filt %>%
+  filter(fiscal_year <=2020) %>%
+  select(contains("EOY"),fiscal_year, 
+         EIN, organization_name) %>%
+  mutate(rank_category = ifelse(organization_name %in% top_20$organization_name,
+                                "Top 15", 
+                                "Not in\n Top 15")) %>%
+  mutate(rank_category=factor(rank_category,
+                              levels = c( "Top 15",
+                                          "Not in\n Top 15"))) %>%
+  pivot_longer(cols = contains("EOY"))  %>%
+  mutate(name = case_when(
+    name == "TermEndowmentBalanceEOYPct" ~ "Temporarily restricted\nendowment",
+    name == "PrmnntEndowmentBalanceEOYPct" ~ "Permanent endowment",
+    name == "BoardDesignatedBalanceEOYPct" ~ "Board designated\nor quasi-endowment"
+  )) %>%
+  filter(!is.na(value)) %>%
+  group_by(organization_name, name) %>%
+  mutate(xlabel = ifelse(EIN %in% ein_beginning,
+                         min(fiscal_year),
+                         max(fiscal_year)),
+         value=100*value,
+         ylabel = ifelse(EIN %in% ein_beginning,
+                         value[which.min(fiscal_year)],
+                         value[which.max(fiscal_year)]) ) %>%
+  ungroup()  %>%
+   filter(fiscal_year <=2020) 
+
+
+dat_labels <- dat %>%
+  select(organization_name,xlabel,ylabel,name,rank_category, EIN) %>%
+  mutate(beginning = EIN %in% ein_beginning) %>%
+  distinct()
+
+dat_labels_left <- dat_labels %>%
+  filter(beginning)
+
+
+dat_labels_right <- dat_labels %>%
+  filter(!beginning)
+
+
+
+
+
+
+
+pal1 <- viridis_pal(option="mako", end = .8, begin=.2)(10)
+pal2 <- viridis_pal(option="rocket", end = .8, begin=.2)(8)
+pal3 <- viridis_pal(option="magma", end = .8, begin=.2)(8)
+pal4 <- viridis_pal(option="inferno", end = .8, begin=.2)(8)
+
+set.seed(999)
+pal <- c(pal1, pal2, pal3, pal4)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+# mini palette
+
+set.seed(999)
+pal <- c(pal1, pal2, pal3, pal4)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+set.seed(999)
+
+# mini pal
+pal1 <-viridis_pal(option="mako", end = .8, begin=.3)(3)
+pal2 <- viridis_pal(option="inferno", end = .8, begin=.3)(2)
+pal3 <- viridis_pal(option="magma", end = .8, begin=.1)(2)
+
+
+pal <- c(pal1, pal2, pal3)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+
+##############################################################################
+# plot showing types of endowments over time by company
+##############################################################################
+ dat <- dat %>%
+  group_by(organization_name,name) %>%
+  mutate(sd_proportion = sd(value, na.rm=TRUE),
+         sd_proportion = ifelse(is.na(sd_proportion), 0, sd_proportion))%>%
+  group_by(organization_name) %>%
+  mutate(sd_proportion=max(sd_proportion, na.rm =TRUE)) %>%
+  ungroup() 
+
+################################
+# MEDIAN IN RED, OTHERS GRAY
+################################
+dat %>%
+  group_by(fiscal_year,name) %>%
+  mutate(median = median(value, na.rm=TRUE)) %>%
+  ungroup() %>% 
+  ggplot(aes(x=fiscal_year,
+             y  = value/100,
+             group=organization_name)) +
+  geom_line(show.legend=FALSE,
+            alpha = .2) +
+   geom_point(size=.5, alpha =.05) + 
+  geom_line(aes(x=fiscal_year, y=median/100, group=name,
+                color = 'Median across companies'),
+            linetype = 1,
+            linewidth= 1.1,
+            alpha=.8 #,
+          #  color = 'darkred'
+            ) +
+  geom_point(aes(x=fiscal_year, y=median/100),
+             color = 'darkred',
+             size=.8) +
+  facet_wrap(~name) +
+  theme_c() +
+  labs(x = "Fiscal Year",
+       y= "Percent",
+       title = "Proportion of Endowments Held in Designated Categories",
+       subtitle = "By Organization and Fiscal Year") +
+  scale_color_manual(values=c( 'Median across companies' = 'darkred'),
+                     name='') +
+  theme(legend.position = 'top',
+        legend.text = element_text(size =16),
+        plot.title = element_text(size = 20)) +
+  guides(color=guide_legend(override.aes = list(linewidth=3))) +
+  scale_y_continuous(labels=scales::percent)
+  
+
+
+
+ggsave(here('final_report', 'images', 'proportion_endowment_categories.pdf'))
+
+```
+
+
+
+```{r fig.cap = "\\label{fig:prop-most-variable} Proportions of endowments in each designated category over time for the 5 companies with the most variability.", fig.width = 13, fig.height = 6.5}
+
+top <- dat %>% 
+  select(organization_name, sd_proportion) %>% 
+  distinct() %>%
+  arrange(desc(sd_proportion)) %>%
+  slice_head(n=5)
+
+
+# bar plot of most variable companies
+dat %>%
+  inner_join(top) %>%
+  filter(organization_name %in% top$organization_name) %>%
+  #mutate(value=value/100) %>%
+  ggplot(aes(x=fiscal_year, y = value/100, fill =name)) +
+  geom_bar(position="stack", stat="identity") +
+  facet_wrap(~fct_reorder(organization_name,sd_proportion,.desc=TRUE), ncol=3) +
+  theme_c() +
+  theme(legend.position="right",
+        legend.spacing.y=unit(.3,'cm'),
+        legend.text=element_text(size = 15),
+        axis.title = element_text(size =18),
+        plot.title = element_text(size = 22),
+        strip.text.x =element_text(size = 12),
+        axis.text.x= element_text(angle = 30)) +
+  scale_x_continuous(breaks=2014:2020) +
+  scale_y_continuous(expand=c(0,0), limits=c(0,1.05), labels=scales::percent) +
+  scale_fill_manual(values=pal) +
+  labs(x = "Fiscal Year", y = "Percent", 
+       title = "Proportion of Endowment in Each Designated Category",
+       subtitle = "Top 5 Most Variable Companies",
+       fill = "") +
+  guides(fill = guide_legend(byrow=TRUE))
+
+
+ggsave(here('final_report/images/prop_endowment_type_most_variable.pdf'))
+
+
+```
+
+
+```{r old version, eval=FALSE}
+ dat %>%
+   ggplot(aes(x=fiscal_year,
+             y  = value, 
+             color = organization_name)) +
+  geom_line(show.legend=FALSE,
+            alpha = .95) +
+  facet_wrap(~name) +
+  theme_c(
+    strip.text = element_text(margin =margin(6,0,6,0),
+                                    size =4,
+                                    lineheight=.5),
+          legend.position="none",
+        axis.title = element_text(size =16),
+    axis.text.x = element_text(angle = 30),
+    plot.title = element_text(             #title
+                   size = 30,                #set font size
+                   face = 'bold',            #bold typeface
+                   hjust = .5,
+                   vjust = 3)) +
+  scale_color_manual(values=pal) +
+   geom_point(size=.5, alpha =.5) +
+  labs(y="percent of Endowment in Category",
+       x = "Fiscal Year") +
+  geom_label_repel(aes(label = organization_name,
+                 y = ylabel,
+                 x = xlabel,  
+                 color=organization_name),
+             size = 3,
+             seed=124,
+             data=dat_labels,
+              min.segment.length=9,
+             label.size = 1.2,
+             force=.8,
+           #  nudge_x = -.5,
+             # direction="y",
+             force_pull = 20,
+             max.overlaps = 20) +
+  geom_label_repel(aes(label = organization_name,
+                color=organization_name,
+                 y = ylabel, x = xlabel),
+              color = "black",
+             label.size = NA,
+             size = 3,
+            # nudge_x = -.5,
+             seed=124,
+             data=dat_labels,
+             min.segment.length=9,
+             force=.8,
+             # direction="y",
+             force_pull=20,
+             max.overlaps = 20) +
+   facet_grid(rank_category~name, scales="free") +
+   scale_x_continuous(limits=c(2013,2022), breaks=2014:2021) +
+   scale_y_continuous(limits = c(-5, 105), breaks = seq(0,100, by = 20)) +
+   labs(title = "Types of Endowments by Organization")
+
+
+
+
+```
+
+
+```{r new version, eval=FALSE}
+
+
+pal1 <- viridis_pal(option="mako", end = .8, begin=.2)(10)
+pal2 <- viridis_pal(option="rocket", end = .8, begin=.2)(8)
+pal3 <- viridis_pal(option="magma", end = .8, begin=.2)(8)
+pal4 <- viridis_pal(option="inferno", end = .8, begin=.2)(8)
+
+set.seed(999)
+pal <- c(pal1, pal2, pal3, pal4)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+# 
+# 
+# endowment_data_wide %>%
+#   ggplot(aes(x=fiscal_year, y=BeginningYearBalanceAmt,color=organization_name)) +
+#   geom_line() +
+#   scale_color_viridis(option="rocket", end = .8, begin=.5 ,discrete=TRUE)
+
+ dat %>%
+   ggplot(aes(x=fiscal_year,
+             y  = value, 
+             color = organization_name)) +
+  geom_line(show.legend=FALSE,
+            alpha = .9) +
+  facet_wrap(~name) +
+  theme_c(
+    strip.text = element_text(margin =margin(6,0,6,0),
+                                    size =4,
+                                    lineheight=.5),
+        #  strip.text.y = element_text(angle=-90, color="white", size =18),
+          legend.position="none",
+        axis.title = element_text(size =16),
+    axis.text.x = element_text(angle = 30),
+    plot.title = element_text(             #title
+                   size = 30,                #set font size
+                   face = 'bold',            #bold typeface
+                   hjust = .5,
+                   vjust = 3)) +
+  scale_color_manual(values=pal) +
+   geom_point(size=.5, alpha =.5) +
+  labs(y="percent of Endowment in Category",
+       x = "Fiscal Year") + 
+   theme(strip.text.y =element_text(angle=0)) +
+  geom_text_repel(aes(label = organization_name,
+                 y = ylabel,
+                 x = xlabel,  
+                 color=organization_name),
+             size = 2,
+             direction="y",
+             hjust="right",
+             vjust="middle",
+            data=dat_labels_left) +
+  facet_grid(rank_category~name, scales="free") +
+   scale_x_continuous(limits=c(2013,2021), breaks=2014:2021) +
+   scale_y_continuous(limits = c(-5, 105), breaks = seq(0,100, by = 20), 
+                      labels=paste0(seq(0,100, by = 20), "%")) +
+   labs(title = "Types of Endowments by Organization")+ 
+  geom_text_repel(aes(label = organization_name,
+                 y = ylabel,
+                 x = xlabel,  
+                 color=organization_name),
+             size = 2,
+             direction="y",
+             hjust="left",
+             vjust="middle",
+            data=dat_labels_right)
+
+         
+
+
+
+  geom_text_repel(aes(label = organization_name,
+                 y = ylabel,
+                 x = xlabel,  
+                 color=organization_name),
+             size = 2,
+             seed=124,
+             data=dat_labels_left,
+              min.segment.length=9,
+            # label.size = 1.2,
+             force=.8,
+            hjust=1,
+            nudge_x = -.1,
+           #  nudge_x = -.5,
+             # direction="y",
+             force_pull = 10,
+             max.overlaps = 20) +
+  # geom_label_repel(aes(label = organization_name,
+  #               color=organization_name,
+  #                y = ylabel, x = xlabel),
+  #             color = "black",
+  #            label.size = NA,
+  #            size = 3,
+  #           # nudge_x = -.5,
+  #            seed=124,
+  #            data=dat_labels,
+  #            min.segment.length=9,
+  #            force=.8,
+  #            # direction="y",
+  #            force_pull=20,
+  #            max.overlaps = 20) +
+   facet_grid(rank_category~name, scales="free") +
+   scale_x_continuous(limits=c(2012,2023), breaks=2014:2021) +
+   scale_y_continuous(limits = c(-5, 105), breaks = seq(0,100, by = 20)) +
+   labs(title = "Types of Endowments by Organization")
+
+
+```
+
+
+# Rankings 
+
+
+## Beginning of Year Balance versus Contributions 
+
+### Rank Plot
+
+```{r, fig.cap = "\\label{fig:balancecont} Comparing the rankings of beginning of year balance of the endowment to the ranking of contributions recieved."}
+
+
+
+
+######################################
+# PLOTTING RANKS AGAINST EACH OTHER
+######################################
+
+plot_ranks_by_consistency("BeginningYearBalanceAmt",
+                          "ContributionsAmt",
+                          data = endowment_data_wide) +
+  labs(title = "Rank of Contributions versus\nRank of Beginning of Year Endowment Balance",
+       y = "Rank of Contributions",
+       x = "Rank of Beginning of Year Balance",
+       color = "Proportion of Years Where\n Beginning of Year Balance\n Ranked Higher than\nContributions")  + 
+  theme(axis.text.x = element_text(size =9),
+        axis.text.y=  element_text(size =9),
+        axis.title = element_text(size=20),
+        legend.text = element_text(size = 12),
+        legend.title=element_text(size = 16),
+        strip.text=element_text(size = 16, color = "white"),
+        plot.title=element_text(hjust = .5, face="bold", size = 25)) 
+
+
+ggsave(here('final_report/images/compare-rankings-balance-contributions.pdf'))
+
+```
+
+### Bar Plot
+
+```{r,fig.cap = "\\label{fig:balancecontbar} Comparing the proportion of years where a company ranked higher, lower, or the same in beginning of year balance compared to contributions received. A higher rank means a rank closer to 1, where 1 is the top possible rank.", fig.height= 10, fig.width=15}
+
+
+
+var1 <- "BeginningYearBalanceAmt"
+var2 <- "ContributionsAmt"
+
+
+prop_balanced_ranked_higher <- endowment_data_wide %>%
+     filter(fiscal_year > 2010 & fiscal_year < 2021) %>%
+    group_by(fiscal_year) %>%
+   # arrange(var1) %>%
+    mutate("{var1}_rank" := rank(-!!sym(var1)), na.last = "keep") %>%
+#    arrange(var2) %>%
+    mutate("{var2}_rank"  := rank(-!!sym(var2)),  na.last = "keep")  %>%
+     mutate(rank_diff = !!sym(glue("{var2}_rank")) - !!sym(glue("{var1}_rank" ))) %>%
+   group_by(EIN) %>%
+   mutate(sum_pos = sum(rank_diff >0, na.rm=TRUE),
+          sum_neg = sum(rank_diff < 0,  na.rm=TRUE),
+          sum_zero = sum(rank_diff ==0, na.rm=TRUE))%>%
+     ungroup() %>% 
+   mutate(prop_positive = sum_pos / (sum_pos + sum_neg + sum_zero),
+          prop_same = sum_zero / (sum_pos + sum_neg + sum_zero) ) %>%
+  select(prop_positive, organization_name, sum_pos, sum_neg, sum_zero)  %>%
+  distinct()
+
+
+
+
+##############################################################
+# BARPLOT TO SUMMARIZE RELATIONSHIPS BY ORGANIZATION
+##############################################################
+
+
+
+prop_balanced_ranked_higher %>%
+  select(contains("sum"), organization_name, prop_positive) %>%
+  pivot_longer(contains('sum')) %>% group_by(organization_name) %>%
+  mutate(n_years = sum(value)) %>%
+  mutate(prop = value/n_years,
+         m=max(prop)) %>%
+  mutate(name = case_when(
+    name == "sum_pos" ~ "Beginning of Year Balance\nRanked Higher",
+    name == "sum_neg" ~ "Beginning of Year Balance\nRanked Lower",
+    name == "sum_zero" ~"Ranked the Same"
+  )) %>%
+  mutate(name = factor(name, 
+                       levels = c("Beginning of Year Balance\nRanked Higher",
+                                  "Ranked the Same",
+                                  "Beginning of Year Balance\nRanked Lower") )) %>%
+  ggplot(aes(y = fct_reorder(organization_name,prop_positive),x=  prop, fill=name)) +
+  geom_bar(position="stack", stat="identity", alpha = .8) +
+ # geom_point(aes(x=prop_positive), size = .8) +
+  labs(x = "Proportion",
+    title = paste0(
+      "Proportion of Years Where Beginning of Year Balance\n",
+      "Ranked Higher, Lower, or the Same as Contributions"),
+    y = "",
+    fill = "") +
+  theme_c(legend.spacing.y = unit(.9, 'cm'),
+          legend.text = element_text(size = 16)) + 
+  theme( plot.title = element_text(size = 20, margin=margin(1,1,0,1)),
+         axis.text.y = element_text(size = 14)) +
+  # scale_fill_manual(values = c("#5191B0",  "#B05162", "#51B09A")) +
+    guides(fill = guide_legend(byrow = TRUE))+
+  scale_x_continuous(expand=c(0,0)) +
+  scale_fill_manual(values =c( `Beginning of Year Balance\nRanked Higher`="#5935CF",
+                               `Beginning of Year Balance\nRanked Lower`="#D18E01", 
+                               `Ranked the Same`="#E2E2E2"))
+
+ggsave(here('final_report/images/compare-rankings-balance-contributions-barplot.pdf'))
+
+```
+
+
+
+## Beginning of Year Balance versus Other Expenditures
+
+```{r, fig.width =15, fig.height=7}
+
+
+plot_ranks_by_consistency("BeginningYearBalanceAmt",
+                          "OtherExpendituresAmt",
+                           data = endowment_data_wide)+
+  labs(title = "Rank of Other Expenditures versus\nRank of Beginning of Year Endowment Balance",
+       y = "Rank of Other Expenditures",
+       x = "Rank of Beginning of Year Balance",
+       color = "Proportion of Years Where\nBeginning of Year Balance\nRanked Higher than\nOther Expenditures") + 
+  theme(axis.text.x = element_text(size =9),
+        axis.text.y=  element_text(size =9),
+         axis.title = element_text(size=20),
+        legend.text = element_text(size = 12),
+         legend.title=element_text(size = 16),
+        strip.text=element_text(size = 16, color = "white"),
+        plot.title=element_text(hjust = .5, face="bold", size = 25))
+ 
+
+```
+
+
+```{r contributions barplot, fig.cap = "\\label{fig:balanceexpbar} Comparing the proportion of years where a company ranked higher, lower, or the same in beginning of year balance compared to expenditures.", fig.height= 10, fig.width=15}
+
+
+##############################################################
+# BARPLOT TO SUMMARIZE RELATIONSHIPS BY ORGANIZATION
+##############################################################
+
+var1 <- "BeginningYearBalanceAmt"
+var2 <- "OtherExpendituresAmt"
+
+
+prop_balanced_ranked_higher <- endowment_data_wide %>%
+     filter(fiscal_year > 2010 & fiscal_year < 2021) %>%
+    group_by(fiscal_year) %>%
+   # arrange(var1) %>%
+    mutate("{var1}_rank" := rank(-!!sym(var1)), na.last = "keep") %>%
+#    arrange(var2) %>%
+    mutate("{var2}_rank"  := rank(-!!sym(var2)),  na.last = "keep")  %>%
+     mutate(rank_diff = !!sym(glue("{var2}_rank")) - !!sym(glue("{var1}_rank" ))) %>%
+   group_by(EIN) %>%
+   mutate(sum_pos = sum(rank_diff >0, na.rm=TRUE),
+          sum_neg = sum(rank_diff < 0,  na.rm=TRUE),
+          sum_zero = sum(rank_diff ==0, na.rm=TRUE))%>%
+     ungroup() %>% 
+   mutate(prop_positive = sum_pos / (sum_pos + sum_neg + sum_zero),
+          prop_same = sum_zero / (sum_pos + sum_neg + sum_zero) ) %>%
+  select(prop_positive, prop_same, organization_name, sum_pos, sum_neg, sum_zero)  %>%
+  distinct()
+
+
+
+prop_balanced_ranked_higher %>%
+  select(contains("sum"), organization_name, prop_positive, prop_same) %>%
+  pivot_longer(contains('sum')) %>% group_by(organization_name) %>%
+  mutate(n_years = sum(value)) %>%
+  mutate(prop = value/n_years,
+         m=max(prop)) %>%
+  mutate(name = case_when(
+    name == "sum_pos" ~ "Beginning of Year Balance\nRanked Higher",
+    name == "sum_neg" ~ "Beginning of Year Balance\nRanked Lower",
+    name == "sum_zero" ~"Ranked the Same"
+  )) %>%
+ mutate(name = factor(name, 
+                       levels = c("Beginning of Year Balance\nRanked Higher",
+                                  "Ranked the Same",
+                                  "Beginning of Year Balance\nRanked Lower") )) %>%
+  ggplot(aes(y = fct_reorder(organization_name,prop_positive),x=  prop, fill=name)) +
+  geom_bar(position="stack", stat="identity", color ="darkgray") +
+ # geom_point(aes(x=prop_positive), size = .8) +
+  labs(x = "Proportion",
+    title = paste0("Proportion of Years Where Beginning of Year Balance\n",
+    "Ranked Higher, Lower, or the Same as Other Expenditures"),
+    y = "",
+    fill = "") +
+  theme_c(legend.spacing.y = unit(.9, 'cm'),
+          legend.text = element_text(size = 16)) + 
+  theme( plot.title = element_text(size = 20, margin=margin(1,1,0,1)),
+         axis.text.y = element_text(size = 16)) +
+  #scale_fill_manual(values = c("#5191B0",  "#B05162", "#51B09A")) +
+    guides(fill = guide_legend(byrow = TRUE, ))+
+  scale_x_continuous(expand=c(0,0))+
+  scale_fill_manual(values =c( `Beginning of Year Balance\nRanked Higher`="#5935CF",
+                               `Beginning of Year Balance\nRanked Lower`="#D18E01", 
+                               `Ranked the Same`="#E2E2E2"))
+
+```
+
+
+## How ranks change over time 
+
+## Ranking of Endowment Beginning of Year Balance 
+
+
+```{r, fig.height = 11, fig.cap="\\label{fig:rank-endowments}Rank of the endowment beginning of year balance over time. The 15 companies with the most variability in ranking, defined as the mean difference in rankings between fiscal years, are shown in color. Names of all companies are on the right.", results='hide'}
+
+
+
+######################################################
+# RANK OVER TIME FOR BEGINNING OF YEAR BALANCE
+######################################################
+
+
+
+
+pal1 <- viridis_pal(option="mako", end = .8, begin=.2)(4)
+pal2 <- viridis_pal(option="rocket", end = .8, begin=.2)(4)
+pal3 <- viridis_pal(option="magma", end = .8, begin=.2)(4)
+pal4 <- viridis_pal(option="inferno", end = .8, begin=.2)(4)
+
+
+
+set.seed(123)
+pal <- c(pal1, pal2, pal3, pal4)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+
+var <- "BeginningYearBalanceAmt"
+
+
+balance_ranks <- endowment_data_wide %>%
+    filter(fiscal_year >=2011 & fiscal_year <=2020) %>%
+    group_by(fiscal_year) %>%
+    mutate(rank = rank(-!!sym(var), na.last = "keep")) %>%
+    filter(!is.na(rank)) %>%
+     select(organization_name,rank,fiscal_year, ContributionsAmt) %>%
+    group_by(organization_name) %>%
+    arrange(fiscal_year) %>%
+    mutate(rankdiff = rank-lag(rank, n=1, order_by=fiscal_year),
+           n_years_on_file = n()) %>%
+    mutate(mean_diff = mean(abs(rankdiff),na.rm=TRUE)) %>%
+  ungroup() 
+ # group_by(organization_name) %>%
+  
+
+cont_ranks <-endowment_data_wide %>%
+  select(organization_name, ContributionsAmt) %>%
+  group_by(organization_name) %>%
+  summarize(cont = mean(ContributionsAmt,na.rm=TRUE)) %>%
+  ungroup() %>%
+  mutate(cont_rank = rank(-cont, na.last="keep"))
+ 
+
+balance_ranks <- balance_ranks %>% 
+  left_join(cont_ranks)
+
+
+ top_ranks <- balance_ranks %>% 
+   filter(n_years_on_file>=5) %>%
+   select(organization_name,mean_diff) %>%
+   distinct() %>%
+   arrange(desc(abs(mean_diff))) %>%
+   slice_head(n=15)
+ 
+ 
+ labels <- balance_ranks %>%
+   mutate(color_org = ifelse(organization_name %in% top_ranks$organization_name, organization_name, NA),
+          alph =is.na(color_org)) %>%
+   group_by(organization_name) %>%
+   mutate(minyear = min(fiscal_year,na.rm=TRUE),
+          maxyear = max(fiscal_year, na.rm=TRUE)) %>%
+   filter(!is.na(color_org)) %>%
+   filter(fiscal_year == minyear) %>%
+   select(organization_name, minyear, rank) %>%
+   distinct()
+ 
+ 
+ 
+ labels_all <- balance_ranks %>%
+   mutate(color_org = ifelse(organization_name %in% top_ranks$organization_name, organization_name, NA),
+          alph =is.na(color_org)) %>%
+   group_by(organization_name) %>%
+   mutate(minyear = min(fiscal_year,na.rm=TRUE),
+          maxyear = max(fiscal_year, na.rm=TRUE)) %>%
+   mutate(organization_name = ifelse(maxyear == 2020, organization_name, NA)) %>%
+   filter(fiscal_year == maxyear) %>%
+   select(organization_name, minyear, rank,cont_rank) %>%
+   distinct()
+ 
+ balance_ranks %>%
+   mutate(color_org = ifelse(organization_name %in% top_ranks$organization_name, organization_name, NA),
+          alph =is.na(color_org)) %>%
+   group_by(organization_name) %>%
+   mutate(minyear = min(fiscal_year,na.rm=TRUE)) %>%
+    ggplot(aes(x=fiscal_year, y = rank)) +
+       geom_line(aes(group=organization_name)) +
+    geom_line(aes(group=organization_name, alpha = alph), linewidth=.5, color="gray") +
+    geom_line(aes(group=organization_name,color =color_org), linewidth=1.3) +
+    scale_alpha_manual(values =c('TRUE' = 1, 'FALSE'=.01), guide="none") +
+    geom_point(alpha = .3, size =.5) +
+    scale_color_manual(values=pal, na.value=NA, breaks =top_ranks$organization_name) +
+    theme_c() +
+    scale_y_reverse(n.breaks = 10) +
+    scale_x_continuous(breaks=2010:2020,limits=c(2010,2022)) +
+    labs(y = paste("Rank of ", var),
+         x = "Fiscal Year",
+         title = paste0("Rank over time for ", var)) +
+   geom_label(aes(x=minyear, y =rank,
+                  label=organization_name,
+                  color=organization_name), 
+              nudge_x = -.3,
+              alpha = 1,
+              size = 3.5,
+              label.padding=unit(.1,'lines'),
+              label.size=1.2,
+              data=labels) +
+   geom_label(aes(x = minyear,
+                  label = organization_name,
+                 y =rank),
+              nudge_x = -.3,
+              color = "black",
+              size=3.5,
+             label.size = NA,
+             label.padding= unit(.1,'lines'),
+             data=labels) +
+   theme(axis.title = element_text(size =26),
+         plot.title = element_text(size = 26, margin = margin(0,0,4,0)),
+         axis.text.x = element_text(size=14),
+         legend.position = "none") +
+   labs(title = "Rank of Beginning of Year Balance over Time",
+        x = "Fiscal Year",
+        y = "Rank of Beginning of Year Balance") +
+   geom_text(aes(x=2020, label = organization_name, y  = rank), 
+             data=labels_all, nudge_x=.1, size = 3.1, hjust=0)
+ 
+ 
+ 
+ 
+ 
+ggsave(here('final_report/images/rank_of_beginning_year_balance.pdf'))
+ 
+balance_ranks %>%
+   mutate(color_org = ifelse(organization_name %in% top_ranks$organization_name, organization_name, NA),
+          alph =is.na(color_org)) %>%
+   group_by(organization_name) %>%
+   mutate(minyear = min(fiscal_year,na.rm=TRUE),
+          maxyear = max(fiscal_year, na.rm=TRUE)) %>%
+  filter(fiscal_year == minyear | fiscal_year == maxyear) %>% 
+  mutate(year = ifelse(fiscal_year == minyear, "min", "max")) %>%
+  select(organization_name, rank, year) %>%
+  pivot_wider(names_from=year, values_from= rank) %>%
+  mutate(difference = max - min) %>%
+  arrange(desc(abs(difference)))
+
+
+```
+
+
+
+```{r, fig.height =10, fig.cap="\\label{fig:rank-endowments-color-contribution}Rank of the endowment beginning of year balance over time, where the color indicates the ranking of the mean contributions received over all years on file for the company."}
+
+
+############################################################
+# RANK PLOT OVER TIME, LINES COLORED BY CONTRIBUTIONS
+############################################################
+
+
+ balance_ranks %>%
+   mutate(color_org = ifelse(organization_name %in% top_ranks$organization_name, 
+                             organization_name, NA),
+          alph =is.na(color_org)
+          ) %>%
+    ggplot(aes(x=fiscal_year,
+               y = rank, 
+               color = cont_rank, 
+               group=organization_name, 
+               fill=cont_rank)) +
+   geom_line(aes(linewidth=1/cont_rank, group=organization_name)) +
+   scale_linewidth_continuous(range = c(.1,1.6), guide="none") +
+   scale_color_viridis(option="mako",
+                       direction = -1,
+                       trans="reverse",
+                       breaks = c(1,20,40),
+                       end=.9,
+                    begin=.2) +
+    theme_c() +
+    scale_y_reverse(n.breaks = 10) +
+    scale_x_continuous(breaks=2010:2020,limits=c(2010,2022)) +
+    labs(y = paste("Rank of ", var),
+         x = "Fiscal Year",
+         title = paste0("Rank over time for ", var),
+         fill = "Rank of the Sum of All Contributions over Time") +
+   theme(axis.title = element_text(size =26),
+         plot.title = element_text(size = 26, margin = margin(0,0,4,0)),
+         axis.text.x = element_text(size=14),
+         legend.text=element_text(size = 11),
+         legend.title = element_text(size = 20, face="bold")) +
+   labs(title = "Rank of Beginning of Year Balance over Time",
+        x = "Fiscal Year",
+        y = "Rank of Beginning of Year Balance",
+        color = "Rank of Contributions") +
+   geom_text(aes(x=2020, label = organization_name, y  = rank), 
+             data=labels_all, nudge_x=.1, size = 3.1, hjust=0) 
+ 
+ 
+ 
+    
+ggsave(here('final_report/images/rank-endowments-color-contribution.pdf'))
+    
+
+```
+
+
+## Ranking of Contributions
+
+```{r, fig.height=7, fig.width=14, fig.cap ="\\label{fig:rankings-contributions}The rankings of contributions over time, by organization."}
+
+
+
+#######################################
+# CREATE BIG PALETTE WITH MANY COLORS
+#######################################
+
+pal1 <- viridis_pal(option="mako", end = .9)(12)
+pal2 <- viridis_pal(option="rocket", end = .8)(12)
+pal3 <- viridis_pal(option="magma", end = .8)(12)
+pal4 <- viridis_pal(option="inferno", end = .8)(12)
+
+set.seed(123)
+pal <- c(pal1, pal2, pal3, pal4)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+
+#############################################
+# RANK OVER TIME FOR CONTRIBUTIONS
+#############################################
+
+
+var <- "ContributionsAmt"
+
+
+balance_ranks <- endowment_data_wide %>%
+    filter(fiscal_year >=2011 & fiscal_year <=2020) %>%
+    group_by(fiscal_year) %>%
+    mutate(rank = rank(-!!sym(var), na.last = "keep")) %>%
+    filter(!is.na(rank)) %>%
+     select(organization_name,rank,fiscal_year, ContributionsAmt) %>%
+    group_by(organization_name) %>%
+    arrange(fiscal_year) %>%
+    mutate(rankdiff = rank-lag(rank, n=1, order_by=fiscal_year),
+           n_years_on_file = n()) %>%
+    mutate(mean_diff = mean(abs(rankdiff),na.rm=TRUE)) %>%
+  ungroup() 
+ # group_by(organization_name) %>%
+  
+ 
+ top_ranks <- balance_ranks %>% 
+   filter(n_years_on_file>=5) %>%
+   select(organization_name,mean_diff) %>%
+   distinct() %>%
+   arrange(desc(abs(mean_diff))) %>%
+   slice_head(n=15)
+ 
+ # rank for minimum year on file (top companies)
+ labels <- balance_ranks %>%
+   mutate(color_org = ifelse(organization_name %in% top_ranks$organization_name, organization_name, NA),
+          alph =is.na(color_org)) %>%
+   group_by(organization_name) %>%
+   mutate(minyear = min(fiscal_year,na.rm=TRUE),
+          maxyear = max(fiscal_year, na.rm=TRUE)) %>%
+   filter(!is.na(color_org)) %>%
+   filter(fiscal_year == minyear) %>%
+   select(organization_name, minyear, rank) %>%
+   distinct()
+ 
+ 
+# rank for minimum year on file (all companies)
+ labels_all <- balance_ranks %>%
+   mutate(color_org = ifelse(organization_name %in% top_ranks$organization_name, organization_name, NA),
+          alph =is.na(color_org)) %>%
+   group_by(organization_name) %>%
+   mutate(minyear = min(fiscal_year,na.rm=TRUE),
+          maxyear = max(fiscal_year, na.rm=TRUE)) %>%
+   mutate(organization_name = ifelse(maxyear == 2020, organization_name, NA)) %>%
+   filter(fiscal_year == maxyear) %>%
+   select(organization_name, minyear, rank) %>%
+   distinct()
+ 
+ balance_ranks %>%
+   group_by(organization_name) %>%
+   mutate(minyear = min(fiscal_year,na.rm=TRUE)) %>%
+    ggplot(aes(x=fiscal_year, y = rank, color = organization_name, group = organization_name)) +
+       geom_line() +
+    geom_point(alpha = .3, size =.5) +
+    scale_color_manual(values=pal, na.value=NA) +
+    theme_c() +
+    scale_y_reverse(n.breaks = 10) +
+    scale_x_continuous(breaks=2011:2020,limits=c(2010,2022)) +
+    labs(y = paste("Rank of ", var),
+         x = "Fiscal Year",
+         title = paste0("Rank over time for ", var)) +
+   geom_text_repel(aes(x = 2020,
+                  label = organization_name,
+                  color=organization_name,
+                 y =rank),
+              direction="y",
+              nudge_x = .1,
+             hjust = 0,
+             min.segment.length = .7,
+             size =3.4,
+             data=labels_all) +
+   theme(axis.title = element_text(size =22),
+         plot.title = element_text(size = 24, margin = margin(0,0,4,0)),
+         axis.text.x = element_text(size=14),
+         legend.position = "none") +
+   labs(title = "Rank of Contributions over Time",
+        x = "Fiscal Year",
+        y = "Rank of Contributions") 
+
+ 
+ ggsave(here('final_report/images/ranking-contributions.pdf'))
+
+
+ 
+```
+
+
+# Reporting of Endowments
+
+```{r, results='asis', fig.cap="\\label{table:filled-scheduled}"}
+
+
+###################################################
+# table of how many companies reported endowments
+###################################################
+endowment_data <- read_rds(here("data", "endowment_filter_data_990.RDS"))
+names <- read_csv(here("data", "companies.csv")) %>% 
+  mutate(EIN = as.character(ein)) %>%
+  select(-ein)
+
+
+filed <- endowment_data %>%
+ mutate(has_schedule_d = ifelse(rowSums(across(
+   CYBeginningYearBalanceAmt:TermEndowmentBalanceEOYPct), 
+   na.rm = TRUE) != 0, "Yes", "No")) %>%
+  select(TaxPeriodBeginDt, TaxPeriodEndDt, 
+         ReturnDate, EIN,
+         DonorRstrOrQuasiEndowmentsInd, 
+         has_schedule_d)  %>%
+  mutate(fiscal_year = year(TaxPeriodEndDt))
+
+
+filed_by_year <- filed %>%
+  group_by(has_schedule_d,fiscal_year) %>%
+  summarize(n = n_distinct(EIN))  %>%
+  pivot_wider(names_from=has_schedule_d, values_from=n) %>%
+  mutate(group = "By Year",
+         fiscal_year = as.factor(fiscal_year))
+
+
+# filled out schedule D at least once
+filled_out_at_least_once <- filed %>%
+  group_by(EIN, has_schedule_d) %>%
+  summarize(n=n()) %>%
+  pivot_wider(names_from=has_schedule_d, values_from=n) %>%
+  filter(!is.na(Yes)) %>%
+  pull(EIN) %>%
+  unique() %>%
+  length()
+
+# did not fill out schedule D at least once
+did_not_at_least_once <- filed %>%
+  group_by(EIN, has_schedule_d) %>%
+  summarize(n=n()) %>%
+  pivot_wider(names_from=has_schedule_d, values_from=n) %>%
+  filter(is.na(Yes))%>%
+  pull(EIN) %>%
+  unique() %>%
+  length()
+
+
+
+last_row <-tibble(Yes = filled_out_at_least_once,
+                  No = did_not_at_least_once,
+                  fiscal_year = "",
+                  group="Reported an Endowment\nat Least Once")
+
+filed_by_year <-filed_by_year %>%
+  bind_rows(last_row) 
+
+filed_by_year %>%
+  select(-group) %>%
+  kbl(col.names=c("", "Reported an Endowment", "Did Not Report an Endowment"),
+      caption = "Number of Companies that Reported an Endowment",
+       format="latex",
+       booktabs=TRUE,
+       escape=FALSE,
+       linesep = "\\addlinespace") %>%
+  pack_rows(index = table(filed_by_year$group),
+            hline_after=TRUE,
+                latex_gap_space = "0.5em") %>%
+  column_spec(1:3, width="10em")
+
+  
+```
+
+
+
+# Compensation 
+
+
+```{r,eval=TRUE}
+
+schedule_j <- read_rds(here("data", "schedj.RDS"))%>%
+  left_join(companies_to_ein) %>%
+  mutate(fiscal_year = as.numeric(paste(fiscal_year)))
+
+employees <- readRDS(here("data", "employees.RDS")) %>%
+    mutate(fiscal_year = as.numeric(paste(fiscal_year)))
+
+
+```
+
+ 
+
+# Top Employees Compensation Compared to Other Employee Compensation 
+
+* For total employee compensation - `CYSalariesCompEmpBnftPaidAmt: Salaries, other compensation, employee benefits (Part IX, column (A), lines 5–10)`.
+* For top employee compensation - Schedule J, looking at total compensation
+
+
+```{r, eval=TRUE}
+
+
+emp_comp <- employees %>% 
+   left_join(companies_to_ein) %>%
+  mutate(organization_name = ifelse(is.na(organization_name), EIN,organization_name),
+         OffDirCompAmt = ifelse(is.na(OffDirCompAmt),0,OffDirCompAmt))
+
+
+```
+
+Only included companies with more than 5 observations.
+
+
+```{r, fig.width = 12, fig.height=8.5, fig.cap="\\label{fig:frac-comp} percent of the total compensation paid to employees that was paid to officers, directors, trustees, or key employees, as reported in Part IX of the Form 990. Highlighted in the first panel are the 10 companies that had the greatest change in the percent paid to C-Suite employees from the earliest year on file to the latest. Only companies with a mean of more than 25 employees across the years on file and that reported complete data for more than 5 years are included."}
+
+# fraction of compenstation to top employees
+emp_comp <-emp_comp %>%
+  mutate(frac = OffDirCompAmt/(CYSalariesCompEmpBnftPaidAmt)) %>%
+  group_by(organization_name) %>%
+  mutate(n=length(na.omit(frac)),
+         mean_emp = mean(TotalEmployeeCnt, na.rm=TRUE)) %>%
+  filter(n>5) 
+
+# get top by the largest percent change from the minimum year 
+# on file to the maximum year on file
+ top <- emp_comp %>%
+  group_by(organization_name) %>%
+  summarize(variability = sd(frac, na.rm=TRUE),
+            value_first = frac[which.min(fiscal_year)],
+            value_last = frac[which.max(fiscal_year)],
+            n=n())%>%
+  ungroup() %>%
+  mutate(diff = abs((value_last -value_first) / value_first)) %>%
+  arrange(desc(diff)) %>%
+   # remove those with 0 in denominator
+  filter(diff!=Inf) %>%
+  slice_max(n=10,order_by=diff)
+ 
+ 
+
+employee_counts_vector <- emp_comp %>%
+  group_by(organization_name) %>%
+  mutate(n=length(na.omit(frac)),
+         mean_emp = mean(TotalEmployeeCnt, na.rm=TRUE)) %>%
+  filter(n>5) %>%
+  pull(mean_emp) %>%
+  unique()
+
+quantile_employees <- quantile(employee_counts_vector, prob=c(.33,.66), type=1)
+quantile_employees <-as.numeric(quantile_employees)
+
+# quantile_employees <- quantile(employee_counts_vector, prob=c(.5))
+
+
+emp_comp <- emp_comp %>%
+  mutate(org_size = case_when(
+    mean_emp < quantile_employees[1] ~ 
+      paste("Less than", 
+            round(quantile_employees[1]),
+            "Employees"),
+    mean_emp >= quantile_employees[1] & 
+      mean_emp <= quantile_employees[2] ~
+    paste("Between",  round(quantile_employees[1]), "and", round(quantile_employees[2]), "Employees"),
+     mean_emp > quantile_employees[2] ~ paste("Greater than", round(quantile_employees[2]), "Employees"))) 
+
+
+# order by size
+levs <- emp_comp$org_size %>% unique()
+lev1 <- levs[grepl('Less than',levs)]
+lev2 <- levs[grepl('Between',levs)]
+lev3 <- levs[grepl('Greater than',levs)]
+
+
+emp_comp <- emp_comp %>%
+  mutate(org_size = factor(org_size, levels = c(lev1, lev2,lev3)), ordered=TRUE)
+
+
+meds <- emp_comp %>%
+  filter(fiscal_year >2014 & fiscal_year <2021) %>%
+  group_by(fiscal_year, org_size) %>%
+  summarize(m=median(frac,na.rm=TRUE))
+
+# big pal
+pal1 <-viridis_pal(option="mako", end = .8, begin=.2)(12)
+pal2 <- viridis_pal(option="inferno", end = .8, begin=.2)(12)
+pal3 <- viridis_pal(option="magma", end = .8, begin=.2)(12)
+pal4 <- viridis_pal(option="plasma", end = .8, begin=.2)(12)
+pal5 <- viridis_pal(option="rocket", end = .8, begin=.2)(12)
+pal6 <- viridis_pal(option="cividis", end = .8, begin=.2)(12)
+
+pal <- c(pal1, pal2, pal3,pal4,pal5,pal6)
+
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+emp_comp %>%
+  filter(!is.na(frac)) %>%
+  group_by(organization_name) %>%
+   ggplot(aes(x=fiscal_year,
+             y = frac,
+             group= organization_name,
+             color = organization_name)) +
+  geom_point(size =.6, alpha=.5) +
+  geom_line(show.legend=FALSE,
+            alpha = .2,
+            linewidth=.7)+
+  geom_line(color='darkred',aes(x=fiscal_year,
+                                y = m, 
+                                group='Median',
+                                color='Median'), 
+            linewidth=2, data=meds) +
+     facet_wrap(~org_size) +
+  theme_c() +
+  theme(legend.position="none") +
+  scale_color_manual(values=c(pal)) +
+  annotate(geom="text",x=2020.2, y = .1, label = "Median",color="darkred") +
+  scale_y_continuous(limits = c(0,.35), labels = scales::percent) +
+  labs(x = "Fiscal Year", y= "Percent")  +
+  facet_wrap(~factor(org_size))
+
+
+
+
+###############################################################
+# PLOTS W/ TOP 10 AND THE REST SEPARATE
+# MEDIANS IN RED
+# ONLYCOMPANIES ABOVE FIRST QUANTILE IN MEAN EMPLOYEE COUNT
+###############################################################
+
+# mini pal
+pal1 <-viridis_pal(option="mako", end = .8, begin=.2)(5)
+pal2 <- viridis_pal(option="inferno", end = .8, begin=.2)(5)
+pal3 <- viridis_pal(option="magma", end = .8, begin=.2)(5)
+
+pal <- c(pal1, pal2, pal3)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+title_gg <- ggplot() + 
+  labs(title = "Percent of Total Compensation Paid to C-Suite Employees") + 
+  theme(plot.title=element_text(face="bold", hjust = .5, size = 22, margin =margin(5,0,2,0)))
+
+
+
+emp_comp <- emp_comp %>%
+   # exclude smallest group
+    filter(mean_emp > quantile_employees[1])
+
+
+# extract top 10 by greatest (absolute value of) difference from first percent to last percent
+ top <- emp_comp %>%
+   group_by(organization_name) %>%
+   mutate(mean_size = mean(TotalEmployeeCnt, na.rm=TRUE)) %>%
+   group_by(organization_name) %>%
+  summarize(variability = sd(frac, na.rm=TRUE),
+            value_first = frac[which.min(fiscal_year)],
+            value_last = frac[which.max(fiscal_year)],
+            n=n())%>%
+  ungroup() %>%
+  mutate(diff = abs((value_last -value_first))) %>%
+   filter(diff != Inf) %>%
+   slice_max(n=10,diff)
+ 
+
+
+pal1 <-viridis_pal(option="mako", end = .8, begin=.2)(12)
+pal2 <- viridis_pal(option="inferno", end = .8, begin=.2)(12)
+pal3 <- viridis_pal(option="magma", end = .8, begin=.1)(12)
+
+pal <- c(pal1, pal2, pal3)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+emp_comp <- emp_comp %>%
+  mutate(is_top = ifelse(organization_name %in% top$organization_name,
+                         "Top 10 By Greatest Change",
+                         "Other Companies"),
+         top_org= ifelse(organization_name %in% top$organization_name,
+                         organization_name,
+                         NA))
+
+
+meds <- emp_comp %>%
+  filter(fiscal_year >2014 & fiscal_year <2021) %>%
+  group_by(fiscal_year) %>%
+  summarize(m=median(frac,na.rm=TRUE))
+
+
+
+
+##################################
+# companies not in top 10
+# median in red
+##################################
+plt1 <- emp_comp %>%
+  filter(is_top == "Other Companies") %>%
+  group_by(fiscal_year) %>%
+  ungroup() %>%
+  group_by(organization_name) %>%
+   ggplot(aes(x=fiscal_year,
+             y = frac,
+             group= organization_name,
+             color = organization_name)) +
+  geom_point(size =.6, alpha=.5) +
+  geom_line(show.legend=FALSE,
+            alpha = .2,
+            linewidth=.7)+
+  geom_line(color='darkred',aes(x=fiscal_year, y = m, group='Median',color='Median'), linewidth=2, data=meds) +
+     facet_wrap(~is_top) +
+  theme_c() +
+  theme(legend.position="none") +
+  scale_color_manual(values=c(pal)) +
+  annotate(geom="text",x=2020.2, y = .1, label = "Median",color="darkred") +
+  scale_y_continuous(limits = c(0,.35), labels = scales::percent) +
+  labs(x = "Fiscal Year", y= "Percent") 
+
+
+
+
+# fewer colors needed for top 10 plot
+pal1 <-viridis_pal(option="mako", end = .8, begin=.2)(4)
+pal2 <- viridis_pal(option="inferno", end = .9, begin=.2)(3)
+pal3 <- viridis_pal(option="magma", end = .9, begin=.3)(3)
+
+pal <- c(pal1, pal2, pal3)
+indexes <- sample.int(length(pal), replace=FALSE)
+pal <- pal[indexes]
+
+
+##########################################################################
+# plot with fraction paid to C-suite for companies with greatest change
+##########################################################################
+
+plt2 <- emp_comp %>%
+  ungroup() %>%
+  filter(!is.na(org_size)) %>%
+  mutate(is_top = ifelse(organization_name %in% top$organization_name,
+                         "Top 10 By Greatest Change",
+                         "Other Companies"),
+         top_org= ifelse(organization_name %in% top$organization_name,
+                         organization_name,
+                         NA)) %>%
+  filter(is_top != "Other Companies") %>%
+   ggplot(aes(x=fiscal_year,
+             y = frac,
+             group= organization_name,
+             color = organization_name)) +
+  geom_point(size =.6, alpha=.5) +
+  geom_line()+
+     facet_wrap(~is_top) +
+  theme_c() +
+  scale_color_manual(values=pal)+
+  scale_y_continuous(limits = c(0,.3), labels = scales::percent) +
+  labs(x = "Fiscal Year",
+       y = "Percent",
+       color = "") 
+
+plot_grid(title_gg, plt2, plt1, nrow=3, rel_heights = c(.07,.9,.9))
+
+ggsave(here('final_report/images/frac-comp.pdf'))
+
+```
+
+
+```{r, fig.width=10,fig.height=6.5, fig.cap = "\\label{fig:csuite-comp-bar}"}
+
+############################################################################################
+# bar plot showing difference in percent compensation to C-suite in 2020 to 2015
+############################################################################################
+emp_comp %>%
+   group_by(organization_name) %>%
+   mutate(mean_size = mean(TotalEmployeeCnt, na.rm=TRUE)) %>%
+  filter(fiscal_year >=2015 & fiscal_year <=2020) %>%
+   group_by(organization_name) %>%
+  summarize(
+    minyear=min(fiscal_year),
+    maxyear = max(fiscal_year),
+            value_first = frac[which.min(fiscal_year)],
+            value_last = frac[which.max(fiscal_year)],
+            n=n())%>%
+  ungroup() %>%
+  filter(minyear==2015 & maxyear == 2020)%>%
+  mutate(diff = ((value_last -value_first))) %>%
+  filter(!is.na(diff)) %>%
+  ggplot(aes(y = fct_reorder(organization_name, diff), x = diff)) +
+  geom_bar(stat="identity")  +
+  labs(x = "Percent in 2020 Minus Percent in 2015",
+       y = "",
+       title = "Comparing Percent of Total Compensation Paid to C-Suite in 2015\nto Percent Paid to C-Suite in 2020") +
+  theme_c() +
+  theme(axis.text.x=element_text(size=10)) +
+  scale_x_continuous(n.breaks = 10, labels=scales::percent,limits=c(-.13,.13))
+
+
+ggsave(here('final_report/images/csuite-comp-bar.pdf'), dpi=400)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,42 @@
+---
+title: "Testing"
+author: "Quinn White"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+source('GET_VARS.R')
+
+files <- dir(here("ballet_990_released_20230208"),
+              full.names = TRUE)
+
+sched_d <- map_df(files, ~{
+                    get_df(schedule = 'd',
+                           filename = .x) } )
+
+all_sched_d <- map(files, ~get_all_children(filename = .x, 
+                                                    xpath =  "//IRS990ScheduleD"))
+
+all_sched_d <- all_sched_d %>% unlist() %>% unique()
+
+
+tibble(var = all_sched_d) %>%
+  filter(grepl("CYM|CY", var)) %>% View()
+
+
+
+
+sched_d %>%
+  select(matches("CY|CM")) %>%
+  glimpse()
+
+
+```
+

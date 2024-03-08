@@ -1,0 +1,673 @@
+---
+title: "Extract Address Information and Collect State"
+author: "Quinn White"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: hide
+    css: !expr here::here('css', 'template.css')
+    toc-depth: 3
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "output_html")})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
+library(tidyverse)
+library(here)
+library(forcats)
+library(readxl)
+library(kableExtra)
+```
+
+
+```{r}
+
+# make kable table with consistent formatting
+make_table <- function(df, title = "", ...) {
+  title <- paste0("<center><span style = 'font-size:110%;color:black'><b>",
+                  title,
+                  "</span></b><center>")
+   as_tibble(df) %>%
+    kbl(caption = title, ... ) %>%
+    kable_material() %>%
+    row_spec(row=0, background = "#43494C" , color = "white", bold = TRUE)
+}
+```
+
+# Identify State of Each Company
+
+```{r}
+
+# load script for variable extraction from xml files
+source(here("GET_VARS.R"))
+
+
+# vector of all xml files  
+files <- dir(here("ballet_990_released_20230208"),
+               full.names = TRUE)
+
+
+# (stable) company names from file
+companies <- read_csv(here("data", "companies.csv")) %>%
+  mutate(EIN = as.character(ein))%>%
+  select(organization_name, EIN, ein) %>%
+  distinct()
+
+
+# iterate over all files and extract the state of their address  
+# NOTE:
+# the variable '/Return/ReturnData/IRS990EZ/BooksInCareOfDetail/USAddress/State'
+# is extracted to account for the fact that one file has this variable under this 
+# xpath rather than the StateAbbreviationCd xpath
+add <- map_df(files,
+              ~get_df(filename =.x, 
+                      variables = c(
+                        '//Return//ReturnHeader//BusinessName',
+                        '//Return/ReturnHeader//ReturnTypeCd',
+                        '//Return/ReturnData/IRS990/USAddress/StateAbbreviationCd',
+                        '//Return/ReturnData/IRS990/USAddress/ZIPCd',
+                        '//Return/ReturnData/IRS990/BooksInCareOfDetail/USAddress/StateAbbreviationCd',
+                        '/Return/ReturnData/IRS990EZ/BooksInCareOfDetail/USAddress/State'),
+              names = c('name', 'type_code', 'business_state_cd', 'business_zipcode',
+                        'books_state_cd', 'books_state'))) %>%
+  filter_ein()
+
+
+
+add <- add %>% 
+  left_join(companies) 
+
+add %>% 
+  filter(is.na(business_state_cd)) 
+
+
+
+
+  
+# number of unique state codes and zipcodes reported by EIN
+no_business_cd <- add %>%
+  mutate(name = tolower(name)) %>%
+  group_by(EIN) %>%
+  summarize(business_state_codes = list(unique(na.omit(business_state_cd))),
+            num_states = n_distinct(na.omit(business_state_cd)),
+            name = paste(unique(name), collapse = ", "),
+            zipcodes = list(unique(na.omit(business_zipcode))),
+            num_zip =   n_distinct(na.omit(business_zipcode, length)))
+
+
+# EINs and names of businesses that did not report state code
+no_business_state_code <- no_business_cd %>% 
+  filter(num_states == 0) %>%
+  select(EIN, name) %>%
+  distinct()
+
+```
+
+## Missingness in State Reported
+
+
+### Reporting of State Code 
+
+The ideal classification of state is when we have the Business Address `IRS990/USAddress/StateAbbreviationCd`.
+
+
+However, are `r no_business_state_code %>% nrow()` states that do not report the business state code in any year on file. These companies are:
+
+`r no_business_state_code %>% pull(name) %>% paste(collapse = "<br>")`.
+
+
+### Reporting of Zip Code 
+
+Since no company provided a ZIP code but not the state code, we cannot use the ZIP code of the business address to fill in missing values.
+
+```{r, fig.cap = "\\label{table:zipcode}"}
+
+
+no_business_cd %>%
+  mutate(EIN = factor(EIN)) %>%
+  mutate(category = case_when(
+    num_zip == 0 & num_states == 0 ~ "Reported Neither",
+    num_zip != 0 & num_states == 0 ~ "Reported Zipcode but Not State Code",
+    num_zip == 0 & num_states != 0 ~ "Reported State Code but Not ZIP Code",
+    num_zip != 0 & num_states != 0 ~ "Reported Both")) %>%
+  mutate(category=factor(category, levels = c("Reported Neither", 
+                                              "Reported Zipcode but Not State Code",
+                                              "Reported State Code but Not ZIP Code",
+                                              "Reported Both"))) %>%
+  group_by(category, .drop = FALSE) %>% 
+  summarize(n_ein = n_distinct(EIN)) %>%
+  arrange(desc(n_ein)) %>%
+  select(`Reporting of State Code and Zipcode` = category,
+         `Number of Companies` = n_ein) %>%
+  make_table(title = "Whether Companies Reported State and/or Zipcode of their Business Address")
+
+
+```
+  
+
+For these companies, we set the state to where the company has their bookings, that is,  `BooksInCareOfDetail/USAddress/StateAbbreviationCd`.
+
+### Reporting of Booking State
+
+```{r}
+
+# look at reporting counts who reported both or neither 
+add %>% 
+  group_by(EIN) %>%
+  summarize(n_business_state_cd = n_distinct(na.omit(business_state_cd)),
+            n_booking_state_cd =n_distinct(na.omit(books_state_cd)) ) %>%
+  mutate(category = case_when(
+    n_business_state_cd == 0 & n_booking_state_cd == 0 ~ "Reported Neither",
+    n_business_state_cd != 0  & n_booking_state_cd == 0 ~ "Reported State Code but Not Booking Code",
+    n_business_state_cd == 0 & n_booking_state_cd !=0 ~ "Reported Booking Code but Not State Code",
+    n_business_state_cd != 0  & n_booking_state_cd != 0 ~ "Reported Both"
+  )) %>%
+  mutate(category = factor(category, levels =c("Reported Neither",
+                                               "Reported State Code but Not Booking Code",
+                                               "Reported Booking Code but Not State Code",
+                                               "Reported Both") )) %>%
+  group_by(category, .drop = FALSE) %>%
+  summarize(n_ein = n_distinct(EIN))  %>% 
+  arrange(desc(n_ein)) %>%
+  select(`Reporting of State Code and Booking State Code` = category,
+         `Number of Companies` = n_ein) %>%
+  make_table(title = "Whether Companies Reported State and/or Booking State Code of their Business Address")
+
+
+```
+
+```{r}
+
+add %>% 
+  filter(books_state_cd !=  business_state_cd) %>%
+  select(EIN, organization_name, business_state_cd, books_state_cd) %>%
+  distinct() %>%
+  make_table(title = "Companies that Reported Different States for State Code and Booking State")
+
+
+
+```
+
+We see in the table above that of the companies that reported both the business state code and booking state code, there were 4 companies that had a different booking code than state code.
+
+Manual inspection of the business addresses of the `r no_business_state_code %>% nrow()` 
+companies that do not report is likely the safest option to handle the missing data here.
+ 
+
+## Changes in State Reported Over Time
+
+We also need to look at changes in the business state reported or bookings state reported.
+
+* EIN `454864757` (Dissonance Dance Theatre)  did not have a business state in 2015-2016, but had bookings in UT in 2016. From 2018 onward, the business state was in DC.
+* EIN `813872831` (Ballet Sun Valley) had the business state CA in 2017-2019 but changed to ID in 2022.
+
+
+```{r}
+
+# look at changes in business state code -- addressing question:
+# did any companies list different business states for different fiscal years? 
+add %>% group_by(EIN) %>% 
+  mutate(states = n_distinct(na.omit(business_state_cd))) %>% 
+  filter(states>1) %>%
+  select(EIN, organization_name, business_state_cd, 
+         books_state_cd, fiscal_year) %>% 
+  make_table()
+
+
+# two EINs had a change in business  -- addressing question:
+# did any companies list different booking states for different fiscal years? 
+add %>% group_by(EIN) %>% 
+  mutate(states = n_distinct(na.omit(books_state_cd))) %>% 
+  filter(states>1) %>%
+  select(EIN, organization_name, business_state_cd, 
+         books_state_cd, fiscal_year) %>% 
+  make_table()
+
+
+```
+
+```{r}
+add <- add %>% 
+  group_by(EIN) %>%
+  arrange(fiscal_year) %>%
+  mutate(business_state_cd = list(unique(na.omit(business_state_cd))),
+         state_cd = map_chr(business_state_cd, 
+                            ~ifelse(length(.x) == 0, 
+                                    NA,
+                                    .x[length(.x)]))) 
+
+
+add %>%
+  select(EIN,
+         name,
+         organization_name,
+         business_state_cd = state_cd,
+         books_state_cd) %>%
+  saveRDS(here('data', 'ein_to_state.RDS'))
+
+# check there is one state per EIN
+ # add %>%
+ #   group_by(EIN) %>%
+ #  mutate(states = n_distinct(state)) %>% 
+ #  filter(states>1) 
+
+
+```
+
+
+```{r, eval = FALSE}
+
+# if business_state_cd is NA, use where they have bookings 
+add <- add %>%s n
+  mutate(state = case_when(
+    !is.na(business_state_cd) ~ business_state_cd,
+    is.na(business_state_cd) & !is.na(books_state_cd) ~ books_state_cd,
+    is.na(business_state_cd) & is.na(books_state_cd) ~ books_state
+  )) 
+
+
+```
+
+
+## Number of Companies by State
+
+```{r, fig.height = 8}
+
+add <- add %>%
+  mutate(state = business_state_cd,
+         state=as.factor(state))
+
+counts_by_state <- add %>%
+  group_by(state) %>%
+  summarize(n_ein = n())
+
+state_pop_link <- "https://www2.census.gov/programs-surveys/popest/datasets/2020-2022/state/totals/NST-EST2022-ALLDATA.csv"
+
+
+if(!exists( here("data", "state_population.RDS"))) {
+  state_pop <- read_csv(state_pop_link) %>%
+  select(fips = STATE, pop = POPESTIMATE2022, state_name = NAME)
+  
+  state_fips <- read_csv(here("data", "state_fips.csv"))
+  
+  state_pop <- state_pop %>%
+    inner_join(state_fips)
+
+  saveRDS(state_pop, here("data", "state_population.RDS"))
+}
+
+state_pop <- readRDS(here("data", "state_population.RDS"))
+
+#############################################
+# plot number of companies for each state
+#############################################
+
+# raw counts of number of ein's by state
+counts_by_state %>%
+  ggplot(aes(x=fct_reorder(state,n_ein),  y = n_ein)) +
+  geom_bar(stat="identity", fill = "#466094") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold", hjust = .5)) +
+  labs(y = "Number of Companies",
+       x = "State",
+       title = "Number of Dance Companies by State") + 
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,  max(counts_by_state$n_ein) + 2)) +
+  coord_flip()
+  
+
+counts_by_state <- counts_by_state %>%
+  inner_join(state_pop) %>%
+  mutate(n_ein_normalized = n_ein/pop) 
+
+
+# counts of number of eins by state normalized by population size
+counts_by_state %>%
+  ggplot(aes(x=fct_reorder(state,n_ein_normalized),  y = n_ein_normalized)) +
+  geom_bar(stat="identity", fill = "#466094") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold", hjust = .5),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5)) +
+  labs(y = "Number of Companies",
+       x = "State",
+       title = "Number of Dance Companies by State",
+       subtitle = "Normalized by Population Size") + 
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,  
+                                max(counts_by_state$n_ein_normalized) + 10^(-6))) +
+  coord_flip()
+  
+
+```
+
+# Policy Data Sources
+
+
+## CDC Policy Data
+
+```{r}
+# verify there is a state for each EIN
+# add %>% filter(is.na(state))
+
+link <- "https://healthdata.gov/resource/gyqz-9u7n.json"
+cdc <- httr::GET("https://healthdata.gov/resource/gyqz-9u7n.json?policy_level='state'&$limit=6000")
+
+cdc <- jsonlite::fromJSON(
+  httr::content(cdc,
+                as = "text",
+                encoding = "UTF-8"),
+  simplifyVector = TRUE,
+  flatten = TRUE) %>%
+  as_tibble() %>%
+  select(state = state_id, date, policy_type, start_stop, comments, source) %>%
+  mutate(date = lubridate::as_date(substr(date,1,10), format= "%Y-%m-%d")) %>%
+  # only include states we have in the dance data
+  filter(state %in% add$state)
+
+# cdc %>% pull(policy_type) %>% unique()
+
+
+cdc %>% 
+  group_by(policy_type) %>%
+  summarize(n=n()) %>% 
+  arrange(desc(n)) 
+
+
+
+#############################################
+# non-essential businesses
+#############################################
+# seems unclear what these policies really mean
+non_ess <- cdc %>% 
+  filter(policy_type == "Non-Essential Businesses") %>% 
+  select(-comments) %>%
+  distinct() %>%
+  pivot_wider(id_cols = c(state,policy_type,source),
+              names_from = start_stop, values_from = date) %>%
+  filter(!is.na(stop) & !is.na(start)) 
+
+
+#############################################
+# shelter in place orders
+#############################################
+shelter_in_place <- cdc %>% 
+  filter(policy_type == "Shelter in Place") %>% 
+  pivot_wider(id_cols = c(state,policy_type,source),
+              names_from = start_stop, values_from = date) %>%
+  filter(!is.na(stop) & !is.na(start)) 
+
+shelter_in_place %>%
+  mutate(length = difftime(stop,start)) %>%
+  ggplot(aes(xmin = start, xmax = stop, y = fct_reorder(state,length))) +
+  geom_linerange() +
+   geom_errorbar(width = .3) +
+   scale_x_date(date_breaks = "1 months", date_labels = "%b %Y") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold", hjust = .5),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5)) +
+  labs(y = "State",
+       x = "Date",
+       title = "Shelter in Place Order")
+
+```
+
+## BU Policy Data
+
+Data Source: [BU COVID-19 US state policy database.]( COVID-19 US state policy database.)
+More information on github [here](https://github.com/USCOVIDpolicy/COVID-19-US-State-Policy-Database).
+
+* On [California's long stay-at-home-order](https://apnews.com/article/california-lifts-stay-home-order-virus-1c298c67338a5914f7c3857cd167edcc)
+
+Cleaned files generated in this section:
+
+* `stay_at_home.RDS`: data frame with columns `state, stay_at_home_start, stay_at_home_end, length_of_order`
+  * `length_of_order` is in days
+* `state_of_emergency_bu.RDS`: data frame with columns `state, emergency_start, emergency_end, length_of_order`
+  * `length_of_order` is in days
+
+  
+### Stay at Home Order
+
+
+```{r, fig.width = 10}
+
+################################
+# STAY AT HOME ORDER
+################################
+
+if(!exists(here('data', 'stay_at_home_bu.RDS'))) {
+  stay_at_home <- read_excel(here("data", "bu_data.xlsx"), sheet ='Stay at Home') %>%
+  select(state = `State Abbreviation`,
+         stay_at_home_start = `Stay at home/shelter in place`,
+         stay_at_home_end = `End stay at home/shelter in place`,
+   ) %>%
+  mutate(across(c(stay_at_home_start,stay_at_home_end), ~ as_date(., origin="1899-12-31"))) %>%
+  filter(!is.na(state)) %>%
+    # if dates are input as 0, excel codes these as 1899-12-31; remove these
+  filter(state %in% add$state & stay_at_home_start != "1899-12-31" & stay_at_home_end != "1899-12-31") %>%
+  mutate(length_of_order =difftime(stay_at_home_end, stay_at_home_start, units="days") )
+
+  saveRDS(stay_at_home, here('data', 'stay_at_home_bu.RDS'))
+
+}
+
+stay_at_home <- readRDS(here('data', 'stay_at_home_bu.RDS'))
+
+ stay_at_home %>%
+   ggplot(aes(xmin = stay_at_home_start, xmax = stay_at_home_end, y = fct_reorder(state,length_of_order))) +
+   geom_errorbar(width = .3) +
+   scale_x_date(date_breaks = "1 months", date_labels = "%b %Y") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold", hjust = .5),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5)) +
+  labs(y = "State",
+       x = "Date",
+       title = "Stay at Home/Shelter in Place Order")
+ 
+
+```
+
+
+### State of Emergency 
+
+Some missing data here.
+
+```{r, fig.width = 10}
+
+################################
+# STATE OF EMERGENCY
+################################
+
+if(!exists(here('data', 'state_of_emergency_bu.RDS'))) {
+  state_of_emergency <- read_excel(here("data", "bu_data.xlsx"), sheet ='State of Emergency') %>%
+  select(state = `State Abbreviation`,
+         emergency_start = `State of emergency issued`, 
+         emergency_end = `State of emergency lifted`
+   ) %>%
+  mutate(across(c(emergency_start,emergency_end),~ as_date(., origin="1899-12-31"))) %>%
+  filter(!is.na(state)) %>%
+        # if dates are input as 0, excel codes these as 1899-12-31; remove these
+  filter(state %in% add$state & emergency_start != "1899-12-31" & emergency_end != "1899-12-31") %>%
+  mutate(length_of_order =difftime(emergency_end, emergency_start, units="days") )
+
+  saveRDS(state_of_emergency, here('data', 'state_of_emergency_bu.RDS'))
+
+}
+
+emergency <- readRDS(here('data', 'state_of_emergency_bu.RDS'))
+
+ emergency %>%
+   ggplot(aes(xmin = emergency_start, xmax = emergency_end, y = fct_reorder(state,length_of_order))) +
+   geom_errorbar(width = .3) +
+   scale_x_date(date_breaks = "3 months", date_labels = "%b %Y") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold", hjust = .5),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5)) +
+  labs(y = "State",
+       x = "Date",
+       title = "State of Emergency")
+ 
+
+```
+
+## KFF Policy Data
+
+### Various Social Distancing Orders
+
+Source: [Kaiser Family Foundation Data](https://github.com/KFFData/COVID-19-Data).
+
+```{r}
+
+dance_states <- add %>% 
+  left_join(state_pop) %>%
+  pull(state_name) %>%
+  unique()
+
+if(!exists(here('data', 'social_dist_kff.RDS')))
+{
+  social <- read_excel(here("data", "social_distancing_kff.xlsx"), skip=1) %>%
+  # replace dashes or spaces with underscores
+  rename_with(.cols=everything(),
+              ~tolower(gsub(" |-", "_", .x))) %>%
+  # columns with numbers correspond to rollback dates; rename accordingly
+  rename_with(.cols=matches("[[:digit:]]"),
+              ~gsub("[[:digit:]]","_rollback", .)) %>%
+  select(-primary_election_postponement) %>%
+  # we have to do this separately because some are datetime and some are character
+  # conversion is slightly different (no origin needed for datetime)
+  mutate(across(-c(where(is.POSIXct),state), 
+                    ~as_date(as.numeric(.x), origin = "1899-12-31"))) %>%
+  mutate(across(where(is.POSIXct), 
+                    ~as_date(.x)))
+  
+  
+  social <- social %>% 
+    pivot_longer(-state) %>%
+    mutate(start_stop = ifelse(grepl("rollback", name), "stop", "start"),
+           name = gsub("_rollback", '', name)) %>%
+    pivot_wider(names_from = c(start_stop), values_from = value) %>%
+    mutate(length = difftime(stop,start, "days")) %>%
+    rename(policy = name)
+
+  # only include states in our dance data
+  social <- social %>%
+    filter(state %in% dance_states)
+  
+  # save file
+  saveRDS(social, here('data', 'social_dist_kff.RDS'))
+}
+
+social <- readRDS(here('data', 'social_dist_kff.RDS'))
+
+```
+
+```{r}
+
+
+# fill in missing values with stay_at_home BU data
+miss <- social %>%
+  filter(( is.na(stop) | is.na(start)) & policy == "stay_at_home_order")  %>%
+  rename(state_name =state) %>%
+  left_join(state_pop, by = c('state_name' = 'state_name'))
+
+
+fill <- stay_at_home %>%
+  filter(state %in% miss$state) %>%
+  rename(start = stay_at_home_start,
+         stop = stay_at_home_end) %>%
+  select(state,stop,start) %>%
+  left_join(state_pop) %>%
+  select(-c(state, fips,pop)) %>%
+  mutate(policy = "stay_at_home_order")
+
+
+social <- social %>%
+  left_join(fill, by =c('state'="state_name", 'policy'='policy')) %>%
+  mutate(stop = ifelse(is.na(stop.x), stop.y, stop.x),
+         start = ifelse(is.na(start.x), start.y, start.x)) %>%
+  select(-c(stop.x,stop.y, start.x,start.y)) %>%
+  mutate(across(c(stop, start), as_date))
+
+```
+
+```{r, fig.height = 24, fig.align = 'center'}
+
+# plot length of orders by state 
+social %>%
+  filter(!is.na(start) & !is.na(stop)) %>%
+  # reformat policy names
+  mutate(policy = gsub("_", " ", policy),
+         policy = str_to_title(policy)) %>%
+  ggplot(aes(xmin = start, xmax = stop, y = fct_reorder(state,length))) +
+   geom_errorbar(width = .5) +
+   scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold", hjust = .5),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        strip.text = element_text(size = 12, face= "bold")) +
+  labs(y = "State",
+       x = "Date",
+       title = "Duration of Social Distancing Policies by State") +
+  facet_wrap(~policy, nrow = 5, scales = "free_x")
+
+```
+
+### Missingness by Social Distancing Policy
+
+```{r, fig.width = 12, fig.height =6}
+
+social %>%
+  mutate(policy = gsub("_", " ", policy),
+         policy = str_to_title(policy)) %>%
+  filter(!is.na(length)) %>%
+  group_by(policy) %>%
+  summarize(n_states = n()) %>%
+  ggplot(aes(x =fct_reorder(policy, n_states),
+             y = n_states)) +
+  labs(x="Policy", y = "Number of States Not Missing",
+       title = "Number of States Where We Have Data on the Duration of the Policy") +
+  geom_bar(stat="identity", fill = "#468794") +
+  geom_label(aes(label = n_states)) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 16, face = "bold"),
+        axis.text.y = element_text(size = 14),
+        plot.title = element_text(size = 16, face = "bold", hjust = .5),
+        plot.subtitle = element_text(size = 16, face = "italic", hjust = .5),
+        strip.text = element_text(size = 12, face= "bold"))  +
+  coord_flip() 
+
+
+```
+
+
+```{r, eval = FALSE, include = FALSE }
+
+# looking at specific files where there were issues to see how we can best extract the state for all companies
+file_to_check <- "ballet_990_released_20230208/202001979349303705_public.xml"
+file_to_check <- "ballet_990_released_20230208/201902389349200640_public.xml"
+file_to_check <-  "ballet_990_released_20230208/201503459349300245_public.xml"
+file_to_check <- "ballet_990_released_20230208/201543209349202514_public.xml"
+file_to_check <- "ballet_990_released_20230208/202101969349301610_public.xml" 
+
+example_file <- xml2::read_xml(file_to_check) %>% xml_ns_strip()
+
+address_vars <- tibble(varname = get_all_children(file_to_check, "//ReturnData")) %>%
+  filter(grepl("address", varname, ignore.case =TRUE)) %>%
+  pull(varname)
+
+test <- get_df(filename=file_to_check,
+       variables=address_vars,
+       names = address_vars)
+
+```
+

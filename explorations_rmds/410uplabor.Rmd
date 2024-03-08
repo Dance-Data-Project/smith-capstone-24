@@ -1,0 +1,531 @@
+---
+title: "410 unpaid labor"
+author: "Ruth"
+date: "4/4/2023"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+
+library(dplyr)
+library(plyr)
+library(broom)
+library(ggplot2)
+library(rio)
+library(stargazer)
+library(moderndive)
+library(tidyverse)
+library(xml2)
+library(kableExtra)
+library(lubridate)
+library(forcats)
+library(here)
+library(plotly)
+```
+
+```{r, include=FALSE}
+##this is Ruth's dataset. It includes EIN, Business Name, Year, Total Employee Count, Total Volunteer count from the get_vars function. It also includes a state column, which was merged in SQL from Zhen's state file. Because my dataset deals with unpaid labor, all filings with NA values for employees and volunteers were omitted. Additionally, four variables were calculated: empminusvol is the number of employees minus the number of volunteers, EmpoverVol is the number of employees divided by the number of volunteers, emprank is the numerical ranking based on the number of repeorted employees, and volrank is the numerical ranking based on the number of reported volunteers.  
+ruthdata <- read.csv(here('data/ruthdata.csv'))
+```
+
+
+
+```{r}
+##creating region variable based on DDP-advised regions
+ruthdata <- ruthdata %>%
+  mutate(region= as.character(case_when(state %in% c("IA", "IL", "IN", "MI", "MN", "OH", "WI") ~ "MidWest",
+                state %in% c("AR", "MO", "NE", "OK", "TX") ~ "Mid-America",
+                state %in% c("DC", "DE", "MD", "NJ", "NY", "PA", "VA", "WV") ~ "Mid-Atlantic",
+                state %in% c("CT", "MA", "ME", "NH", "RI") ~  "New England",
+                state%in% c("AZ", "CA", "CO", "ID", "MT", "NM", "NV", "OR", "UT", "WA") ~ "West",
+                state %in% c("AL", "FL", "GA", "KY", "LA", "MS", "NC", "SC", "TN") ~ "South")) )
+    
+```
+
+
+```{r}
+##Creating a visualization for reported employees over time
+employment <- ggplot(ruthdata, aes(x = year, y = TotalEmployeeCnt, color = as.factor(BusinessName))) +
+  geom_line()+
+  theme(legend.position="none") +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face = "bold", size = 5))+ 
+  labs(y = "Total Employee Count",
+       x = "Year",
+       title = "Ballet Company Reported Employees",
+       subtitle = "By Fiscal Year")+
+  theme_bw()
+ggplotly(employment)
+```
+
+```{r}
+##creating a visualization for volunteers over time
+Volunteer <- ggplot(ruthdata, aes(x = year, y = TotalVolunteersCnt, color = as.factor(BusinessName))) +
+  geom_line()+
+  theme(legend.position="none") +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Total Volunteer Count",
+       x = "Year",
+       title = "Ballet Company Reported Volunteers",
+       subtitle = "By Fiscal Year")+
+  theme_bw()
+ggplotly(Volunteer)
+```
+
+```{r}
+##Filtering in interesting employment trends
+lbordf <- ruthdata %>%
+  filter(BusinessName %in% c("BALLET THEATER FOUNDATION", "OREGON BALLET THEATRE", "PACIFIC NORTHWEST BALLET ASSOCIATION", "BALLET ARKANSAS INC", "COLORADO BALLET", "WONDERBOUND", "TULSA BALLET THEATRE INC", "EUGENE BALLET COMPANY", "SACREMENTO BALLET", "BALLET ARIZONA", "SACREMENTO BALLET ASSOCIATION", "THE WASHINGTON BALLET", "BALLET THEATRE FOUNDATION INC"))
+```
+
+```{r}
+## Filtering in outliers in volunteer counts and/or trends
+# These companies are the 5 smallest numbers in empminusvol (they have the largest negativr disparities between the number of employees and the number of volunteers)
+lbordf1 <- ruthdata %>%
+  filter(BusinessName %in% c("EUGENE BALLET COMPANY", "ATLANTA BALLET INC", "BALLET THEATRE OF DES MOINES", "THE STATE OF ALABAMA BALLET INC", "SARASOTA BALLET OF FLORIDA INC"))
+```
+
+
+```{r}
+##Visualizing the employment trends
+Employment <- ggplot(lbordf, aes(x = year, y = TotalEmployeeCnt, color = as.factor(BusinessName))) +
+  geom_line()+
+  theme(legend.position="none") +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face = "bold", size = 5))+ 
+  labs(y = "Total Employee Count",
+       x = "Year",
+       title = "Ballet Company Reported Employees",
+       subtitle = "By Fiscal Year")+
+  theme_bw()
+ggplotly(Employment)
+```
+
+```{r}
+##Visualizing volunteer counts for the employment companies
+volunteer <- ggplot(lbordf, aes(x = year, y = TotalVolunteersCnt, color = as.factor(BusinessName))) +
+  geom_line()+
+  theme(legend.position="none") +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Total Volunteer Count",
+       x = "Year",
+       title = "Ballet Company Reported Volunteers",
+       subtitle = "By Fiscal Year")+
+  theme_bw()
+ggplotly(volunteer)
+```
+
+```{r}
+##looking at employment for the companies with volunteer outliers
+Employment1 <- ggplot(lbordf1, aes(x = year, y = TotalEmployeeCnt, color = as.factor(BusinessName))) +
+  geom_line()+
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face = "bold", size = 5))+ 
+  labs(y = "Total Employee Count",
+       x = "Year",
+       title = "Ballet Company Reported Employees",
+       subtitle = "By Fiscal Year")+
+  theme_bw()
+ggplotly(Employment1)
+```
+
+```{r}
+##Looking at trends over time for companies with volunteer outliers
+volunteer1 <- ggplot(lbordf1, aes(x = year, y = TotalVolunteersCnt, color = as.factor(BusinessName))) +
+  geom_line()+
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Total Volunteer Count",
+       x = "Year",
+       title = "Ballet Company Reported Volunteers",
+       subtitle = "By Fiscal Year")+
+  theme_bw()
+ggplotly(volunteer1)
+```
+
+```{r}
+##Visualizing number of Employees Minus Volunteers Over Time
+EmpSubVol <- ggplot(ruthdata, aes(x = year, y = empminusvol, color = as.factor(BusinessName))) +
+  geom_line()+
+  theme(legend.position="none") +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Total Volunteers Subtracted from Total Employees",
+       x = "Year",
+       title = "Reliance on Unpaid Labor",
+       subtitle = "By Fiscal Year")+
+  theme_bw()
+ggplotly(EmpSubVol)
+```
+
+```{r}
+#Looking at the correlation between the rank of employees and the rank of volunteers 
+voloutliers <- ggplot(ruthdata, aes(x=emprank, y=volrank, color = as.factor(BusinessName))) +
+  geom_point()+
+   theme(legend.position="none")+
+  theme_bw()
+ggplotly(voloutliers)
+```
+
+```{r}
+#code to find most egregious outliers in emprank and volrank
+ruthdata$uplaborrankdif <- ruthdata$volrank-ruthdata$emprank
+#sorted this in descending order and collected the top 5% outliers
+
+#summarize the descriptive stats for uplaborrankdif
+ruthdata%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          mean = mean(uplaborrankdif),
+          median = median(uplaborrankdif))
+  
+```
+
+```{r}
+#filtering years 
+ruthdata2021 <- ruthdata%>%
+  filter(year=="2021")
+
+ruthdata2020 <- ruthdata%>%
+  filter(year=="2020")
+
+ruthdata2019 <- ruthdata%>%
+  filter(year=="2019")
+
+ruthdata2018 <- ruthdata%>%
+  filter(year=="2018")
+
+ruthdata2017 <- ruthdata%>%
+  filter(year=="2017")
+
+ruthdata2016 <- ruthdata%>%
+  filter(year=="2016")
+
+df20202021 <- ruthdata%>%
+  filter(year == c("2020", "2021"))
+
+df20172019 <- ruthdata%>%
+  filter(year == c("2017", "2018", "2019"))
+```
+
+```{r}
+#summaries for uplabor over years
+ruthdata2016%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          mean = mean(uplaborrankdif),
+          median = median(uplaborrankdif)
+          )
+```
+
+
+```{r}
+ruthdata2017%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          median = median(uplaborrankdif),
+          mean= mean(uplaborrankdif))
+```
+
+
+```{r}
+ruthdata2018%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          median = median(uplaborrankdif),
+          mean= mean(uplaborrankdif))
+```
+
+
+```{r}
+ruthdata2019%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          median = median(uplaborrankdif),
+          mean= mean(uplaborrankdif))
+```
+
+
+```{r}
+ruthdata2020%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          median = median(uplaborrankdif),
+          mean= mean(uplaborrankdif))
+```
+
+
+```{r}
+ruthdata2021%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          median = median(uplaborrankdif),
+          mean= mean(uplaborrankdif))
+
+#calculated weighted values for multiple year desc stats below
+```
+
+```{r}
+#Desc Stats for total volunteers over years
+ruthdata2017%>%
+summarize(min=min(TotalVolunteersCnt),
+          max = max(TotalVolunteersCnt),
+          median = median(TotalVolunteersCnt),
+          mean= mean(TotalVolunteersCnt))
+```
+
+
+```{r}
+ruthdata2018%>%
+summarize(min=min(TotalVolunteersCnt),
+          max = max(TotalVolunteersCnt),
+          median = median(TotalVolunteersCnt),
+          mean= mean(TotalVolunteersCnt))
+```
+
+
+```{r}
+ruthdata2019%>%
+summarize(min=min(TotalVolunteersCnt),
+          max = max(TotalVolunteersCnt),
+          median = median(TotalVolunteersCnt),
+          mean= mean(TotalVolunteersCnt))
+
+```
+
+
+```{r}
+ruthdata2020%>%
+summarize(min=min(TotalVolunteersCnt),
+          max = max(TotalVolunteersCnt),
+          median = median(TotalVolunteersCnt),
+          mean= mean(TotalVolunteersCnt))
+
+```
+
+
+```{r}
+ruthdata2021%>%
+summarize(min=min(TotalVolunteersCnt),
+          max = max(TotalVolunteersCnt),
+          median = median(TotalVolunteersCnt),
+          mean= mean(TotalVolunteersCnt))
+
+#calculated weighted values for multiple year desc stats below
+```
+
+```{r}
+ruthdata2017%>%
+summarize(min=min(TotalEmployeeCnt),
+          max = max(TotalEmployeeCnt),
+          median = median(TotalEmployeeCnt),
+          mean= mean(TotalEmployeeCnt))
+
+```
+
+
+```{r}
+ruthdata2018%>%
+summarize(min=min(TotalEmployeeCnt),
+          max = max(TotalEmployeeCnt),
+          median = median(TotalEmployeeCnt),
+          mean= mean(TotalEmployeeCnt))
+```
+
+
+```{r}
+ruthdata2019%>%
+summarize(min=min(TotalEmployeeCnt),
+          max = max(TotalEmployeeCnt),
+          median = median(TotalEmployeeCnt),
+          mean= mean(TotalEmployeeCnt))
+```
+
+
+```{r}
+ruthdata2020%>%
+summarize(min=min(TotalEmployeeCnt),
+          max = max(TotalEmployeeCnt),
+          median = median(TotalEmployeeCnt),
+          mean= mean(TotalEmployeeCnt))
+```
+
+
+```{r}
+ruthdata2021%>%
+summarize(min(TotalEmployeeCnt),
+          max = max(TotalEmployeeCnt),
+          median = median(TotalEmployeeCnt),
+          mean= mean(TotalEmployeeCnt))
+
+#calculated weighted values for multiple year desc stats below
+```
+
+```{r}
+##Summary stats for range 2017-2019
+df20172019%>%
+summarize(min=min(TotalEmployeeCnt),
+          max = max(TotalEmployeeCnt),
+          median = median(TotalEmployeeCnt),
+          mean= mean(TotalEmployeeCnt))
+
+df20172019%>%
+summarize(min=min(TotalVolunteersCnt),
+          max = max(TotalVolunteersCnt),
+          median = median(TotalVolunteersCnt),
+          mean= mean(TotalVolunteersCnt))
+
+
+df20172019%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          median = median(uplaborrankdif),
+          mean= mean(uplaborrankdif))
+```
+
+```{r}
+df20202021%>%
+summarize(min=min(TotalEmployeeCnt),
+          max = max(TotalEmployeeCnt),
+          median = median(TotalEmployeeCnt),
+          mean= mean(TotalEmployeeCnt))
+
+df20202021%>%
+summarize(min=min(TotalVolunteersCnt),
+          max = max(TotalVolunteersCnt),
+          median = median(TotalVolunteersCnt),
+          mean= mean(TotalVolunteersCnt))
+
+df20202021%>%
+summarize(min=min(uplaborrankdif),
+          max = max(uplaborrankdif),
+          median = median(uplaborrankdif),
+          mean= mean(uplaborrankdif))
+```
+
+# Answer to question: "Which companies rely most on unpaid labor?"
+
+Variable used: rank of number of volunteers minus rank of number of employees 
+
+MIN: -188
+MAX: 116
+
+MEAN: -11.95597
+MEDIAN: 0
+
+```{r}
+df <- select(ruthdata, c("BusinessName", "year", "region", "uplaborrankdif"))
+```
+
+
+Top 5% outliers in reiance on unpaid labor as judged by volrank minus emprank:
+
+1. Ballet Theater of Des Moines (2019) MidWest
+2 Ballet Theater of Des Moines (2018) MidWest
+3. Ballet Theater of Des Moines (2017) MidWest
+4. Ballet Theater of Des Moines (2015) MidWest
+5. Ballet Theater of Des Moines (2016) MidWest
+6. Ballet Minnesota (2019) MidWest
+7. CALIFORNIA BALLET ASSOCIATION INC (2016) West
+8. CALIFORNIA BALLET ASSOCIATION INC (2015) West
+9. THE CHATTANOOGA BALLET (2015) South
+10.	EUGENE BALLET COMPANY (2017) West
+11. BALLET PALM BEACH INC (2018) South
+12. BALLET PALM BEACH INC (2019) South
+13. EUGENE BALLET COMPANY (2019) West
+14. THE CHATTANOOGA BALLET (2017) South
+15. MADISON BALLET INC (2018) MidWest
+16. MADISON BALLET INC (2019) MidWest
+17. BALLET FRONTIER OF TEXAS (2018) Mid-America
+18. BALLET FRONTIER OF TEXAS (2019) Mid-America
+19. BALLET ARKANSAS INC (2020) Mid-America
+20. EUGENE BALLET COMPANY (2018) West
+21. EUGENE BALLET COMPANY (2020) West
+22. CALIFORNIA BALLET ASSOCIATION INC (2017) West
+23. THE CHATTANOOGA BALLET (2016) South
+24. THE GEORGIA BALLET INC (2015) South
+25. WONDERBOUND (2018) West
+26. WONDERBOUND (2015) West
+27. WONDERBOUND (2016) West
+28. BALLET FRONTIER OF TEXAS (2020) Mid-America
+29. MADISON BALLET INC (2016) MidWest
+30. MADISON BALLET INC (2017) MidWest
+31. MADISON BALLET INC (2020) MidWest
+ 
+
+# Answer to question: "In which regions is unpaid labor most common?"
+
+11/31  35.5% - Midwest
+6/31   19.4% - South
+4/31   12.9% - Mid-America
+10/31  32.3% - West
+0/31   0%    - Mid Atlantic
+0/31   0%    - New England
+
+# Answer to question: "Does the total number of employees and volunteers shift during the pandemic?"
+
+note: mean values were WEIGHTED for number of obervations (i.e. a mean for a year with 110 observations was multiplied by 1.1 and a value for a year with 22 observations was multiplied by .22, etc)
+
+Volrank minus Emprank MEANS: 2017-2019: -15.7
+                             2020-2021: -16.1
+                      
+Volrank minus Emprank MEDIANS: 2017-2019: -2
+                               2020-2021: -.5
+
+Volrank minus Emprank RANGES: 2017-2019: -188, 115
+                              2020-2021: -188, 74
+
+TOTAL EMPLOYEE MEANS: 2017-2019: 130
+                      2020-2021: 93.2
+                      
+TOTAL EMPLOYEE MEDIANS: 2017-2019: 46
+                        2020-2021: 40.5
+
+TOTAL EMPLOYEE RANGES: 2017-2019: 0-869
+                       2020-2021: 0-856
+                       
+TOTAL VOLUNTEER MEANS: 2017-2019: 142.3
+                       2020-2021: 104
+                      
+TOTAL VOLUNTEER MEDIANS: 2017-2019: 68
+                         2020-2021: 45.5
+
+TOTAL VOLUNTEER RANGES: 2017-2019: 0-1500
+                        2020-2021: 0-1500
+
+It appears that the difference, on average, in the median of total employees between 17-19 and 20-21 decreased by 36.8 employees and the median number of employees decreased by 5.5 on average, and the maximum value decreased by 13.                      
+On average, it appears that the difference in the mean of total volunteers between 17-19 and 20-21 decreased by 38.3 volunteers and the median number of volunteers decreased by 22.5 volunteers , on average, but the range remained the same. 
+
+Finally, volrank minus emprank takes the independent rankings of each type of labor when compared with all other variables in the dataset. The higher this number is, the more the specific company relies on unpaid labor than the other dance companies in the dataset. When looking at the difference between volrank minus emprank, it appears that the difference in the mean of rank difference between 17-19 and 20-21 decreased by .4 and the median difference in rank increased by 1.5, on average, and the maximum difference in the two rankings decreased by 41. 
+
+Findings suggest that the pandemic saw a decline in both paid (employee) labor and unpaid (volunteer) labor, but that the most drastic loss of labor occured for volunteers rather than employees. 

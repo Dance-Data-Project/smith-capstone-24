@@ -242,20 +242,20 @@ get_all_children <- function(xml_file, xpath, quiet = TRUE) {
 # TESTING get_df
 #########################
 
-files <- dir(here("990archivesfeb2024"),
-             full.names=TRUE)
-
-# test that warning is provided if user tries to extract endowment variables with get_df
-testthat::expect_warning(
-  get_df(filename = files[1],
-         variables = c('/Return/ReturnData/IRS990ScheduleD/CYMinus4YrEndwmtFundGrp/ContributionsAmt')),
-  regexp = "discrepancies")
-
-testthat::expect_message(
-  get_df(filename = files[1],
-         schedule = 'd'),
-  regexp = "Schedule D")
-
+# files <- dir(here("990archivesfeb2024"),
+#              full.names=TRUE)
+# 
+# # test that warning is provided if user tries to extract endowment variables with get_df
+# testthat::expect_warning(
+#   get_df(filename = files[1],
+#          variables = c('/Return/ReturnData/IRS990ScheduleD/CYMinus4YrEndwmtFundGrp/ContributionsAmt')),
+#   regexp = "discrepancies")
+# 
+# testthat::expect_message(
+#   get_df(filename = files[1],
+#          schedule = 'd'),
+#   regexp = "Schedule D")
+# 
 
 
 

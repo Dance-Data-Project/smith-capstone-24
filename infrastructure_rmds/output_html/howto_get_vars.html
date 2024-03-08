@@ -7,7 +7,7 @@
 
         <meta name="author" content="Rose Evard" />
     
-        <meta name="date" content="2024-03-05" />
+        <meta name="date" content="2024-03-07" />
     
     <title>How to Use GET_VARS</title>
 
@@ -2640,7 +2640,7 @@ margin-left: 0 !important;
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Rose
 Evard</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-03-05</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-03-07</p>
           </div>
    </div>
      
@@ -2655,16 +2655,16 @@ Evard</p>
 <p>In order to use the <code>get_df</code> and <code>filter_ein</code>
 functions in <code>GET_VARS.R</code>, you need to first run load the
 package <code>here</code>, then run the following code:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">&quot;GET_VARS.R&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">&quot;GET_VARS.R&quot;</span>))</span></code></pre></div>
 <p>This will load the functions into your environment.</p>
 <p>To apply the <code>get_df</code>, run this:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>,</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)  </span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>                    <span class="fu">get_df</span>(<span class="at">variables =</span>  <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>                           <span class="at">filename =</span> .x</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>                           ))</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>,</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)  </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">get_df</span>(<span class="at">variables =</span>  <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">filename =</span> .x</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                           ))</span></code></pre></div>
 <p>The first function, <code>dir</code>, retrieves all the names of the
 XML files to load in. The second function, <code>get_df</code> which is
 in <code>map_df</code>, actually pulls the variables you specify later
@@ -2689,13 +2689,13 @@ variables have the same name but are in different subcategories, you can
 add an argument <code>names = c(&quot;name1&quot;, &quot;name2&quot;)</code>. You need to
 have the same number of names as variables, as well as in the same
 order.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">##Example with names</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="fu">here</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>),</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>                    <span class="fu">get_df</span>(<span class="at">variables =</span>  <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>                           <span class="at">filename =</span> .x,</span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>                           <span class="at">names =</span> <span class="fu">c</span>(<span class="st">&quot;CD&quot;</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">##Example with names</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="fu">here</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">get_df</span>(<span class="at">variables =</span>  <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">filename =</span> .x,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">names =</span> <span class="fu">c</span>(<span class="st">&quot;CD&quot;</span>)))</span></code></pre></div>
 <p>Note that <code>get_df</code> automatically adds four additional
 variables, which you do not need to specify in the <code>names</code>
 parameter: ReturnTs, EIN, fiscal_year and filename.</p>
@@ -2703,19 +2703,19 @@ parameter: ReturnTs, EIN, fiscal_year and filename.</p>
 <code>filter_ein</code>. You don’t need to provide any parameters, just
 apply the function on your pulled dataset. This filters to the 785 990s
 which we are utilizing for our analysis.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">filter_ein</span>(data)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">filter_ein</span>(data)</span></code></pre></div>
 <p>Overall, you can copy and paste this chunk, specify the variables you
 want, and choose if you want to specify names:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">##Example with names  </span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">&quot;GET_VARS.R&quot;</span>))</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="fu">here</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>),</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>                    <span class="fu">get_df</span>(<span class="at">variables =</span>  <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span>,</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>                           <span class="at">filename =</span> .x</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>                           ))</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">filter_ein</span>(data)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">##Example with names  </span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">&quot;GET_VARS.R&quot;</span>))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="fu">here</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">get_df</span>(<span class="at">variables =</span>  <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">filename =</span> .x</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                           ))</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">filter_ein</span>(data)</span></code></pre></div>
 </div>
 <div id="example-for-retrieving-variables-by-schedule" class="section level2">
 <h2>Example for Retrieving Variables by Schedule</h2>
@@ -2723,437 +2723,437 @@ want, and choose if you want to specify names:</p>
 ‘m’, ‘o’, or ‘r’).</p>
 <p>Note that the names of the columns will the the full paths to fully
 represent the nested structure of the xml files.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>schedule_o <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span><span class="fu">get_df</span>(<span class="at">filename =</span> .x , </span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>                              <span class="at">schedule =</span> <span class="st">&#39;o&#39;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="fu">filter_ein</span>()</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="fu">glimpse</span>(schedule_o)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>schedule_o <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span><span class="fu">get_df</span>(<span class="at">filename =</span> .x , </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">schedule =</span> <span class="st">&#39;o&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_ein</span>()</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(schedule_o)</span></code></pre></div>
 <pre><code>## Rows: 1,054
 ## Columns: 142
-## $ ReturnTs                                                                                        [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;2019-06-13T11:59:06-…
-## $ EIN                                                                                             [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;010372997&quot;, &quot;0103729…
-## $ filename                                                                                        [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;201921649349300222_p…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[1]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, S…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[2]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, S…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[3]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, S…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[4]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, S…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[1]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, S…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[1]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Each member submits …
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[2]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, S…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[2]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;There are no committ…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[3]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, S…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[3]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;The executive direct…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[4]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, S…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[4]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Public records are a…
-## $ fiscal_year                                                                                     [3m[38;5;246m&lt;fct&gt;[39m[23m 2018, 2019, 2020, 202…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[5]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[5]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[5]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[6]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[6]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[6]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[7]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[8]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[9]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[10]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[11]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[12]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[7]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[7]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[8]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[8]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[9]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[9]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[10]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[10]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[11]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[11]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[12]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[12]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[13]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[14]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[15]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[16]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[17]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[18]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[13]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[13]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[14]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[14]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[15]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[15]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[16]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[16]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[17]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[17]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[18]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[18]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail/FormAndLineReferenceDesc`     [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail/ExplanationTxt`               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[19]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[20]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[19]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[19]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[20]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[20]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[21]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[22]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[23]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[24]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[25]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[26]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[27]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[21]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[21]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[22]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[22]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[23]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[23]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[24]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[24]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[25]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[25]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[26]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[26]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[27]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[27]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[28]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[29]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[30]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[31]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[32]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[33]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[34]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[35]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[36]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[28]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[28]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[29]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[29]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[30]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[30]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[31]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[31]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[32]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[32]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[33]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[33]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[34]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[34]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[35]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[35]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[36]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[36]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[37]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[38]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[39]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[40]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[41]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[37]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[37]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[38]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[38]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[39]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[39]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[40]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[40]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[41]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[41]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[42]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[43]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[44]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[42]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[42]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[43]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[43]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[44]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[44]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[45]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[45]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…
-## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[45]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, N…</code></pre>
+## $ ReturnTs                                                                                        &lt;chr&gt; &quot;2019-06-13T11:…
+## $ EIN                                                                                             &lt;chr&gt; &quot;010372997&quot;, &quot;0…
+## $ filename                                                                                        &lt;chr&gt; &quot;20192164934930…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[1]`                           &lt;chr&gt; &quot;Form 990, Part…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[2]`                           &lt;chr&gt; &quot;Form 990, Part…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[3]`                           &lt;chr&gt; &quot;Form 990, Part…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[4]`                           &lt;chr&gt; &quot;Form 990, Part…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[1]/FormAndLineReferenceDesc`  &lt;chr&gt; &quot;Form 990, Part…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[1]/ExplanationTxt`            &lt;chr&gt; &quot;Each member su…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[2]/FormAndLineReferenceDesc`  &lt;chr&gt; &quot;Form 990, Part…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[2]/ExplanationTxt`            &lt;chr&gt; &quot;There are no c…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[3]/FormAndLineReferenceDesc`  &lt;chr&gt; &quot;Form 990, Part…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[3]/ExplanationTxt`            &lt;chr&gt; &quot;The executive …
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[4]/FormAndLineReferenceDesc`  &lt;chr&gt; &quot;Form 990, Part…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[4]/ExplanationTxt`            &lt;chr&gt; &quot;Public records…
+## $ fiscal_year                                                                                     &lt;fct&gt; 2018, 2019, 202…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[5]`                           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[5]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[5]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[6]`                           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[6]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[6]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[7]`                           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[8]`                           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[9]`                           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[10]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[11]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[12]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[7]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[7]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[8]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[8]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[9]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[9]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[10]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[10]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[11]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[11]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[12]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[12]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[13]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[14]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[15]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[16]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[17]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[18]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[13]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[13]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[14]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[14]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[15]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[15]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[16]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[16]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[17]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[17]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[18]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[18]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail`                              &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail/FormAndLineReferenceDesc`     &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail/ExplanationTxt`               &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[19]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[20]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[19]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[19]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[20]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[20]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[21]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[22]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[23]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[24]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[25]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[26]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[27]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[21]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[21]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[22]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[22]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[23]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[23]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[24]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[24]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[25]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[25]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[26]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[26]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[27]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[27]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[28]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[29]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[30]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[31]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[32]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[33]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[34]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[35]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[36]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[28]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[28]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[29]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[29]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[30]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[30]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[31]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[31]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[32]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[32]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[33]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[33]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[34]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[34]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[35]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[35]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[36]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[36]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[37]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[38]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[39]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[40]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[41]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[37]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[37]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[38]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[38]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[39]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[39]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[40]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[40]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[41]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[41]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[42]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[43]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[44]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[42]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[42]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[43]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[43]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[44]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[44]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[45]`                          &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[45]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA,…
+## $ `/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[45]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA,…</code></pre>
 <p>Once we examine which columns we actually need, we can clean the
 names. The <code>rename_with</code> function is particularly helpful for
 batch renaming.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>schedule_o <span class="sc">%&gt;%</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>, fiscal_year) <span class="sc">%&gt;%</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="co"># remove text up to slash</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="fu">rename_with</span>(<span class="sc">~</span><span class="fu">gsub</span>(<span class="st">&quot;.*/&quot;</span>,<span class="st">&quot;&quot;</span>, .)) <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>schedule_o <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>, fiscal_year) <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove text up to slash</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename_with</span>(<span class="sc">~</span><span class="fu">gsub</span>(<span class="st">&quot;.*/&quot;</span>,<span class="st">&quot;&quot;</span>, .)) <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code></pre></div>
 <pre><code>## Rows: 1,054
 ## Columns: 10
-## $ ReturnTs                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;2019-06-13T11:59:06-00:00&quot;, &quot;2019-12-16T12:40:25-00:00&quot;, &quot;2021-06-14T11:42:01-00:…
-## $ EIN                                [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010420070&quot;, &quot;010…
-## $ filename                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;201921649349300222_public.xml&quot;, &quot;201913509349300526_public.xml&quot;, &quot;202111659349300…
-## $ `SupplementalInformationDetail[1]` [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, Section B, Line 12CEach member submits a signed disclosure ann…
-## $ `SupplementalInformationDetail[2]` [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, Section A, Line 8BThere are no committees with authority to ac…
-## $ `SupplementalInformationDetail[3]` [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, Section B, Line 11BThe executive director and office manager r…
-## $ `SupplementalInformationDetail[4]` [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, Section C, Line 19Public records are available upon request an…
-## $ FormAndLineReferenceDesc           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Form 990, Part VI, Section B, Line 12C&quot;, &quot;Form 990, Part VI, Section B, Line 12C&quot;…
-## $ ExplanationTxt                     [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Each member submits a signed disclosure annually and any transaction that may pre…
-## $ fiscal_year                        [3m[38;5;246m&lt;fct&gt;[39m[23m 2018, 2019, 2020, 2021, 2022, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2015, 2016…</code></pre>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>schedule_d <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span><span class="fu">get_df</span>(<span class="at">filename =</span> .x , </span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>                              <span class="at">schedule =</span> <span class="st">&#39;d&#39;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="fu">filter_ein</span>()</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>schedule_d <span class="sc">%&gt;%</span></span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="co"># remove /Return/ReturnData/IRS990ScheduleD/ from columns since this is shared</span></span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="co"># across all columns</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="fu">rename_with</span>(<span class="sc">~</span><span class="fu">gsub</span>(<span class="st">&quot;/Return/ReturnData/IRS990ScheduleD/&quot;</span>, <span class="st">&quot;&quot;</span>, .)) <span class="sc">%&gt;%</span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="fu">glimpse</span>()</span></code></pre></div>
+## $ ReturnTs                           &lt;chr&gt; &quot;2019-06-13T11:59:06-00:00&quot;, &quot;2019-12-16T12:40:25-00:00&quot;, &quot;2021-06-14T11:42:…
+## $ EIN                                &lt;chr&gt; &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010420070&quot;…
+## $ filename                           &lt;chr&gt; &quot;201921649349300222_public.xml&quot;, &quot;201913509349300526_public.xml&quot;, &quot;202111659…
+## $ `SupplementalInformationDetail[1]` &lt;chr&gt; &quot;Form 990, Part VI, Section B, Line 12CEach member submits a signed disclosu…
+## $ `SupplementalInformationDetail[2]` &lt;chr&gt; &quot;Form 990, Part VI, Section A, Line 8BThere are no committees with authority…
+## $ `SupplementalInformationDetail[3]` &lt;chr&gt; &quot;Form 990, Part VI, Section B, Line 11BThe executive director and office man…
+## $ `SupplementalInformationDetail[4]` &lt;chr&gt; &quot;Form 990, Part VI, Section C, Line 19Public records are available upon requ…
+## $ FormAndLineReferenceDesc           &lt;chr&gt; &quot;Form 990, Part VI, Section B, Line 12C&quot;, &quot;Form 990, Part VI, Section B, Lin…
+## $ ExplanationTxt                     &lt;chr&gt; &quot;Each member submits a signed disclosure annually and any transaction that m…
+## $ fiscal_year                        &lt;fct&gt; 2018, 2019, 2020, 2021, 2022, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2015…</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>schedule_d <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span><span class="fu">get_df</span>(<span class="at">filename =</span> .x , </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">schedule =</span> <span class="st">&#39;d&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_ein</span>()</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>schedule_d <span class="sc">%&gt;%</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove /Return/ReturnData/IRS990ScheduleD/ from columns since this is shared</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># across all columns</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename_with</span>(<span class="sc">~</span><span class="fu">gsub</span>(<span class="st">&quot;/Return/ReturnData/IRS990ScheduleD/&quot;</span>, <span class="st">&quot;&quot;</span>, .)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">glimpse</span>()</span></code></pre></div>
 <pre><code>## Rows: 1,054
 ## Columns: 252
-## $ ReturnTs                                                     [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;2019-06-13T11:59:06-00:00&quot;, &quot;2019-12-16T12:40:25-00:00&quot;…
-## $ EIN                                                          [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010…
-## $ filename                                                     [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;201921649349300222_public.xml&quot;, &quot;201913509349300526_pub…
-## $ LeaseholdImprovementsGrp                                     [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;19747952782144697&quot;, &quot;19747963159134320&quot;, &quot;1974796805712…
-## $ TotalBookValueLandBuildingsAmt                               [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;144697&quot;, &quot;146683&quot;, &quot;139505&quot;, &quot;57807&quot;, &quot;62850&quot;, &quot;1530210…
-## $ `LeaseholdImprovementsGrp/OtherCostOrOtherBasisAmt`          [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;197479&quot;, &quot;197479&quot;, &quot;197479&quot;, &quot;95670&quot;, &quot;95670&quot;, NA, NA, …
-## $ `LeaseholdImprovementsGrp/DepreciationAmt`                   [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;52782&quot;, &quot;63159&quot;, &quot;68057&quot;, &quot;49370&quot;, &quot;51822&quot;, NA, NA, NA,…
-## $ `LeaseholdImprovementsGrp/BookValueAmt`                      [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;144697&quot;, &quot;134320&quot;, &quot;129422&quot;, &quot;46300&quot;, &quot;43848&quot;, NA, NA, …
-## $ fiscal_year                                                  [3m[38;5;246m&lt;fct&gt;[39m[23m 2018, 2019, 2020, 2021, 2022, 2016, 2017, 2018, 2019, 20…
-## $ EquipmentGrp                                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;659479598605608…
-## $ OtherLiabilitiesOrgGrp                                       [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Federal income taxes&quot;, &quot;Federal income taxes&quot;, &quot;Federal…
-## $ TotalLiabilityAmt                                            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;171617&quot;, &quot;172200&quot;, &quot;172200&quot;, &quot;16695…
-## $ TotalRevEtcAuditedFinclStmtAmt                               [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;600896&quot;, &quot;486614&quot;, &quot;437573&quot;, &quot;419731&quot;, &quot;548892&quot;, &quot;10580…
-## $ RevenueSubtotalAmt                                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;597032&quot;, &quot;486614&quot;, &quot;437573&quot;, &quot;419731&quot;, &quot;548892&quot;, &quot;99458…
-## $ TotalRevenuePerForm990Amt                                    [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;597032&quot;, &quot;486614&quot;, &quot;437573&quot;, &quot;419481&quot;, &quot;547468&quot;, &quot;10146…
-## $ TotExpnsEtcAuditedFinclStmtAmt                               [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;541962&quot;, &quot;491546&quot;, &quot;454789&quot;, &quot;528567&quot;, &quot;465532&quot;, &quot;99537…
-## $ ExpensesSubtotalAmt                                          [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;538098&quot;, &quot;491546&quot;, &quot;454789&quot;, &quot;528317&quot;, &quot;464108&quot;, &quot;93186…
-## $ TotalExpensesPerForm990Amt                                   [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;538098&quot;, &quot;491546&quot;, &quot;454789&quot;, &quot;528317&quot;, &quot;464108&quot;, &quot;95189…
-## $ `EquipmentGrp/OtherCostOrOtherBasisAmt`                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;659479&quot;, &quot;69925…
-## $ `EquipmentGrp/DepreciationAmt`                               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;598605&quot;, &quot;63294…
-## $ `EquipmentGrp/BookValueAmt`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;60874&quot;, &quot;66313&quot;…
-## $ `OtherLiabilitiesOrgGrp/Desc`                                [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Federal income taxes&quot;, &quot;Federal income taxes&quot;, &quot;Federal…
-## $ `OtherLiabilitiesOrgGrp/Amt`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;171617&quot;, &quot;172200&quot;, &quot;172200&quot;, &quot;16695…
-## $ CYEndwmtFundGrp                                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ CYMinus1YrEndwmtFundGrp                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ CYMinus2YrEndwmtFundGrp                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ CYMinus3YrEndwmtFundGrp                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ CYMinus4YrEndwmtFundGrp                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ EndowmentsHeldUnrelatedOrgInd                                [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ EndowmentsHeldRelatedOrgInd                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ LandGrp                                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;234353234353&quot;, &quot;234353234353&quot;, &quot;234…
-## $ BuildingsGrp                                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;17503985416101208788&quot;, &quot;17599455946…
-## $ OtherLandBuildingsGrp                                        [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;6946969469&quot;, &quot;788066644312363&quot;, &quot;788066872310083&quot;, &quot;798…
-## $ DonatedServicesAndUseFcltsAmt                                [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;4418&quot;, NA, NA, NA, NA, NA, NA, NA, …
-## $ OtherRevenueAmt                                              [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;3864&quot;, NA, NA, NA, NA, &quot;59098&quot;, &quot;34081&quot;, &quot;61078&quot;, NA, N…
-## $ RevenueNotReportedAmt                                        [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;3864&quot;, NA, NA, NA, NA, &quot;63516&quot;, &quot;34081&quot;, &quot;61078&quot;, NA, N…
-## $ DonatedServicesUseFcltsAmt                                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;4418&quot;, NA, NA, NA, NA, NA, NA, NA, …
-## $ OtherExpensesIncludedAmt                                     [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;3864&quot;, NA, NA, &quot;250&quot;, &quot;1424&quot;, &quot;59098&quot;, &quot;34081&quot;, &quot;61078&quot;…
-## $ ExpensesNotReportedAmt                                       [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;3864&quot;, NA, NA, &quot;250&quot;, &quot;1424&quot;, &quot;63516&quot;, &quot;34081&quot;, &quot;61078&quot;…
-## $ `SupplementalInformationDetail[1]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;XI 2DAmount represents cost of goods sold 3864 applied …
-## $ `SupplementalInformationDetail[2]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;XII 2DAmount represents cost of goods sold 3864 applied…
-## $ `CYEndwmtFundGrp/BeginningYearBalanceAmt`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYEndwmtFundGrp/EndYearBalanceAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus1YrEndwmtFundGrp/BeginningYearBalanceAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus1YrEndwmtFundGrp/EndYearBalanceAmt`                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus2YrEndwmtFundGrp/BeginningYearBalanceAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus2YrEndwmtFundGrp/EndYearBalanceAmt`                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus3YrEndwmtFundGrp/BeginningYearBalanceAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus3YrEndwmtFundGrp/EndYearBalanceAmt`                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus4YrEndwmtFundGrp/BeginningYearBalanceAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus4YrEndwmtFundGrp/EndYearBalanceAmt`                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `LandGrp/OtherCostOrOtherBasisAmt`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;234353&quot;, &quot;234353&quot;, &quot;234353&quot;, &quot;23435…
-## $ `LandGrp/BookValueAmt`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;234353&quot;, &quot;234353&quot;, &quot;234353&quot;, &quot;23435…
-## $ `BuildingsGrp/OtherCostOrOtherBasisAmt`                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;1750398&quot;, &quot;1759945&quot;, &quot;1759945&quot;, &quot;17…
-## $ `BuildingsGrp/DepreciationAmt`                               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;541610&quot;, &quot;594662&quot;, &quot;660196&quot;, &quot;72529…
-## $ `BuildingsGrp/BookValueAmt`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;1208788&quot;, &quot;1165283&quot;, &quot;1099749&quot;, &quot;10…
-## $ `OtherLandBuildingsGrp/OtherCostOrOtherBasisAmt`             [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;69469&quot;, &quot;78806&quot;, &quot;78806&quot;, &quot;79831&quot;, &quot;89156&quot;, &quot;562881&quot;, &quot;…
-## $ `OtherLandBuildingsGrp/DepreciationAmt`                      [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;69469&quot;, &quot;66443&quot;, &quot;68723&quot;, &quot;68324&quot;, &quot;70154&quot;, &quot;475812&quot;, &quot;…
-## $ `OtherLandBuildingsGrp/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, &quot;12363&quot;, &quot;10083&quot;, &quot;11507&quot;, &quot;19002&quot;, &quot;87069&quot;, &quot;113830…
-## $ `SupplementalInformationDetail[1]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;XI 2D&quot;, NA, NA, &quot;XI 4b&quot;, &quot;XI 4b&quot;, &quot;PART X, LINE 2:&quot;, &quot;P…
-## $ `SupplementalInformationDetail[1]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Amount represents cost of goods sold 3864 applied again…
-## $ `SupplementalInformationDetail[2]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;XII 2D&quot;, NA, NA, &quot;XII 2d&quot;, &quot;XII 2d&quot;, &quot;PART XI, LINE 2D …
-## $ `SupplementalInformationDetail[2]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Amount represents cost of goods sold 3864 applied again…
-## $ OtherAssetsOrgGrp                                            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;SECURIT…
-## $ TotalBookValueOtherAssetsAmt                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;17266&quot;,…
-## $ `OtherAssetsOrgGrp/Desc`                                     [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;SECURIT…
-## $ `OtherAssetsOrgGrp/BookValueAmt`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;17266&quot;,…
-## $ PrmnntEndowmentBalanceEOYPct                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ FootnoteTextInd                                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, NA, NA, &quot;X&quot;, …
-## $ NetUnrealizedGainsInvstAmt                                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ InvestmentExpensesNotIncldAmt                                [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ OtherRevenuesNotIncludedAmt                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, &quot;-250&quot;, &quot;-1424&quot;, &quot;20030&quot;, &quot;16587&quot;, &quot;20000&quot;, …
-## $ RevenueNotReportedFinclStmtAmt                               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, &quot;-250&quot;, &quot;-1424&quot;, &quot;20030&quot;, &quot;16587&quot;, &quot;20000&quot;, …
-## $ InvestmentExpensesNotIncld2Amt                               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ OtherExpensesNotIncludedAmt                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;20030&quot;, &quot;16587&quot;, &quot;20000&quot;, NA, NA, N…
-## $ ExpensesNotRptFinclStmtAmt                                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;20030&quot;, &quot;16587&quot;, &quot;20000&quot;, NA, NA, N…
-## $ `SupplementalInformationDetail[3]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, &quot;X 2The Ballet is exempt from federal income…
-## $ `SupplementalInformationDetail[4]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;PART XII, LINE 2D - OTHER ADJUSTMEN…
-## $ `SupplementalInformationDetail[5]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;PART XII, LINE 4B - OTHER ADJUSTMEN…
-## $ `SupplementalInformationDetail[6]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYEndwmtFundGrp/ContributionsAmt`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYEndwmtFundGrp/InvestmentEarningsOrLossesAmt`              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus1YrEndwmtFundGrp/ContributionsAmt`                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus2YrEndwmtFundGrp/ContributionsAmt`                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[3]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, &quot;X 2&quot;, &quot;X 2&quot;, &quot;PART XI, LINE 4B - OTHER ADJU…
-## $ `SupplementalInformationDetail[3]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, &quot;The Ballet is exempt from federal income ta…
-## $ `SupplementalInformationDetail[4]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;PART XII, LINE 2D - OTHER ADJUSTMEN…
-## $ `SupplementalInformationDetail[4]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;COST OF GOODS SOLD 25,410. RENTAL E…
-## $ `SupplementalInformationDetail[5]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;PART XII, LINE 4B - OTHER ADJUSTMEN…
-## $ `SupplementalInformationDetail[5]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;FINANCIAL AID 20,030.&quot;, &quot;FINANCIAL …
-## $ `SupplementalInformationDetail[6]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[6]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ ArtPublicExhibitionAmountsGrp                                [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ HeldWorksArtGrp                                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ TermEndowmentBalanceEOYPct                                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ FederalIncomeTaxLiabilityAmt                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[1]`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[2]`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[3]`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[4]`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[5]`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYEndwmtFundGrp/GrantsOrScholarshipsAmt`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYEndwmtFundGrp/OtherExpendituresAmt`                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYEndwmtFundGrp/AdministrativeExpensesAmt`                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus1YrEndwmtFundGrp/InvestmentEarningsOrLossesAmt`      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus1YrEndwmtFundGrp/GrantsOrScholarshipsAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus1YrEndwmtFundGrp/OtherExpendituresAmt`               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus1YrEndwmtFundGrp/AdministrativeExpensesAmt`          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus2YrEndwmtFundGrp/InvestmentEarningsOrLossesAmt`      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus2YrEndwmtFundGrp/GrantsOrScholarshipsAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus2YrEndwmtFundGrp/OtherExpendituresAmt`               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus2YrEndwmtFundGrp/AdministrativeExpensesAmt`          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus3YrEndwmtFundGrp/ContributionsAmt`                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus3YrEndwmtFundGrp/InvestmentEarningsOrLossesAmt`      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus3YrEndwmtFundGrp/GrantsOrScholarshipsAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus3YrEndwmtFundGrp/OtherExpendituresAmt`               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus3YrEndwmtFundGrp/AdministrativeExpensesAmt`          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus4YrEndwmtFundGrp/ContributionsAmt`                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus4YrEndwmtFundGrp/InvestmentEarningsOrLossesAmt`      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus4YrEndwmtFundGrp/GrantsOrScholarshipsAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus4YrEndwmtFundGrp/OtherExpendituresAmt`               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CYMinus4YrEndwmtFundGrp/AdministrativeExpensesAmt`          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[1]/Desc`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[1]/Amt`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[2]/Desc`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[2]/Amt`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[3]/Desc`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[3]/Amt`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[4]/Desc`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[4]/Amt`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[5]/Desc`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[5]/Amt`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ OtherSecuritiesGrp                                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;INVESTMENT IN DOWN HOME PROPERTIES,…
-## $ TotalBookValueSecuritiesAmt                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;430332&quot;, &quot;492930&quot;, &quot;499680&quot;, &quot;52630…
-## $ `OtherSecuritiesGrp/Desc`                                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;INVESTMENT IN DOWN HOME PROPERTIES,…
-## $ `OtherSecuritiesGrp/BookValueAmt`                            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;430332&quot;, &quot;492930&quot;, &quot;499680&quot;, &quot;52630…
-## $ `OtherSecuritiesGrp/MethodValuationCd`                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, &quot;C&quot;, &quot;C&quot;, &quot;C&quot;, &quot;C&quot;, &quot;C&quot;, NA, NA, NA,…
-## $ BoardDesignatedBalanceEOYPct                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[1]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[2]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[3]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ SupplementalInformationDetail                                [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, &quot;X 2The Ballet is exempt from federal income tax…
-## $ `OtherAssetsOrgGrp[1]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[1]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[2]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[2]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[3]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[3]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail/FormAndLineReferenceDesc`     [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, &quot;X 2&quot;, NA, NA, NA, NA, NA, &quot;SCHEDULE D, PAGE 3, …
-## $ `SupplementalInformationDetail/ExplanationTxt`               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, &quot;The Ballet is exempt from federal income taxes …
-## $ RecoveriesPriorYearGrantsAmt                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ PriorYearAdjustmentsAmt                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ LossesReportedAmt                                            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `LandGrp/InvestmentCostOrOtherBasisAmt`                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `BuildingsGrp/InvestmentCostOrOtherBasisAmt`                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `LeaseholdImprovementsGrp/InvestmentCostOrOtherBasisAmt`     [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `EquipmentGrp/InvestmentCostOrOtherBasisAmt`                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLandBuildingsGrp/InvestmentCostOrOtherBasisAmt`        [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ InclEscrowCustodialAcctLiabInd                               [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;false&quot;, &quot;false&quot;, &quot;false&quot;, &quot;false&quot;, &quot;false&quot;, NA, NA, NA,…
-## $ `OtherSecuritiesGrp[1]`                                      [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Financial derivatives and other financial products&quot;, &quot;F…
-## $ `OtherSecuritiesGrp[2]`                                      [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Closely-held equity interests&quot;, &quot;Closely-held equity in…
-## $ `OtherSecuritiesGrp[1]/Desc`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Financial derivatives and other financial products&quot;, &quot;F…
-## $ `OtherSecuritiesGrp[2]/Desc`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m &quot;Closely-held equity interests&quot;, &quot;Closely-held equity in…
-## $ CollectionUsedPubExhibitionInd                               [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ CollectionUsedPreservationInd                                [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ SolicitedAssetsSaleInd                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `ArtPublicExhibitionAmountsGrp/AssetsIncludedAmt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[1]/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[1]/MethodValuationCd`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[2]/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[2]/MethodValuationCd`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ RelatedOrgListSchRInd                                        [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[3]`                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[4]`                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[5]`                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[6]`                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[7]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[3]/Desc`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[3]/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[3]/MethodValuationCd`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[4]/Desc`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[4]/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[4]/MethodValuationCd`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[5]/Desc`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[5]/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[5]/MethodValuationCd`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[6]/Desc`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[6]/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[6]/MethodValuationCd`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[7]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[7]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ FinancialDerivativesGrp                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ CloselyHeldEquityInterestsGrp                                [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[6]`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[6]/Desc`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ CollUsedScholarlyRsrchInd                                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ CollUsedLoanOrExchProgInd                                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[4]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[4]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[4]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `ArtPublicExhibitionAmountsGrp/RevenuesIncludedAmt`          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `FinancialDerivativesGrp/BookValueAmt`                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CloselyHeldEquityInterestsGrp/BookValueAmt`                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[6]/Amt`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `HeldWorksArtGrp/RevenuesIncludedAmt`                        [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `HeldWorksArtGrp/AssetsIncludedAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ AgentTrusteeEtcInd                                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[5]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[5]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[5]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ DisclosedOrgLegCtrlInd                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ DisclosedForCharitablePrpsInd                                [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ WrittenPolicyMonitoringInd                                   [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ Section170hRqrStsfdInd                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[7]`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[8]`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[7]/Desc`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[7]/Amt`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[8]/Desc`                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherLiabilitiesOrgGrp[8]/Amt`                              [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ EndingBalanceAmt                                             [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ TotalBookValueProgramRltdAmt                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[6]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[7]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[8]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[9]`                                       [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[6]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[6]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[7]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[7]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[8]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[8]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[9]/Desc`                                  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherAssetsOrgGrp[9]/BookValueAmt`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `CloselyHeldEquityInterestsGrp/MethodValuationCd`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[7]`                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[8]`                                      [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[7]/Desc`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[7]/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[7]/MethodValuationCd`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[8]/Desc`                                 [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[8]/BookValueAmt`                         [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `OtherSecuritiesGrp[8]/MethodValuationCd`                    [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[8]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[9]`                           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[10]`                          [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[8]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[8]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[9]/FormAndLineReferenceDesc`  [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[9]/ExplanationTxt`            [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[10]/FormAndLineReferenceDesc` [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
-## $ `SupplementalInformationDetail[10]/ExplanationTxt`           [3m[38;5;246m&lt;chr&gt;[39m[23m NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …</code></pre>
+## $ ReturnTs                                                     &lt;chr&gt; &quot;2019-06-13T11:59:06-00:00&quot;, &quot;2019-12-16T12:40:25-…
+## $ EIN                                                          &lt;chr&gt; &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;, &quot;010372997&quot;…
+## $ filename                                                     &lt;chr&gt; &quot;201921649349300222_public.xml&quot;, &quot;2019135093493005…
+## $ LeaseholdImprovementsGrp                                     &lt;chr&gt; &quot;19747952782144697&quot;, &quot;19747963159134320&quot;, &quot;1974796…
+## $ TotalBookValueLandBuildingsAmt                               &lt;chr&gt; &quot;144697&quot;, &quot;146683&quot;, &quot;139505&quot;, &quot;57807&quot;, &quot;62850&quot;, &quot;1…
+## $ `LeaseholdImprovementsGrp/OtherCostOrOtherBasisAmt`          &lt;chr&gt; &quot;197479&quot;, &quot;197479&quot;, &quot;197479&quot;, &quot;95670&quot;, &quot;95670&quot;, NA…
+## $ `LeaseholdImprovementsGrp/DepreciationAmt`                   &lt;chr&gt; &quot;52782&quot;, &quot;63159&quot;, &quot;68057&quot;, &quot;49370&quot;, &quot;51822&quot;, NA, N…
+## $ `LeaseholdImprovementsGrp/BookValueAmt`                      &lt;chr&gt; &quot;144697&quot;, &quot;134320&quot;, &quot;129422&quot;, &quot;46300&quot;, &quot;43848&quot;, NA…
+## $ fiscal_year                                                  &lt;fct&gt; 2018, 2019, 2020, 2021, 2022, 2016, 2017, 2018, 20…
+## $ EquipmentGrp                                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;659479598…
+## $ OtherLiabilitiesOrgGrp                                       &lt;chr&gt; &quot;Federal income taxes&quot;, &quot;Federal income taxes&quot;, &quot;F…
+## $ TotalLiabilityAmt                                            &lt;chr&gt; NA, NA, NA, NA, NA, &quot;171617&quot;, &quot;172200&quot;, &quot;172200&quot;, …
+## $ TotalRevEtcAuditedFinclStmtAmt                               &lt;chr&gt; &quot;600896&quot;, &quot;486614&quot;, &quot;437573&quot;, &quot;419731&quot;, &quot;548892&quot;, …
+## $ RevenueSubtotalAmt                                           &lt;chr&gt; &quot;597032&quot;, &quot;486614&quot;, &quot;437573&quot;, &quot;419731&quot;, &quot;548892&quot;, …
+## $ TotalRevenuePerForm990Amt                                    &lt;chr&gt; &quot;597032&quot;, &quot;486614&quot;, &quot;437573&quot;, &quot;419481&quot;, &quot;547468&quot;, …
+## $ TotExpnsEtcAuditedFinclStmtAmt                               &lt;chr&gt; &quot;541962&quot;, &quot;491546&quot;, &quot;454789&quot;, &quot;528567&quot;, &quot;465532&quot;, …
+## $ ExpensesSubtotalAmt                                          &lt;chr&gt; &quot;538098&quot;, &quot;491546&quot;, &quot;454789&quot;, &quot;528317&quot;, &quot;464108&quot;, …
+## $ TotalExpensesPerForm990Amt                                   &lt;chr&gt; &quot;538098&quot;, &quot;491546&quot;, &quot;454789&quot;, &quot;528317&quot;, &quot;464108&quot;, …
+## $ `EquipmentGrp/OtherCostOrOtherBasisAmt`                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;659479&quot;, …
+## $ `EquipmentGrp/DepreciationAmt`                               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;598605&quot;, …
+## $ `EquipmentGrp/BookValueAmt`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;60874&quot;, &quot;…
+## $ `OtherLiabilitiesOrgGrp/Desc`                                &lt;chr&gt; &quot;Federal income taxes&quot;, &quot;Federal income taxes&quot;, &quot;F…
+## $ `OtherLiabilitiesOrgGrp/Amt`                                 &lt;chr&gt; NA, NA, NA, NA, NA, &quot;171617&quot;, &quot;172200&quot;, &quot;172200&quot;, …
+## $ CYEndwmtFundGrp                                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ CYMinus1YrEndwmtFundGrp                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ CYMinus2YrEndwmtFundGrp                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ CYMinus3YrEndwmtFundGrp                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ CYMinus4YrEndwmtFundGrp                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ EndowmentsHeldUnrelatedOrgInd                                &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ EndowmentsHeldRelatedOrgInd                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ LandGrp                                                      &lt;chr&gt; NA, NA, NA, NA, NA, &quot;234353234353&quot;, &quot;234353234353&quot;…
+## $ BuildingsGrp                                                 &lt;chr&gt; NA, NA, NA, NA, NA, &quot;17503985416101208788&quot;, &quot;17599…
+## $ OtherLandBuildingsGrp                                        &lt;chr&gt; &quot;6946969469&quot;, &quot;788066644312363&quot;, &quot;788066872310083&quot;…
+## $ DonatedServicesAndUseFcltsAmt                                &lt;chr&gt; NA, NA, NA, NA, NA, &quot;4418&quot;, NA, NA, NA, NA, NA, NA…
+## $ OtherRevenueAmt                                              &lt;chr&gt; &quot;3864&quot;, NA, NA, NA, NA, &quot;59098&quot;, &quot;34081&quot;, &quot;61078&quot;,…
+## $ RevenueNotReportedAmt                                        &lt;chr&gt; &quot;3864&quot;, NA, NA, NA, NA, &quot;63516&quot;, &quot;34081&quot;, &quot;61078&quot;,…
+## $ DonatedServicesUseFcltsAmt                                   &lt;chr&gt; NA, NA, NA, NA, NA, &quot;4418&quot;, NA, NA, NA, NA, NA, NA…
+## $ OtherExpensesIncludedAmt                                     &lt;chr&gt; &quot;3864&quot;, NA, NA, &quot;250&quot;, &quot;1424&quot;, &quot;59098&quot;, &quot;34081&quot;, &quot;…
+## $ ExpensesNotReportedAmt                                       &lt;chr&gt; &quot;3864&quot;, NA, NA, &quot;250&quot;, &quot;1424&quot;, &quot;63516&quot;, &quot;34081&quot;, &quot;…
+## $ `SupplementalInformationDetail[1]`                           &lt;chr&gt; &quot;XI 2DAmount represents cost of goods sold 3864 ap…
+## $ `SupplementalInformationDetail[2]`                           &lt;chr&gt; &quot;XII 2DAmount represents cost of goods sold 3864 a…
+## $ `CYEndwmtFundGrp/BeginningYearBalanceAmt`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYEndwmtFundGrp/EndYearBalanceAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus1YrEndwmtFundGrp/BeginningYearBalanceAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus1YrEndwmtFundGrp/EndYearBalanceAmt`                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus2YrEndwmtFundGrp/BeginningYearBalanceAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus2YrEndwmtFundGrp/EndYearBalanceAmt`                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus3YrEndwmtFundGrp/BeginningYearBalanceAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus3YrEndwmtFundGrp/EndYearBalanceAmt`                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus4YrEndwmtFundGrp/BeginningYearBalanceAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus4YrEndwmtFundGrp/EndYearBalanceAmt`                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `LandGrp/OtherCostOrOtherBasisAmt`                           &lt;chr&gt; NA, NA, NA, NA, NA, &quot;234353&quot;, &quot;234353&quot;, &quot;234353&quot;, …
+## $ `LandGrp/BookValueAmt`                                       &lt;chr&gt; NA, NA, NA, NA, NA, &quot;234353&quot;, &quot;234353&quot;, &quot;234353&quot;, …
+## $ `BuildingsGrp/OtherCostOrOtherBasisAmt`                      &lt;chr&gt; NA, NA, NA, NA, NA, &quot;1750398&quot;, &quot;1759945&quot;, &quot;1759945…
+## $ `BuildingsGrp/DepreciationAmt`                               &lt;chr&gt; NA, NA, NA, NA, NA, &quot;541610&quot;, &quot;594662&quot;, &quot;660196&quot;, …
+## $ `BuildingsGrp/BookValueAmt`                                  &lt;chr&gt; NA, NA, NA, NA, NA, &quot;1208788&quot;, &quot;1165283&quot;, &quot;1099749…
+## $ `OtherLandBuildingsGrp/OtherCostOrOtherBasisAmt`             &lt;chr&gt; &quot;69469&quot;, &quot;78806&quot;, &quot;78806&quot;, &quot;79831&quot;, &quot;89156&quot;, &quot;5628…
+## $ `OtherLandBuildingsGrp/DepreciationAmt`                      &lt;chr&gt; &quot;69469&quot;, &quot;66443&quot;, &quot;68723&quot;, &quot;68324&quot;, &quot;70154&quot;, &quot;4758…
+## $ `OtherLandBuildingsGrp/BookValueAmt`                         &lt;chr&gt; NA, &quot;12363&quot;, &quot;10083&quot;, &quot;11507&quot;, &quot;19002&quot;, &quot;87069&quot;, &quot;…
+## $ `SupplementalInformationDetail[1]/FormAndLineReferenceDesc`  &lt;chr&gt; &quot;XI 2D&quot;, NA, NA, &quot;XI 4b&quot;, &quot;XI 4b&quot;, &quot;PART X, LINE 2…
+## $ `SupplementalInformationDetail[1]/ExplanationTxt`            &lt;chr&gt; &quot;Amount represents cost of goods sold 3864 applied…
+## $ `SupplementalInformationDetail[2]/FormAndLineReferenceDesc`  &lt;chr&gt; &quot;XII 2D&quot;, NA, NA, &quot;XII 2d&quot;, &quot;XII 2d&quot;, &quot;PART XI, LI…
+## $ `SupplementalInformationDetail[2]/ExplanationTxt`            &lt;chr&gt; &quot;Amount represents cost of goods sold 3864 applied…
+## $ OtherAssetsOrgGrp                                            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;S…
+## $ TotalBookValueOtherAssetsAmt                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;1…
+## $ `OtherAssetsOrgGrp/Desc`                                     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;S…
+## $ `OtherAssetsOrgGrp/BookValueAmt`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, &quot;1…
+## $ PrmnntEndowmentBalanceEOYPct                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ FootnoteTextInd                                              &lt;chr&gt; NA, NA, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, &quot;X&quot;, NA, NA,…
+## $ NetUnrealizedGainsInvstAmt                                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ InvestmentExpensesNotIncldAmt                                &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ OtherRevenuesNotIncludedAmt                                  &lt;chr&gt; NA, NA, NA, &quot;-250&quot;, &quot;-1424&quot;, &quot;20030&quot;, &quot;16587&quot;, &quot;20…
+## $ RevenueNotReportedFinclStmtAmt                               &lt;chr&gt; NA, NA, NA, &quot;-250&quot;, &quot;-1424&quot;, &quot;20030&quot;, &quot;16587&quot;, &quot;20…
+## $ InvestmentExpensesNotIncld2Amt                               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ OtherExpensesNotIncludedAmt                                  &lt;chr&gt; NA, NA, NA, NA, NA, &quot;20030&quot;, &quot;16587&quot;, &quot;20000&quot;, NA,…
+## $ ExpensesNotRptFinclStmtAmt                                   &lt;chr&gt; NA, NA, NA, NA, NA, &quot;20030&quot;, &quot;16587&quot;, &quot;20000&quot;, NA,…
+## $ `SupplementalInformationDetail[3]`                           &lt;chr&gt; NA, NA, NA, &quot;X 2The Ballet is exempt from federal …
+## $ `SupplementalInformationDetail[4]`                           &lt;chr&gt; NA, NA, NA, NA, NA, &quot;PART XII, LINE 2D - OTHER ADJ…
+## $ `SupplementalInformationDetail[5]`                           &lt;chr&gt; NA, NA, NA, NA, NA, &quot;PART XII, LINE 4B - OTHER ADJ…
+## $ `SupplementalInformationDetail[6]`                           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYEndwmtFundGrp/ContributionsAmt`                           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYEndwmtFundGrp/InvestmentEarningsOrLossesAmt`              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus1YrEndwmtFundGrp/ContributionsAmt`                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus2YrEndwmtFundGrp/ContributionsAmt`                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[3]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, &quot;X 2&quot;, &quot;X 2&quot;, &quot;PART XI, LINE 4B - OTHE…
+## $ `SupplementalInformationDetail[3]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, &quot;The Ballet is exempt from federal inc…
+## $ `SupplementalInformationDetail[4]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA, NA, &quot;PART XII, LINE 2D - OTHER ADJ…
+## $ `SupplementalInformationDetail[4]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA, NA, &quot;COST OF GOODS SOLD 25,410. RE…
+## $ `SupplementalInformationDetail[5]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA, NA, &quot;PART XII, LINE 4B - OTHER ADJ…
+## $ `SupplementalInformationDetail[5]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA, NA, &quot;FINANCIAL AID 20,030.&quot;, &quot;FINA…
+## $ `SupplementalInformationDetail[6]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[6]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ ArtPublicExhibitionAmountsGrp                                &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ HeldWorksArtGrp                                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ TermEndowmentBalanceEOYPct                                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ FederalIncomeTaxLiabilityAmt                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[1]`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[2]`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[3]`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[4]`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[5]`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYEndwmtFundGrp/GrantsOrScholarshipsAmt`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYEndwmtFundGrp/OtherExpendituresAmt`                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYEndwmtFundGrp/AdministrativeExpensesAmt`                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus1YrEndwmtFundGrp/InvestmentEarningsOrLossesAmt`      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus1YrEndwmtFundGrp/GrantsOrScholarshipsAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus1YrEndwmtFundGrp/OtherExpendituresAmt`               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus1YrEndwmtFundGrp/AdministrativeExpensesAmt`          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus2YrEndwmtFundGrp/InvestmentEarningsOrLossesAmt`      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus2YrEndwmtFundGrp/GrantsOrScholarshipsAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus2YrEndwmtFundGrp/OtherExpendituresAmt`               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus2YrEndwmtFundGrp/AdministrativeExpensesAmt`          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus3YrEndwmtFundGrp/ContributionsAmt`                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus3YrEndwmtFundGrp/InvestmentEarningsOrLossesAmt`      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus3YrEndwmtFundGrp/GrantsOrScholarshipsAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus3YrEndwmtFundGrp/OtherExpendituresAmt`               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus3YrEndwmtFundGrp/AdministrativeExpensesAmt`          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus4YrEndwmtFundGrp/ContributionsAmt`                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus4YrEndwmtFundGrp/InvestmentEarningsOrLossesAmt`      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus4YrEndwmtFundGrp/GrantsOrScholarshipsAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus4YrEndwmtFundGrp/OtherExpendituresAmt`               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CYMinus4YrEndwmtFundGrp/AdministrativeExpensesAmt`          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[1]/Desc`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[1]/Amt`                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[2]/Desc`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[2]/Amt`                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[3]/Desc`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[3]/Amt`                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[4]/Desc`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[4]/Amt`                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[5]/Desc`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[5]/Amt`                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ OtherSecuritiesGrp                                           &lt;chr&gt; NA, NA, NA, NA, NA, &quot;INVESTMENT IN DOWN HOME PROPE…
+## $ TotalBookValueSecuritiesAmt                                  &lt;chr&gt; NA, NA, NA, NA, NA, &quot;430332&quot;, &quot;492930&quot;, &quot;499680&quot;, …
+## $ `OtherSecuritiesGrp/Desc`                                    &lt;chr&gt; NA, NA, NA, NA, NA, &quot;INVESTMENT IN DOWN HOME PROPE…
+## $ `OtherSecuritiesGrp/BookValueAmt`                            &lt;chr&gt; NA, NA, NA, NA, NA, &quot;430332&quot;, &quot;492930&quot;, &quot;499680&quot;, …
+## $ `OtherSecuritiesGrp/MethodValuationCd`                       &lt;chr&gt; NA, NA, NA, NA, NA, &quot;C&quot;, &quot;C&quot;, &quot;C&quot;, &quot;C&quot;, &quot;C&quot;, NA, N…
+## $ BoardDesignatedBalanceEOYPct                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[1]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[2]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[3]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ SupplementalInformationDetail                                &lt;chr&gt; NA, NA, &quot;X 2The Ballet is exempt from federal inco…
+## $ `OtherAssetsOrgGrp[1]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[1]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[2]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[2]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[3]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[3]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail/FormAndLineReferenceDesc`     &lt;chr&gt; NA, NA, &quot;X 2&quot;, NA, NA, NA, NA, NA, &quot;SCHEDULE D, PA…
+## $ `SupplementalInformationDetail/ExplanationTxt`               &lt;chr&gt; NA, NA, &quot;The Ballet is exempt from federal income …
+## $ RecoveriesPriorYearGrantsAmt                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ PriorYearAdjustmentsAmt                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ LossesReportedAmt                                            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `LandGrp/InvestmentCostOrOtherBasisAmt`                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `BuildingsGrp/InvestmentCostOrOtherBasisAmt`                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `LeaseholdImprovementsGrp/InvestmentCostOrOtherBasisAmt`     &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `EquipmentGrp/InvestmentCostOrOtherBasisAmt`                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLandBuildingsGrp/InvestmentCostOrOtherBasisAmt`        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ InclEscrowCustodialAcctLiabInd                               &lt;chr&gt; &quot;false&quot;, &quot;false&quot;, &quot;false&quot;, &quot;false&quot;, &quot;false&quot;, NA, N…
+## $ `OtherSecuritiesGrp[1]`                                      &lt;chr&gt; &quot;Financial derivatives and other financial product…
+## $ `OtherSecuritiesGrp[2]`                                      &lt;chr&gt; &quot;Closely-held equity interests&quot;, &quot;Closely-held equ…
+## $ `OtherSecuritiesGrp[1]/Desc`                                 &lt;chr&gt; &quot;Financial derivatives and other financial product…
+## $ `OtherSecuritiesGrp[2]/Desc`                                 &lt;chr&gt; &quot;Closely-held equity interests&quot;, &quot;Closely-held equ…
+## $ CollectionUsedPubExhibitionInd                               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ CollectionUsedPreservationInd                                &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ SolicitedAssetsSaleInd                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `ArtPublicExhibitionAmountsGrp/AssetsIncludedAmt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[1]/BookValueAmt`                         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[1]/MethodValuationCd`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[2]/BookValueAmt`                         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[2]/MethodValuationCd`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ RelatedOrgListSchRInd                                        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[3]`                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[4]`                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[5]`                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[6]`                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[7]`                           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[3]/Desc`                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[3]/BookValueAmt`                         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[3]/MethodValuationCd`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[4]/Desc`                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[4]/BookValueAmt`                         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[4]/MethodValuationCd`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[5]/Desc`                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[5]/BookValueAmt`                         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[5]/MethodValuationCd`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[6]/Desc`                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[6]/BookValueAmt`                         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[6]/MethodValuationCd`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[7]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[7]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ FinancialDerivativesGrp                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ CloselyHeldEquityInterestsGrp                                &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[6]`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[6]/Desc`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ CollUsedScholarlyRsrchInd                                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ CollUsedLoanOrExchProgInd                                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[4]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[4]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[4]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `ArtPublicExhibitionAmountsGrp/RevenuesIncludedAmt`          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `FinancialDerivativesGrp/BookValueAmt`                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CloselyHeldEquityInterestsGrp/BookValueAmt`                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[6]/Amt`                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `HeldWorksArtGrp/RevenuesIncludedAmt`                        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `HeldWorksArtGrp/AssetsIncludedAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ AgentTrusteeEtcInd                                           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[5]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[5]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[5]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ DisclosedOrgLegCtrlInd                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ DisclosedForCharitablePrpsInd                                &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ WrittenPolicyMonitoringInd                                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ Section170hRqrStsfdInd                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[7]`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[8]`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[7]/Desc`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[7]/Amt`                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[8]/Desc`                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherLiabilitiesOrgGrp[8]/Amt`                              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ EndingBalanceAmt                                             &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ TotalBookValueProgramRltdAmt                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[6]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[7]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[8]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[9]`                                       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[6]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[6]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[7]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[7]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[8]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[8]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[9]/Desc`                                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherAssetsOrgGrp[9]/BookValueAmt`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `CloselyHeldEquityInterestsGrp/MethodValuationCd`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[7]`                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[8]`                                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[7]/Desc`                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[7]/BookValueAmt`                         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[7]/MethodValuationCd`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[8]/Desc`                                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[8]/BookValueAmt`                         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `OtherSecuritiesGrp[8]/MethodValuationCd`                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[8]`                           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[9]`                           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[10]`                          &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[8]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[8]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[9]/FormAndLineReferenceDesc`  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[9]/ExplanationTxt`            &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[10]/FormAndLineReferenceDesc` &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ `SupplementalInformationDetail[10]/ExplanationTxt`           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</code></pre>
 <p>Depending on which variables you’ll want to use, for Schedule D
 you’ll need to be particularly careful about renaming.</p>
 </div>
@@ -3162,7 +3162,7 @@ you’ll need to be particularly careful about renaming.</p>
 <p>This is just a quick way to see all children of a node of interest,
 for example, a schedule node, to help get a better understanding for the
 structure of the file.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">get_all_children_by_file</span>(files[<span class="dv">1</span>], <span class="st">&quot;//ReturnData//IRS990ScheduleO&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_all_children_by_file</span>(files[<span class="dv">1</span>], <span class="st">&quot;//ReturnData//IRS990ScheduleO&quot;</span>)</span></code></pre></div>
 <pre><code>##  [1] &quot;/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[1]&quot;                         
 ##  [2] &quot;/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[2]&quot;                         
 ##  [3] &quot;/Return/ReturnData/IRS990ScheduleO/SupplementalInformationDetail[3]&quot;                         

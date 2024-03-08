@@ -8,5 +8,5 @@ depend <- renv::dependencies(
 # check which dependencies are not installed
 packages_not_installed <- depend[!depend %in% installed.packages()]
 
-# install needed dependencies for the pkge
+# install needed dependencies
 install.packages(packages_not_installed)

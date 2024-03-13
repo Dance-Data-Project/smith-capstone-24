@@ -1,17 +1,46 @@
-## Sprint 2: Endowment Management
+---
+title: "Sprint 2 Endowment Management"
+author: "Ruiz-Fuentes"
+date: "`r Sys.Date()`"
+output: html_document
+---
 
-### Purpose
+### Capstone 2023 Resources:
+
+-   `endowment_spenddown` → how the endowment is composted
+
+-   `endowment_timeseries` → how the endowment has changed - this can be related to the stock market's changes, S&P 500 trends
+
+### Endowment Types:
 
 **Endowment management and purpose**
 
--   Proportion of Term endowments, permanent endowments, and board-designated or quasi-endowment
+What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.
 
-### Asset Allocation
+```{r, include=FALSE}
+
+```
+
+### Asset Allocation:
+
+The section on asset allocation will provide a more detailed analysis of endowments, by investigating how their assets are distributed and diversified, examining the breakdown of asset distribution via percentages, and assessing whether the endowment performance trends mimic or deviate the S&P 500 overall performance.
 
 **Endowment Management**
 
--   How has the endowment allocated their assets across different asset classes (stocks, bonds, real estate etc.)? 
+-   How are assets allocated across different asset classes in the endowment (stocks, bonds, real estate etc.)?
 
 -   Adjustment of endowment in response to the pandemic
 
     -   How have the choices made within their asset allocation impacted their endowment performance? Ex: what percentage of the total endowment S&P 500?
+
+```{r, include=FALSE}
+
+```
+
+### Perpetuity:
+
+When assessing perpetuity and long-term sustainability of the endowment funds, we will evaluate what investments and factors contributed to their resilience in the midst of economic downturns and market volatility that arose from the pandemic crisis.
+
+```{r, include=FALSE}
+
+```

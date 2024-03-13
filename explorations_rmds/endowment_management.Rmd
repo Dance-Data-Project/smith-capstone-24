@@ -7,7 +7,7 @@ output: html_document
 
 ### Capstone 2023 Resources:
 
--   `endowment_spenddown` → how the endowment is composted
+-   `endowment_spenddown` → how the endowment is composed
 
 -   `endowment_timeseries` → how the endowment has changed - this can be related to the stock market's changes, S&P 500 trends
 

@@ -47,13 +47,16 @@ source(here("GET_VARS.R"))
 
 
 # vector of all xml files  
-files <- dir(here("ballet_990_released_20230208"),
+files <- dir(here("990archivesfeb2024"),
                full.names = TRUE)
 
 
 # (stable) company names from file
-companies <- read_csv(here("data", "companies.csv")) %>%
-  mutate(EIN = as.character(ein))%>%
+companies <- read_csv(here('data', 'companies.csv')) %>%
+  rename(organization_name = Company)
+
+companies <- companies %>% 
+  mutate(ein = as.character("EIN"))%>%
   select(organization_name, EIN, ein) %>%
   distinct()
 
@@ -285,7 +288,7 @@ counts_by_state <- add %>%
   group_by(state) %>%
   summarize(n_ein = n())
 
-state_pop_link <- "https://www2.census.gov/programs-surveys/popest/datasets/2020-2022/state/totals/NST-EST2022-ALLDATA.csv"
+state_pop_link <- "https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/state/totals/NST-EST2023-ALLDATA.csv"
 
 
 if(!exists( here("data", "state_population.RDS"))) {

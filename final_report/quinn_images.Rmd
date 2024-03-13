@@ -422,7 +422,7 @@ end_sp %>%
         axis.title = element_text(size =20)) +
   guides(color = guide_legend(override.aes = list(linewidth=3))) +
   ylim(-.1,.25)
-ggsave(here('final_report/images/annual-growth_mb.pdf'))
+ggsave(here('final_report/images/annual-growth.pdf'))
 
 
 ```
@@ -452,33 +452,10 @@ We visualize the compound growth rates for all companies in Figure \ref{fig:comp
 # computing compound annual growth for different time intervals
 ##################################################################
 # 
-# cagr_2011_2023 <- end_sp %>%
-#     filter(fiscal_year <= 2023 & fiscal_year >= 2011) %>%
-#   group_by(organization_name) %>%
-#   mutate(minyear = min(fiscal_year),
-#          maxyear = max(fiscal_year)) %>%
-#   mutate(across(c(AdministrativeExpensesAmt, OtherExpendituresAmt,
-#                   ContributionsAmt, GrantsOrScholarshipsAmt), ~ifelse(fiscal_year == maxyear, NA, .x))) %>%
-#   filter(BeginningYearBalanceAmt != 0) %>%
-#   select(minyear, maxyear, organization_name, contains("Amt"), fiscal_year, contains('sp')) %>%
-#   group_by(organization_name, minyear, maxyear) %>%
-#   summarize(cont = sum(ContributionsAmt, na.rm = TRUE),
-#             exp = sum(OtherExpendituresAmt, na.rm= TRUE),
-#             grants = sum(GrantsOrScholarshipsAmt, na.rm=TRUE),
-#             admin = sum(AdministrativeExpensesAmt, na.rm=TRUE),
-#             endowment_begin = BeginningYearBalanceAmt[which.min(fiscal_year)],
-#             endowment_end = BeginningYearBalanceAmt[which.max(fiscal_year)],
-#             sp_begin = sp500_begin[which.min(fiscal_year)],
-#             sp_end = sp500_begin[which.max(fiscal_year)],
-#             .groups="drop",
-#             n_years = unique(maxyear)- unique(minyear)) %>%
-#   filter(n_years == 9) %>%
-#   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
-#          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
 
 
-cagr_2011_2020 <- end_sp %>%
-    filter(fiscal_year <= 2020 & fiscal_year >= 2011) %>%
+cagr_2017_2023 <- end_sp %>%
+    filter(fiscal_year <= 2023 & fiscal_year >= 2017) %>%
   group_by(organization_name) %>%
   mutate(minyear = min(fiscal_year),
          maxyear = max(fiscal_year)) %>%
@@ -497,13 +474,13 @@ cagr_2011_2020 <- end_sp %>%
             sp_end = sp500_begin[which.max(fiscal_year)],
             .groups="drop",
             n_years = unique(maxyear)- unique(minyear)) %>%
-  filter(n_years == 9) %>%
+  filter(n_years == 6) %>%
   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
 
 
-cagr_2015_2020 <- end_sp %>%
-    filter(fiscal_year>= 2015 & fiscal_year <= 2020) %>%
+cagr_2019_2023 <- end_sp %>%
+    filter(fiscal_year>= 2019 & fiscal_year <= 2023) %>%
   group_by(organization_name) %>%
   mutate(minyear = min(fiscal_year),
          maxyear = max(fiscal_year)) %>%
@@ -522,13 +499,14 @@ cagr_2015_2020 <- end_sp %>%
             sp_end = sp500_begin[which.max(fiscal_year)],
             .groups="drop",
             n_years = unique(maxyear)- unique(minyear)) %>%
-  filter(n_years == 5) %>%
+  filter(n_years == 4) %>%
   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
 
 
-cagr_2017_2020 <- end_sp %>%
-    filter(fiscal_year>= 2017 & fiscal_year <= 2020) %>%
+
+cagr_2021_2023 <- end_sp %>%
+    filter(fiscal_year>= 2021 & fiscal_year <= 2023) %>%
   group_by(organization_name) %>%
   mutate(minyear = min(fiscal_year),
          maxyear = max(fiscal_year)) %>%
@@ -547,7 +525,7 @@ cagr_2017_2020 <- end_sp %>%
             sp_end = sp500_begin[which.max(fiscal_year)],
             .groups="drop",
             n_years = unique(maxyear)- unique(minyear)) %>%
-  filter(n_years == 3) %>%
+  filter(n_years == 2) %>%
   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
 
@@ -589,18 +567,15 @@ plot_cagr <- function(df, title = "") {
               hjust=0) 
 }
 
-
-plt1 <- cagr_2011_2020 %>%
-  plot_cagr(title = "2011 to 2020") +
+plt1 <- cagr_2017_2023 %>%
+  plot_cagr(title = "2017 to 2023") +
   theme(legend.position="none")
 
 
 
-plt2 <- cagr_2015_2020 %>%
-  plot_cagr(title = "2015 to 2020")+
+plt2 <- cagr_2019_2023 %>%
+  plot_cagr(title = "2019 to 2023")+
   theme(legend.position="none")
-
-
 
 
 title_gg <- ggplot() + 
@@ -608,13 +583,13 @@ title_gg <- ggplot() +
   theme(plot.title=element_text(face="bold", hjust = .5, size = 22, margin =margin(5,0,2,0)))
 
 
-plt3 <- cagr_2017_2020 %>%
-  plot_cagr(title = "2017 to 2020") +
+plt3 <- cagr_2021_2023 %>%
+  plot_cagr(title = "2021 to 2023") +
   theme(legend.text=element_text(size=16))
 
 
 
-legend <- get_legend(plt3) 
+legend <- get_legend(plt3)
 
 plt3 <- plt3 + theme(legend.position='none')
 
@@ -623,13 +598,13 @@ row <- plot_grid(plt1,plt2,plt3)
 
 
 plot_grid(title_gg,
-          legend, 
+          legend,
           row,
            rel_heights= c(.03, .05, .92),
           nrow=3)
 
-
 ggsave(here('final_report/images/compound-growth.pdf'))
+#write_csv(cagr_2021_2023, "cagr_2021_2023.csv")
 
 ```
 

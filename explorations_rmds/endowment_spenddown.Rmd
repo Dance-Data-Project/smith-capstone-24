@@ -53,6 +53,7 @@ pal <- pal[indexes]
 endowment_data <- read_rds(here("data", "endowments_by_most_recent_filings.RDS"))
 names <- readRDS(here("data","companies.RDS"))
 names <- names %>%
+  rename(organization_name = Company) %>% 
   mutate(organization_name = ifelse(
     organization_name == "Ballet Hispanico", 
     "Ballet Hispánico",
@@ -73,6 +74,16 @@ names <- names %>%
 #### USE THIS
 ## (EYB - BYB)/BYB * 100
 ## Rose has notes on her choice for this calculation
+
+endowment_data$BeginningYearBalanceAmt <- as.numeric(as.character(endowment_data$BeginningYearBalanceAmt))
+endowment_data$ContributionsAmt <- as.numeric(as.character(endowment_data$ContributionsAmt))
+endowment_data$OtherExpendituresAmt <- as.numeric(as.character(endowment_data$OtherExpendituresAmt))
+endowment_data$AdministrativeExpensesAmt <- as.numeric(as.character(endowment_data$AdministrativeExpensesAmt))
+endowment_data$GrantsOrScholarshipsAmt <- as.numeric(as.character(endowment_data$GrantsOrScholarshipsAmt))
+endowment_data$InvestmentEarningsOrLossesAmt <- as.numeric(as.character(endowment_data$InvestmentEarningsOrLossesAmt))
+endowment_data$EndYearBalanceAmt <- as.numeric(as.character(endowment_data$EndYearBalanceAmt))
+
+
 pct_change_ds <- endowment_data %>%
   filter(!is.na(BeginningYearBalanceAmt)) %>%
   mutate(change = EndYearBalanceAmt - BeginningYearBalanceAmt,
@@ -446,7 +457,7 @@ limited_scale_inv
 ## Adding end date 
 source(here("GET_VARS.R"))
 ##Specifically reading in Tax Period End Date
-files <- dir( here("ballet_990_released_20230208"),
+files <- dir( here("990archivesfeb2024"),
               full.names = TRUE)
 taxperiod_data <- map_df(files, ~
                     get_df(variables =  c("//Return//ReturnHeader//TaxPeriodEndDt"),
@@ -969,7 +980,7 @@ There are `r inv_consist %>% filter(consistent == FALSE) %>% nrow()` companies w
 ##Getting employee data
 source(here("GET_VARS.R"))
 ##Specifically reading in employee data
-files <- dir( here("ballet_990_released_20230208"),
+files <- dir( here("990archivesfeb2024"),
               full.names = TRUE)
 employ_data <- map_df(files, ~
                     get_df(variables =  c("//Return//ReturnData//TotalEmployeeCnt"),
@@ -1176,7 +1187,7 @@ ggsave("pc_consist.png", path = here("final_report", "images"))
 ##Getting Total Revenue data
 source(here("GET_VARS.R"))
 ##Specifically reading in employee data
-files <- dir( here("ballet_990_released_20230208"),
+files <- dir( here("990archivesfeb2024"),
               full.names = TRUE)
 revenue_data <- map_df(files, ~
                     get_df(variables =  c("//Return//ReturnData//CYTotalRevenueAmt"),

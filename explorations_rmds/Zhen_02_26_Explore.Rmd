@@ -11,7 +11,7 @@ knit: (function(input, ...) {
       input,
       output_dir = "./output_html")})
 ---
-```{r library}
+```{r library, message =FALSE, warning=FALSE, echo = FALSE}
 library(dplyr)
 library(readr)
 library(wesanderson)
@@ -23,6 +23,7 @@ library(kableExtra)
 library(plotly)
 library(shiny)
 library(here)
+
 ```
 
 ```{r}
@@ -45,16 +46,22 @@ make_graph <- function(df){
 
 ## Importing variables related to the endowment of building 
 
-```{r}
+```{r, warning=FALSE }
 # use get_var
-files<- dir(here("ballet_990_released_20230208"),
+files<- dir(here("990archivesfeb2024"),
               full.names = TRUE)  
 source(here::here("GET_VARS.R"))
 
-buildings <- map_df(files, ~get_df(filename = .x , 
-                              schedule = 'd')) %>%
-  filter_ein() %>% 
-  select(ReturnTs, EIN,TotalBookValueLandBuildingsAmt,OtherLandBuildingsGrp,TotalBookValueLandBuildingsAmt,BuildingsGrp,fiscal_year)
+suppressMessages(buildings <- map_df(files, ~get_df(filename = .x , 
+                              schedule = 'd')) %>% 
+  filter_ein())
+
+for (i in colnames(buildings)) {
+  if (i != "ReturnTs" & i != "EIN" & i!= "filename") {
+    New_name = gsub('/Return/ReturnData/IRS990ScheduleD/', '', i)
+    buildings = plyr::rename(buildings, setNames(New_name, i))
+  }} 
+select(buildings, ReturnTs, EIN,OtherLandBuildingsGrp,TotalBookValueLandBuildingsAmt,BuildingsGrp,fiscal_year) 
 
 
 
@@ -63,7 +70,7 @@ buildings <- map_df(files, ~get_df(filename = .x ,
 
 ```{r}
 companies <- read_csv(here("data/companies.csv")) %>%
-  mutate(EIN = as.character(ein))
+  mutate(EIN = as.character(EIN))
 
 #load in regional information
 # add state information to buildings dataframe
@@ -146,21 +153,21 @@ high <- bookvalues %>%
   filter(quantile >= 8) %>% 
   select(EIN) %>% 
   inner_join(bookvalues, by = "EIN") %>% 
-  select(EIN, BookValueSum, year, quantile, organization_name.x)
+   select(EIN, BookValueSum, year, quantile, organization_name) #organization_name.x
 
 medium <- bookvalues %>% 
   filter(year == 2020) %>% 
   filter(quantile > 3 & quantile < 7) %>% 
   select(EIN) %>% 
   inner_join(bookvalues, by = "EIN") %>% 
-   select(EIN, BookValueSum, year, quantile, organization_name.x)
+   select(EIN, BookValueSum, year, quantile, organization_name)
   
 low <- bookvalues %>% 
   filter(year == 2020) %>% 
   filter(quantile <= 3) %>% 
   select(EIN) %>% 
   inner_join(bookvalues, by = "EIN") %>% 
-   select(EIN, BookValueSum, year, quantile, organization_name.x)
+   select(EIN, BookValueSum, year, quantile, organization_name)
 ```
  
 
@@ -186,7 +193,7 @@ ggplotly(total)
 ```{r}
 # separate EIN with medium and low building book value according to previous graph
 # high
-  high<-ggplot(high, aes(x = year, y = BookValueSum, color = as.factor(organization_name.x))) +
+  high<-ggplot(high, aes(x = year, y = BookValueSum, color = as.factor(organization_name))) +
   geom_line() +
   theme_bw() +
   theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
@@ -205,7 +212,7 @@ ggplotly(high)
 
 ```{r}
 # medium
-medium <- ggplot(medium, aes(x = year, y = BookValueSum, color = as.factor(organization_name.x))) +
+medium <- ggplot(medium, aes(x = year, y = BookValueSum, color = as.factor(organization_name))) +
   geom_line()+
   theme_bw() +
   theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
@@ -224,7 +231,7 @@ ggplotly(medium)
 
 ```{r}
 # low
-  ggplot(low, aes(x = year, y = BookValueSum, color = as.factor(organization_name.x))) +
+  ggplot(low, aes(x = year, y = BookValueSum, color = as.factor(organization_name))) +
   geom_line()+
   theme_bw() +
   theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
@@ -265,7 +272,7 @@ EIN_appearl_less_than_3
 changes <- bookvalues %>% 
   group_by(EIN) %>% 
   mutate(change = (BookValueSum - lag(BookValueSum)) / lag(BookValueSum) * 100) %>%
-  select(EIN, organization_name.x, year, BookValueSum, change) %>% 
+  select(EIN, organization_name, year, BookValueSum, change) %>% 
   mutate(change_abs = abs(change)) 
 
 #Making an infinite value NA
@@ -275,7 +282,7 @@ changes[145, ]$change = NA
 
 ```{r}
 # line graph of all percentage change from 2015-2022
-all_changes_pct <- ggplot(changes, aes(x = year, y = changes$change, color =  as.factor(organization_name.x))) +
+all_changes_pct <- ggplot(changes, aes(x = year, y = changes$change, color =  as.factor(organization_name))) +
   geom_line(na.rm = FALSE, size = 0.2) +
   ylim(-200, 800)+
   theme_bw() +
@@ -299,7 +306,7 @@ ggplotly(all_changes_pct)
 # filter out EIN with normal depreciation change
 filtered_changes <- changes %>% 
   filter(change_abs > 10) %>% 
-  ggplot(aes(x = year, y = change, color = as.factor(organization_name.x))) +
+  ggplot(aes(x = year, y = change, color = as.factor(organization_name))) +
   geom_line(na.rm = FALSE, size = 0.2) +
   ylim(-200, 800)+
   theme_bw() +
@@ -341,8 +348,8 @@ summary(changes$change)
 ```{r}
 #ranking of all change in book values
 ranking<-changes %>%
-  arrange(desc(change_abs)) %>% 
-  select(EIN, organization_name.x, year, change, BookValueSum) %>% 
+  arrange(desc(change_abs)) %>%  # percent_change ????
+  select(EIN, organization_name, year, change, BookValueSum) %>% 
   kbl(caption = "Ranking of Change in Book Value Per Year  (%)") %>%
   kable_material() %>%
   row_spec(row = 0, background = "red", color = "white", bold = TRUE)
@@ -380,6 +387,7 @@ ggplotly(
 
 ```{r}
 # All summary statistics 
+# 2023 data???
 changes %>% 
   drop_na() %>% 
   group_by(year) %>% 
@@ -400,6 +408,7 @@ bookvalues %>%
 ```
 ```{r}
 test_state <- test_state %>% 
+  filter(fiscal_year != "2023") %>%
   mutate(
     Time = substring(ReturnTs, 1, 10),
     TotalBookValueLandBuildingsAmt = as.numeric(TotalBookValueLandBuildingsAmt)
@@ -427,6 +436,7 @@ ggplotly(state_bookvalues)
 ```
 
 ```{r}
+# faceted graphs 
 summary_state <- test_state %>% 
   group_by(state, fiscal_year, name) %>% 
   summarise(
@@ -441,12 +451,10 @@ ggplotly(
   summary_state %>% 
   ggplot(aes(x = fiscal_year, y = median, color = as.factor(state))) + 
     geom_line(aes(group=1))+ 
-    theme_bw()
-)+
-  labs(
-  title = "Median of Total Book Value of Land and Building each state"
-)
+    theme_bw()+ 
+    labs(title = "Median of Total Book Value of Land and Building each state")) 
 ```
+
 ```{r}
 test_state %>% 
   group_by(state,fiscal_year) %>% 

@@ -493,12 +493,13 @@ Some missing data here.
 ################################
 
 if(!exists(here('data', 'state_of_emergency_bu.RDS'))) {
-  state_of_emergency <- read_excel(here("data", "bu_data.xlsx"), sheet ='State of Emergency') %>%
+  state_of_emergency <- read_excel(here("data", "bu_data.xlsx")) %>%
   select(state = `State Abbreviation`,
          emergency_start = `State of emergency issued`, 
          emergency_end = `State of emergency lifted`
    ) %>%
-  mutate(across(c(emergency_start,emergency_end),~ as_date(., origin="1899-12-31"))) %>%
+  mutate(emergency_end = as_date(emergency_end, origin="1899-12-31")) %>%
+  mutate(emergency_start = as_date(emergency_start)) %>%
   filter(!is.na(state)) %>%
         # if dates are input as 0, excel codes these as 1899-12-31; remove these
   filter(state %in% add$state & emergency_start != "1899-12-31" & emergency_end != "1899-12-31") %>%
@@ -659,21 +660,21 @@ social %>%
 ```{r, eval = FALSE, include = FALSE }
 
 # looking at specific files where there were issues to see how we can best extract the state for all companies
-file_to_check <- "ballet_990_released_20230208/202001979349303705_public.xml"
-file_to_check <- "ballet_990_released_20230208/201902389349200640_public.xml"
-file_to_check <-  "ballet_990_released_20230208/201503459349300245_public.xml"
-file_to_check <- "ballet_990_released_20230208/201543209349202514_public.xml"
-file_to_check <- "ballet_990_released_20230208/202101969349301610_public.xml" 
+#file_to_check <- "990archivesfeb2024/202001979349303705_public.xml"
+#file_to_check <- "990archivesfeb2024/201902389349200640_public.xml"
+#file_to_check <-  "990archivesfeb2024/201503459349300245_public.xml"
+#file_to_check <- "990archivesfeb2024/201543209349202514_public.xml"
+#file_to_check <- "990archivesfeb2024/202101969349301610_public.xml" 
 
-example_file <- xml2::read_xml(file_to_check) %>% xml_ns_strip()
+#example_file <- xml2::read_xml(file_to_check) %>% xml_ns_strip()
 
-address_vars <- tibble(varname = get_all_children(file_to_check, "//ReturnData")) %>%
-  filter(grepl("address", varname, ignore.case =TRUE)) %>%
-  pull(varname)
-
-test <- get_df(filename=file_to_check,
-       variables=address_vars,
-       names = address_vars)
+# address_vars <- tibble(varname = get_all_children(file_to_check, "//ReturnData")) %>%
+#   filter(grepl("address", varname, ignore.case =TRUE)) %>%
+#   pull(varname)
+# 
+# test <- get_df(filename=file_to_check,
+#        variables=address_vars,
+#        names = address_vars)
 
 ```
 

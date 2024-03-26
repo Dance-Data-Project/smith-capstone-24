@@ -11,34 +11,6 @@ output: html_document
 
 -   `endowment_timeseries` → how the endowment has changed - this can be related to the stock market's changes, S&P 500 trends
 
-### Endowment Types:
-
-**Endowment management and purpose**
-
-What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.
-
-```{r, include=FALSE}
-prmnnt_pre <- 
-  ggplot (data= endowment_data_wide, aes(x= serious_dlqin2yrs, y= monthly_income)) +
-  geom_point () + 
-  labs(title = "Permanent endowments: post-pandemic",
-    subtitle = "Distribution Held By Fiscal Years (xxxx-xxxx)",
-    x = "Dance Company Type",
-    y = "Endowment Amount (USD)") +
-  scale_y_continuous(labels = scales::dollar)
-```
-
-```{r, include=FALSE}
-prmnnt_post <- 
-  ggplot (data= endowment_data_wide, aes(x= serious_dlqin2yrs, y= monthly_income)) +
-  geom_point () + 
-  labs(title = "Permanent endowments: pre-pandemic",
-    subtitle = "Distribution Held By Fiscal Years (xxxx-xxxx)",
-    x = "Dance Company Type",
-    y = "Endowment Amount (USD)") +
-  scale_y_continuous(labels = scales::dollar)
-```
-
 ### Asset Allocation:
 
 The section on asset allocation will provide a more detailed analysis of endowments, by investigating how their assets are distributed and diversified, examining the breakdown of asset distribution via percentages, and assessing whether the endowment performance trends mimic or deviate the S&P 500 overall performance.
@@ -51,8 +23,31 @@ The section on asset allocation will provide a more detailed analysis of endowme
 
     -   How have the choices made within their asset allocation impacted their endowment performance? Ex: what percentage of the total endowment S&P 500?
 
+Exempt Organizations Business Master File Extract (EO BMF) [source](https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf)
+
+Variables of interest [documentation](https://www.irs.gov/pub/irs-soi/eo-info.pdf) - `EIN` (employer identification number), `ASSET_CD` (asset code), `INCOME_CD` (income code), `ASSET_AMT` (asset amount), `INCOME_AMT` (income amount), `REVENUE_AMT` (form 990 revenue amount)
+
 ```{r, include=FALSE}
 
+library(rvest) # scrape (or harvest) data from web pages
+library(readr) # efficient way to read rectangular data
+
+ma_990 <- "https://www.irs.gov/pub/irs-soi/eo_ma.csv" # URL of the website
+webpage <- read_html(ma_990) # Read the HTML content of the website
+data_elements <- webpage %>% html_nodes(".data-item") # select the elements containing the data
+
+# Extract data from the selected elements
+data <- lapply(data_elements, function(element) {
+  data1 <- element %>% html_node(".data-field1") %>% html_text() %>% trimws()
+  data2 <- element %>% html_node(".data-field2") %>% html_text() %>% trimws()
+  # Add more data fields as needed
+  
+  return(list(data1, data2))})   # return the extracted data as a list
+
+# Convert the extracted data into a data frame
+data_df <- do.call(rbind, data)
+
+write_csv(data_df, file = "990s_assetallocation/ma_990_df.csv") #upload csv
 ```
 
 ### Perpetuity:
@@ -62,3 +57,33 @@ When assessing perpetuity and long-term sustainability of the endowment funds, w
 ```{r, include=FALSE}
 
 ```
+
+### Endowment Types:
+
+**Endowment management and purpose**
+
+What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.
+
+```{r, include=FALSE}
+# prmnnt_pre <- 
+#   ggplot (data= endowment_data_wide, aes(x= serious_dlqin2yrs, y= monthly_income)) +
+#   geom_point () + 
+#   labs(title = "Permanent endowments: post-pandemic",
+#     subtitle = "Distribution Held By Fiscal Years (xxxx-xxxx)",
+#     x = "Dance Company Type",
+#     y = "Endowment Amount (USD)") +
+#   scale_y_continuous(labels = scales::dollar)
+```
+
+```{r, include=FALSE}
+# prmnnt_post <- 
+#   ggplot (data= endowment_data_wide, aes(x= serious_dlqin2yrs, y= monthly_income)) +
+#   geom_point () + 
+#   labs(title = "Permanent endowments: pre-pandemic",
+#     subtitle = "Distribution Held By Fiscal Years (xxxx-xxxx)",
+#     x = "Dance Company Type",
+#     y = "Endowment Amount (USD)") +
+#   scale_y_continuous(labels = scales::dollar)
+```
+
+### 

@@ -18,7 +18,25 @@ output: html_document
 What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.
 
 ```{r, include=FALSE}
+prmnnt_pre <- 
+  ggplot (data= endowment_data_wide, aes(x= serious_dlqin2yrs, y= monthly_income)) +
+  geom_point () + 
+  labs(title = "Permanent endowments: post-pandemic",
+    subtitle = "Distribution Held By Fiscal Years (xxxx-xxxx)",
+    x = "Dance Company Type",
+    y = "Endowment Amount (USD)") +
+  scale_y_continuous(labels = scales::dollar)
+```
 
+```{r, include=FALSE}
+prmnnt_post <- 
+  ggplot (data= endowment_data_wide, aes(x= serious_dlqin2yrs, y= monthly_income)) +
+  geom_point () + 
+  labs(title = "Permanent endowments: pre-pandemic",
+    subtitle = "Distribution Held By Fiscal Years (xxxx-xxxx)",
+    x = "Dance Company Type",
+    y = "Endowment Amount (USD)") +
+  scale_y_continuous(labels = scales::dollar)
 ```
 
 ### Asset Allocation:

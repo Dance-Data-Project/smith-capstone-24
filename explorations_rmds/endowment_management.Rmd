@@ -5,49 +5,60 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-### Capstone 2023 Resources:
-
--   `endowment_spenddown` → how the endowment is composed
-
--   `endowment_timeseries` → how the endowment has changed - this can be related to the stock market's changes, S&P 500 trends
-
 ### Asset Allocation:
 
 The section on asset allocation will provide a more detailed analysis of endowments, by investigating how their assets are distributed and diversified, examining the breakdown of asset distribution via percentages, and assessing whether the endowment performance trends mimic or deviate the S&P 500 overall performance.
 
-**Endowment Management**
+**Endowment Management:** How are assets allocated across different asset classes in the endowment (stocks, bonds, real estate etc.)? Adjustment of endowment in response to the pandemic: How have the choices made within their asset allocation impacted their endowment performance? Ex: what percentage of the total endowment S&P 500?
 
--   How are assets allocated across different asset classes in the endowment (stocks, bonds, real estate etc.)?
+\--\> Exempt Organizations Business Master File Extract (EOBMF) [source](https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf)
 
--   Adjustment of endowment in response to the pandemic
+*Variables of interest* [a](https://www.irs.gov/pub/irs-soi/eo-info.pdf) : `EIN` (employer identification number), `ASSET_CD` (asset code), `INCOME_CD` (income code), `ASSET_AMT` (asset amount), `INCOME_AMT` (income amount), `REVENUE_AMT` (form 990 revenue amount)
 
-    -   How have the choices made within their asset allocation impacted their endowment performance? Ex: what percentage of the total endowment S&P 500?
+```{r csv, include=FALSE}
 
-Exempt Organizations Business Master File Extract (EO BMF) [source](https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf)
+library(dplyr) # data manipulation
+library(readr) # scrapes web pages
+library(ggplot2) # data visualization
 
-Variables of interest [documentation](https://www.irs.gov/pub/irs-soi/eo-info.pdf) - `EIN` (employer identification number), `ASSET_CD` (asset code), `INCOME_CD` (income code), `ASSET_AMT` (asset amount), `INCOME_AMT` (income amount), `REVENUE_AMT` (form 990 revenue amount)
+# reading in EOBMF data
+setwd("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation")
+EOBMF_MA <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/EOBMF_MA.csv")
+EOBMF_CA <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/EOBMF_CA.csv")
 
-```{r, include=FALSE}
+# filter the data based on titles containing "ballet" or "dance"
+ma_df <- EOBMF_MA[grepl("BALLET|DANCE", EOBMF_MA$NAME, ignore.case = TRUE), ]
+ca_df <- EOBMF_MA[grepl("BALLET|DANCE", EOBMF_CA$NAME, ignore.case = TRUE), ]
+```
 
-library(rvest) # scrape (or harvest) data from web pages
-library(readr) # efficient way to read rectangular data
+```{r ma visualization, include=FALSE}
+ma_asset_amt <- 
+  ggplot (data=ma_df, aes(x= factor(FOUNDATION), y= ASSET_AMT)) +
+  geom_boxplot () + 
+  labs(title = "2022 Spread of Massachusetts Dance & Ballet Company Assets",
+    subtitle = "Book Value of Total Assets by Foundaton Type",
+    x = "Foundation Code",
+    y = "Asset Amount") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+```
 
-ma_990 <- "https://www.irs.gov/pub/irs-soi/eo_ma.csv" # URL of the website
-webpage <- read_html(ma_990) # Read the HTML content of the website
-data_elements <- webpage %>% html_nodes(".data-item") # select the elements containing the data
+```{r}
+ma_asset_amt
+```
 
-# Extract data from the selected elements
-data <- lapply(data_elements, function(element) {
-  data1 <- element %>% html_node(".data-field1") %>% html_text() %>% trimws()
-  data2 <- element %>% html_node(".data-field2") %>% html_text() %>% trimws()
-  # Add more data fields as needed
-  
-  return(list(data1, data2))})   # return the extracted data as a list
+```{r ca visualization, include=FALSE}
+ca_asset_amt <- 
+  ggplot (data=ca_df, aes(x= factor(FOUNDATION), y= ASSET_AMT)) +
+  geom_boxplot () + 
+  labs(title = "2022 Spread of California Dance & Ballet Company Assets",
+    subtitle = "Book Value of Total Assets by Foundaton Type",
+    x = "Foundation Code",
+    y = "Asset Amount") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+```
 
-# Convert the extracted data into a data frame
-data_df <- do.call(rbind, data)
-
-write_csv(data_df, file = "990s_assetallocation/ma_990_df.csv") #upload csv
+```{r}
+ca_asset_amt
 ```
 
 ### Perpetuity:
@@ -60,9 +71,7 @@ When assessing perpetuity and long-term sustainability of the endowment funds, w
 
 ### Endowment Types:
 
-**Endowment management and purpose**
-
-What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.
+**Endowment management and purpose:** What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.
 
 ```{r, include=FALSE}
 # prmnnt_pre <- 
@@ -86,4 +95,8 @@ What are the proportion of term endowments, permanent endowments, and board-desi
 #   scale_y_continuous(labels = scales::dollar)
 ```
 
-### 
+### Capstone 2023 Resources:
+
+-   `endowment_spenddown` → how the endowment is composed
+
+-   `endowment_timeseries` → how the endowment has changed - this can be related to the stock market's changes, S&P 500 trends

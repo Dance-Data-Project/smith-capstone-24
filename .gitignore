@@ -2,7 +2,7 @@
 **/*.zip
 .Rproj.user
 .DS_Store
-data/
-990archivesfeb2024/
+data
+990archivesfeb2024
 *.RDS
 companies.csv

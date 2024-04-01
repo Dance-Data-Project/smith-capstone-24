@@ -7,13 +7,7 @@ output: html_document
 
 ### Asset Allocation:
 
-The section on asset allocation will provide a more detailed analysis of endowments, by investigating how their assets are distributed and diversified, examining the breakdown of asset distribution via percentages, and assessing whether the endowment performance trends mimic or deviate the S&P 500 overall performance.
-
-**Endowment Management:** How are assets allocated across different asset classes in the endowment (stocks, bonds, real estate etc.)? Adjustment of endowment in response to the pandemic: How have the choices made within their asset allocation impacted their endowment performance? Ex: what percentage of the total endowment S&P 500?
-
-\--\> Exempt Organizations Business Master File Extract (EOBMF) [source](https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf)
-
-*Variables of interest* [a](https://www.irs.gov/pub/irs-soi/eo-info.pdf) : `EIN` (employer identification number), `ASSET_CD` (asset code), `INCOME_CD` (income code), `ASSET_AMT` (asset amount), `INCOME_AMT` (income amount), `REVENUE_AMT` (form 990 revenue amount)
+The section on asset allocation will provide a more detailed analysis of endowments, by investigating how their assets are distributed and diversified, examining the breakdown of asset distribution via percentages, and assessing whether the endowment performance trends mimic or deviate the S&P 500 overall performance. Our guiding questions include: `a)` How are assets allocated across different asset classes in the endowment (stocks, bonds, real estate etc.)? `b)` Adjustment of endowment in response to the pandemic: `b1` How have the choices made within their asset allocation impacted their endowment performance? `b2` What percentage of the total endowment S&P 500?
 
 ```{r csv, include=FALSE}
 
@@ -100,3 +94,9 @@ When assessing perpetuity and long-term sustainability of the endowment funds, w
 -   `endowment_spenddown` → how the endowment is composed
 
 -   `endowment_timeseries` → how the endowment has changed - this can be related to the stock market's changes, S&P 500 trends
+
+### Sources:
+
+Exempt Organizations Business Master File Extract (EOBMF) [source](https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf):
+
+*Variables of interest* [a](https://www.irs.gov/pub/irs-soi/eo-info.pdf) : `EIN` (employer identification number), `ASSET_CD` (asset code), `INCOME_CD` (income code), `ASSET_AMT` (asset amount), `INCOME_AMT` (income amount), `REVENUE_AMT` (form 990 revenue amount)

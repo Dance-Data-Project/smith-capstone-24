@@ -14,13 +14,14 @@ knit: (function(input, ...) {
       output_dir = "output_html")})
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE }
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
 library(tidyverse)
 library(here)
 library(forcats)
 library(readxl)
 library(kableExtra)
+suppressMessages
 ```
 
 
@@ -47,12 +48,13 @@ source(here("GET_VARS.R"))
 
 
 # vector of all xml files  
-files <- dir(here("ballet_990_released_20230208"),
+files <- dir(here("990archivesfeb2024"), #replaced with new data 
                full.names = TRUE)
 
 
 # (stable) company names from file
 companies <- read_csv(here("data", "companies.csv")) %>%
+  rename("ein" = "EIN", "organization_name" = "Company") %>% 
   mutate(EIN = as.character(ein))%>%
   select(organization_name, EIN, ein) %>%
   distinct()
@@ -241,13 +243,6 @@ add <- add %>%
                                     .x[length(.x)]))) 
 
 
-add %>%
-  select(EIN,
-         name,
-         organization_name,
-         business_state_cd = state_cd,
-         books_state_cd) %>%
-  saveRDS(here('data', 'ein_to_state.RDS'))
 
 # check there is one state per EIN
  # add %>%
@@ -262,13 +257,21 @@ add %>%
 ```{r, eval = FALSE}
 
 # if business_state_cd is NA, use where they have bookings 
-add <- add %>%s n
+add <- add %>%
   mutate(state = case_when(
-    !is.na(business_state_cd) ~ business_state_cd,
-    is.na(business_state_cd) & !is.na(books_state_cd) ~ books_state_cd,
-    is.na(business_state_cd) & is.na(books_state_cd) ~ books_state
+    !is.na(business_state_cd) ~ as.character(business_state_cd),
+    is.na(business_state_cd) & !is.na(books_state_cd) ~ as.character(books_state_cd),
+    is.na(business_state_cd) & is.na(books_state_cd) ~ as.character(books_state)
   )) 
 
+add %>%
+  select(EIN,
+         name,
+         organization_name,
+         business_state_cd = state_cd,
+         books_state_cd,
+         state) %>%
+  saveRDS(here('data', 'ein_to_state.RDS'))
 
 ```
 
@@ -292,10 +295,12 @@ if(!exists( here("data", "state_population.RDS"))) {
   state_pop <- read_csv(state_pop_link) %>%
   select(fips = STATE, pop = POPESTIMATE2022, state_name = NAME)
   
-  state_fips <- read_csv(here("data", "state_fips.csv"))
+  state_fips <- read_csv(here("data", "state_fips.csv")) %>% 
+    plyr::rename(setNames("fips", "st"))
   
   state_pop <- state_pop %>%
-    inner_join(state_fips)
+    inner_join(state_fips) %>% 
+    select(fips, pop, state_name, state = stusps)
 
   saveRDS(state_pop, here("data", "state_population.RDS"))
 }
@@ -442,11 +447,12 @@ Cleaned files generated in this section:
 # STAY AT HOME ORDER
 ################################
 
+
 if(!exists(here('data', 'stay_at_home_bu.RDS'))) {
-  stay_at_home <- read_excel(here("data", "bu_data.xlsx"), sheet ='Stay at Home') %>%
+  stay_at_home <- read_excel(here("data", "bu_data.xlsx")) %>%
   select(state = `State Abbreviation`,
-         stay_at_home_start = `Stay at home/shelter in place`,
-         stay_at_home_end = `End stay at home/shelter in place`,
+         stay_at_home_start = `Stay at home/ shelter in place`,
+         stay_at_home_end = `End/relax stay at home/shelter in place`,
    ) %>%
   mutate(across(c(stay_at_home_start,stay_at_home_end), ~ as_date(., origin="1899-12-31"))) %>%
   filter(!is.na(state)) %>%
@@ -487,12 +493,13 @@ Some missing data here.
 ################################
 
 if(!exists(here('data', 'state_of_emergency_bu.RDS'))) {
-  state_of_emergency <- read_excel(here("data", "bu_data.xlsx"), sheet ='State of Emergency') %>%
+  state_of_emergency <- read_excel(here("data", "bu_data.xlsx")) %>%
   select(state = `State Abbreviation`,
          emergency_start = `State of emergency issued`, 
          emergency_end = `State of emergency lifted`
    ) %>%
-  mutate(across(c(emergency_start,emergency_end),~ as_date(., origin="1899-12-31"))) %>%
+  mutate(emergency_end = as_date(emergency_end, origin="1899-12-31")) %>%
+  mutate(emergency_start = as_date(emergency_start)) %>%
   filter(!is.na(state)) %>%
         # if dates are input as 0, excel codes these as 1899-12-31; remove these
   filter(state %in% add$state & emergency_start != "1899-12-31" & emergency_end != "1899-12-31") %>%
@@ -653,21 +660,21 @@ social %>%
 ```{r, eval = FALSE, include = FALSE }
 
 # looking at specific files where there were issues to see how we can best extract the state for all companies
-file_to_check <- "ballet_990_released_20230208/202001979349303705_public.xml"
-file_to_check <- "ballet_990_released_20230208/201902389349200640_public.xml"
-file_to_check <-  "ballet_990_released_20230208/201503459349300245_public.xml"
-file_to_check <- "ballet_990_released_20230208/201543209349202514_public.xml"
-file_to_check <- "ballet_990_released_20230208/202101969349301610_public.xml" 
+#file_to_check <- "990archivesfeb2024/202001979349303705_public.xml"
+#file_to_check <- "990archivesfeb2024/201902389349200640_public.xml"
+#file_to_check <-  "990archivesfeb2024/201503459349300245_public.xml"
+#file_to_check <- "990archivesfeb2024/201543209349202514_public.xml"
+#file_to_check <- "990archivesfeb2024/202101969349301610_public.xml" 
 
-example_file <- xml2::read_xml(file_to_check) %>% xml_ns_strip()
+#example_file <- xml2::read_xml(file_to_check) %>% xml_ns_strip()
 
-address_vars <- tibble(varname = get_all_children(file_to_check, "//ReturnData")) %>%
-  filter(grepl("address", varname, ignore.case =TRUE)) %>%
-  pull(varname)
-
-test <- get_df(filename=file_to_check,
-       variables=address_vars,
-       names = address_vars)
+# address_vars <- tibble(varname = get_all_children(file_to_check, "//ReturnData")) %>%
+#   filter(grepl("address", varname, ignore.case =TRUE)) %>%
+#   pull(varname)
+# 
+# test <- get_df(filename=file_to_check,
+#        variables=address_vars,
+#        names = address_vars)
 
 ```
 

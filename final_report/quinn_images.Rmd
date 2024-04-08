@@ -9,7 +9,9 @@ output:
 header-includes:
   - \usepackage{fontspec}
   - \setmainfont{Helvetica}
-  
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -17,34 +19,30 @@ knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, fig.width =15,
 
 ```
 
+```{=html}
 <style>
 .math {
   font-size: small;
 }
 </style>
-
-
+```
 # Notes on Percent Change
-
 
 We compute the relative change from one year to the next as
 
-$$\text{Relative change} = \dfrac{\text{End Value} - \text{Start Value}}{ \text{Start Value}}.$$ The percent change is then simply $\text{Relative Change} \times 100$. 
+$$\text{Relative change} = \dfrac{\text{End Value} - \text{Start Value}}{ \text{Start Value}}.$$
+The percent change is then simply $\text{Relative Change} \times 100$.
 
-
-For a relative change of value $R$, we can interpret it by considering the formula
+For a relative change of value $R$, we can interpret it by considering
+the formula
 
 $$\text{End Value} = (R+1) \times \text{Start Value}.$$
 
-A couple of examples include:
-* If the percent change is $-50\%$, the current year value is half of that in the previous year. 
-* If the percent change is $100\%$, the current year value is twice that in the previous year.
-* If the percent change is $-100\%$, the current year value is zero.
-
-
-
-
-
+A couple of examples include: \* If the percent change is $-50\%$, the
+current year value is half of that in the previous year. \* If the
+percent change is $100\%$, the current year value is twice that in the
+previous year. \* If the percent change is $-100\%$, the current year
+value is zero.
 
 ```{r packages and theme,eval=TRUE}
 library(tidyverse)
@@ -181,12 +179,7 @@ saveRDS(dates, here('data', 'dates.RDS'))
 
 ```
 
-
-
-
-
-
-# Table of Company Communications 
+# Table of Company Communications
 
 ```{r}
 
@@ -235,9 +228,6 @@ saveRDS(dates, here('data', 'dates.RDS'))
 
 
 ```
-
-
-
 
 ```{r sp500}
 
@@ -341,21 +331,22 @@ end_sp <- endowment_data_wide %>%
 
 ```
 
-
 ## Annual Growth Rate
 
 The annual growth rate is the percent change in a year. That is,
 
-$$\text{growth rate} = \frac{\text{Beginning Value}- \text{End Value}}{\text{Beginning Value}}.$$ 
-We can compute this for the S&P 500 for the same time interval. Here, we use mean value of the S&P 500 to the previous week compared to the beginning and end dates of each company's fiscal year. 
+$$\text{growth rate} = \frac{\text{Beginning Value}- \text{End Value}}{\text{Beginning Value}}.$$
+We can compute this for the S&P 500 for the same time interval. Here, we
+use mean value of the S&P 500 to the previous week compared to the
+beginning and end dates of each company's fiscal year.
 
+To account for withdrawals and contributions, we add back withdrawals
+and subtract contributions, so we calculate the annual growth rate as
 
-
-To account for withdrawals and contributions, we add back withdrawals and subtract contributions, so we calculate the annual growth rate as
-
-$$\scriptsize{\text{Annual Growth Rate} = \frac{ ( \text{End Value} + \text{Other Expenditures} + \text{Grants and Scholarships} + \text{Administrative Expenses} - \text{Contributions} ) -\text{Beginning Value}}{\text{Beginning Value}}}$$ 
-This adjustment is important because we want to see how much of the change from the beginning of year balance to the end of year balance is due to the investments, not, for example, a large contribution.
-
+$$\scriptsize{\text{Annual Growth Rate} = \frac{ ( \text{End Value} + \text{Other Expenditures} + \text{Grants and Scholarships} + \text{Administrative Expenses} - \text{Contributions} ) -\text{Beginning Value}}{\text{Beginning Value}}}$$
+This adjustment is important because we want to see how much of the
+change from the beginning of year balance to the end of year balance is
+due to the investments, not, for example, a large contribution.
 
 ```{r, fig.height = 17, fig.cap = "\\label{fig:annual-growth-endowment}Annual growth rate of a company's endowment when adjusting for contributions and withdrawals, compared to the annual growth S\\&P 500 for the corresponding time period.", fig.pos="h"}
 
@@ -422,29 +413,31 @@ end_sp %>%
         axis.title = element_text(size =20)) +
   guides(color = guide_legend(override.aes = list(linewidth=3))) +
   ylim(-.1,.25)
-ggsave(here('final_report/images/annual-growth_mb.pdf'))
+ggsave(here('final_report/images/annual-growth.pdf'))
 
 
 ```
 
-
-
 ## Compound Growth Rate
 
-Letting $t$ denote the number of years considered, 
+Letting $t$ denote the number of years considered,
 $$\small{\text{Compound Annual Growth Rate} = \left( \frac{\text{End Value}}{\text{Beginning Value}}\right)^{\frac{1}{t}}-1}$$
 
-Now, we note that we can compute the withdrawals using other variables reported in the 990:
+Now, we note that we can compute the withdrawals using other variables
+reported in the 990:
 $$\small{\text{Withdrawals} = \text{Other Expenditures} +\text{Administrative Expenses} +\text{Administrative Expenses} + \text{Grants and Scholarships}}.$$
 
-
-To adjust for contributions and expenditures, we define the Compound Annual Growth Rate as
+To adjust for contributions and expenditures, we define the Compound
+Annual Growth Rate as
 $$\small{\left( \frac{\text{End Value} + \sum_{i=1}^{t-1} \text{Withdrawals} - \sum_{i=1}^{t-1} \text{Contributions}  }{\text{Beginning Value}} \right)^{\frac{1}{t}}-1}$$
 
+```{=html}
 <!-- $$tiny{\left( \frac{\text{End Value} + \sum_{i=1}^{t-1} \text{Other Expenditures} +  \sum_{i=1}^{t-1}\text{Grants and Scholarships} +  \sum_{i=1}^{t-1} \text{Administrative Expenses} - \sum_{i=1}^{t-1} \text{Contributions}  }{\text{Beginning Value}} \right)^{\frac{1}{t}}-1}$$
 -->
-
-We visualize the compound growth rates for all companies in Figure \ref{fig:compound-growth}. Notably, San Francisco Ballet, Joffrey Ballet, and 
+```
+We visualize the compound growth rates for all companies in Figure
+\ref{fig:compound-growth}. Notably, San Francisco Ballet, Joffrey
+Ballet, and
 
 ```{r, fig.cap = "\\label{fig:compound-growth}Compound annual growth rates for all organizations compared to the compound annual growth rate for the S\\&P 500 for three time periods. Not all companies are present in each plot, since not all companies have data going back the same number of years. Of note, year to year differences in the compound annual growth rate of the S\\&P 500 are due to differences in companies' fiscal years.", fig.width = 15, fig.height=18}
 
@@ -452,33 +445,10 @@ We visualize the compound growth rates for all companies in Figure \ref{fig:comp
 # computing compound annual growth for different time intervals
 ##################################################################
 # 
-# cagr_2011_2023 <- end_sp %>%
-#     filter(fiscal_year <= 2023 & fiscal_year >= 2011) %>%
-#   group_by(organization_name) %>%
-#   mutate(minyear = min(fiscal_year),
-#          maxyear = max(fiscal_year)) %>%
-#   mutate(across(c(AdministrativeExpensesAmt, OtherExpendituresAmt,
-#                   ContributionsAmt, GrantsOrScholarshipsAmt), ~ifelse(fiscal_year == maxyear, NA, .x))) %>%
-#   filter(BeginningYearBalanceAmt != 0) %>%
-#   select(minyear, maxyear, organization_name, contains("Amt"), fiscal_year, contains('sp')) %>%
-#   group_by(organization_name, minyear, maxyear) %>%
-#   summarize(cont = sum(ContributionsAmt, na.rm = TRUE),
-#             exp = sum(OtherExpendituresAmt, na.rm= TRUE),
-#             grants = sum(GrantsOrScholarshipsAmt, na.rm=TRUE),
-#             admin = sum(AdministrativeExpensesAmt, na.rm=TRUE),
-#             endowment_begin = BeginningYearBalanceAmt[which.min(fiscal_year)],
-#             endowment_end = BeginningYearBalanceAmt[which.max(fiscal_year)],
-#             sp_begin = sp500_begin[which.min(fiscal_year)],
-#             sp_end = sp500_begin[which.max(fiscal_year)],
-#             .groups="drop",
-#             n_years = unique(maxyear)- unique(minyear)) %>%
-#   filter(n_years == 9) %>%
-#   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
-#          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
 
 
-cagr_2011_2020 <- end_sp %>%
-    filter(fiscal_year <= 2020 & fiscal_year >= 2011) %>%
+cagr_2017_2023 <- end_sp %>%
+    filter(fiscal_year <= 2023 & fiscal_year >= 2017) %>%
   group_by(organization_name) %>%
   mutate(minyear = min(fiscal_year),
          maxyear = max(fiscal_year)) %>%
@@ -497,13 +467,13 @@ cagr_2011_2020 <- end_sp %>%
             sp_end = sp500_begin[which.max(fiscal_year)],
             .groups="drop",
             n_years = unique(maxyear)- unique(minyear)) %>%
-  filter(n_years == 9) %>%
+  filter(n_years == 6) %>%
   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
 
 
-cagr_2015_2020 <- end_sp %>%
-    filter(fiscal_year>= 2015 & fiscal_year <= 2020) %>%
+cagr_2019_2023 <- end_sp %>%
+    filter(fiscal_year>= 2019 & fiscal_year <= 2023) %>%
   group_by(organization_name) %>%
   mutate(minyear = min(fiscal_year),
          maxyear = max(fiscal_year)) %>%
@@ -522,13 +492,14 @@ cagr_2015_2020 <- end_sp %>%
             sp_end = sp500_begin[which.max(fiscal_year)],
             .groups="drop",
             n_years = unique(maxyear)- unique(minyear)) %>%
-  filter(n_years == 5) %>%
+  filter(n_years == 4) %>%
   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
 
 
-cagr_2017_2020 <- end_sp %>%
-    filter(fiscal_year>= 2017 & fiscal_year <= 2020) %>%
+
+cagr_2021_2023 <- end_sp %>%
+    filter(fiscal_year>= 2021 & fiscal_year <= 2023) %>%
   group_by(organization_name) %>%
   mutate(minyear = min(fiscal_year),
          maxyear = max(fiscal_year)) %>%
@@ -547,7 +518,7 @@ cagr_2017_2020 <- end_sp %>%
             sp_end = sp500_begin[which.max(fiscal_year)],
             .groups="drop",
             n_years = unique(maxyear)- unique(minyear)) %>%
-  filter(n_years == 3) %>%
+  filter(n_years == 2) %>%
   mutate(cagr_adj =   ((endowment_end + exp + grants + admin - cont)/endowment_begin)^(1/n_years) - 1,
          cagr_sp = (sp_end/sp_begin)^(1/n_years) -1)
 
@@ -589,18 +560,15 @@ plot_cagr <- function(df, title = "") {
               hjust=0) 
 }
 
-
-plt1 <- cagr_2011_2020 %>%
-  plot_cagr(title = "2011 to 2020") +
+plt1 <- cagr_2017_2023 %>%
+  plot_cagr(title = "2017 to 2023") +
   theme(legend.position="none")
 
 
 
-plt2 <- cagr_2015_2020 %>%
-  plot_cagr(title = "2015 to 2020")+
+plt2 <- cagr_2019_2023 %>%
+  plot_cagr(title = "2019 to 2023")+
   theme(legend.position="none")
-
-
 
 
 title_gg <- ggplot() + 
@@ -608,13 +576,13 @@ title_gg <- ggplot() +
   theme(plot.title=element_text(face="bold", hjust = .5, size = 22, margin =margin(5,0,2,0)))
 
 
-plt3 <- cagr_2017_2020 %>%
-  plot_cagr(title = "2017 to 2020") +
+plt3 <- cagr_2021_2023 %>%
+  plot_cagr(title = "2021 to 2023") +
   theme(legend.text=element_text(size=16))
 
 
 
-legend <- get_legend(plt3) 
+legend <- get_legend(plt3)
 
 plt3 <- plt3 + theme(legend.position='none')
 
@@ -623,25 +591,33 @@ row <- plot_grid(plt1,plt2,plt3)
 
 
 plot_grid(title_gg,
-          legend, 
+          legend,
           row,
            rel_heights= c(.03, .05, .92),
           nrow=3)
 
-
 ggsave(here('final_report/images/compound-growth.pdf'))
+#write_csv(cagr_2021_2023, "cagr_2021_2023.csv")
 
 ```
 
-We see immediately in Figure \ref{fig:compound-growth} that some companies have a compound growth rate is indistinguishable from zero. This includes:
+We see immediately in Figure \ref{fig:compound-growth} that some
+companies have a compound growth rate is indistinguishable from zero.
+This includes:
 
-- Oregon Ballet: reported no investment earnings/losses for any year
-- Harlem Ballet: investment earnings/gains were extremely small ($\pm 13$ dollars)
-- First State Ballet Theatre: reported no investment earnings/losses for any year
-- Eugene Ballet: only reported investment earnings/losses for 2020 and 2021
-- American Repertory Ballet: reported no investment earnings/losses for any year
+-   Oregon Ballet: reported no investment earnings/losses for any year
+-   Harlem Ballet: investment earnings/gains were extremely small
+    ($\pm 13$ dollars)
+-   First State Ballet Theatre: reported no investment earnings/losses
+    for any year
+-   Eugene Ballet: only reported investment earnings/losses for 2020 and
+    2021
+-   American Repertory Ballet: reported no investment earnings/losses
+    for any year
 
-We see in Figure \ref{fig:annual-growth-endowment} that each of these companies annual growth rates are essentially zero when accounting for contributions and withdrawals.
+We see in Figure \ref{fig:annual-growth-endowment} that each of these
+companies annual growth rates are essentially zero when accounting for
+contributions and withdrawals.
 
 ```{r plot_ranks function}
 
@@ -729,9 +705,6 @@ plot_ranks_by_consistency <- function(var1, var2, data) {
 
 ```
 
-
-
-
 ```{r, eval=TRUE}
 
 vars <-  unique(endowment_data$variable_name)[!grepl("EOY|Admin|Grants", unique(endowment_data$variable_name))]
@@ -744,10 +717,7 @@ variable_combinations <- t(combn(vars, 2)) %>%
 
 ```
 
-
-
 ### Where Endowments are Held
-
 
 ```{r,eval=FALSE}
 
@@ -790,8 +760,6 @@ pal <- pal[indexes]
 
 
 ```
-
-
 
 ```{r, results='asis', fig.cap="\\label{table:endowment-type-table}"}
 
@@ -915,6 +883,73 @@ dat <- endowment_data_wide_filt %>%
    filter(fiscal_year <=2020) 
 
 
+### michel's notes
+
+library(Stat2Data)
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+
+endowment_designated <- 
+  ggplot(data=all_category, 
+         aes(x=fiscal_year, y= BoardDesignatedBalanceEOYPct, fill=organization_name)) + 
+  geom_bar(stat="identity", width=.5, fill="tomato3") + 
+  labs(title="Endowment Performance Bar Chart", 
+       subtitle="Board designated, quasi permanent, and term endowments", 
+       caption="source: DDP 2014-2022 Data") + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6))
+
+endowment_designated
+
+
+
+endowment_term <- 
+  ggplot(data=all_category, 
+         aes(x=fiscal_year, y= TermEndowmentBalanceEOYPct, fill=organization_name)) + 
+  geom_bar(stat="identity", width=.5, fill="tomato3") + 
+  labs(title="Endowment Performance Bar Chart", 
+       subtitle="Board designated, quasi permanent, and term endowments", 
+       caption="source: DDP 2014-2022 Data") + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6))
+
+
+
+
+endowment_permanent <- 
+  ggplot(data=all_category, 
+         aes(x=fiscal_year, y= PrmnntEndowmentBalanceEOYPct, fill=organization_name)) + 
+  geom_bar(stat="identity", width=.5, fill="tomato3") + 
+  labs(title="Endowment Performance Bar Chart", 
+       subtitle="Board designated, quasi permanent, and term endowments", 
+       caption="source: DDP 2014-2022 Data") + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6))
+
+
+
+
+all_category$PrmnntEndowmentBalanceEOYPct <- as.numeric(as.character(all_category$PrmnntEndowmentBalanceEOYPct))
+
+
+permanent_summaries<-
+  all_category |> 
+  filter(!is.na(PrmnntEndowmentBalanceEOYPct)) |>
+  select(organization_name, PrmnntEndowmentBalanceEOYPct, fiscal_year) |>
+  group_by(organization_name) |>
+  mutate(
+    group_mean=mean(PrmnntEndowmentBalanceEOYPct),
+    group_sd = sd(PrmnntEndowmentBalanceEOYPct),
+    group_min = min(PrmnntEndowmentBalanceEOYPct),
+    group_max = max(PrmnntEndowmentBalanceEOYPct))
+
+
+
+
+
+
+
+
+
+
 dat_labels <- dat %>%
   select(organization_name,xlabel,ylabel,name,rank_category, EIN) %>%
   mutate(beginning = EIN %in% ein_beginning) %>%
@@ -1020,8 +1055,6 @@ ggsave(here('final_report', 'images', 'proportion_endowment_categories.pdf'))
 
 ```
 
-
-
 ```{r fig.cap = "\\label{fig:prop-most-variable} Proportions of endowments in each designated category over time for the 5 companies with the most variability.", fig.width = 13, fig.height = 6.5}
 
 top <- dat %>% 
@@ -1061,7 +1094,6 @@ ggsave(here('final_report/images/prop_endowment_type_most_variable.pdf'))
 
 
 ```
-
 
 ```{r old version, eval=FALSE}
  dat %>%
@@ -1124,7 +1156,6 @@ ggsave(here('final_report/images/prop_endowment_type_most_variable.pdf'))
 
 
 ```
-
 
 ```{r new version, eval=FALSE}
 
@@ -1238,11 +1269,9 @@ pal <- pal[indexes]
 
 ```
 
+# Rankings
 
-# Rankings 
-
-
-## Beginning of Year Balance versus Contributions 
+## Beginning of Year Balance versus Contributions
 
 ### Rank Plot
 
@@ -1351,8 +1380,6 @@ ggsave(here('final_report/images/compare-rankings-balance-contributions-barplot.
 
 ```
 
-
-
 ## Beginning of Year Balance versus Other Expenditures
 
 ```{r, fig.width =15, fig.height=7}
@@ -1375,7 +1402,6 @@ plot_ranks_by_consistency("BeginningYearBalanceAmt",
  
 
 ```
-
 
 ```{r contributions barplot, fig.cap = "\\label{fig:balanceexpbar} Comparing the proportion of years where a company ranked higher, lower, or the same in beginning of year balance compared to expenditures.", fig.height= 10, fig.width=15}
 
@@ -1444,11 +1470,9 @@ prop_balanced_ranked_higher %>%
 
 ```
 
+## How ranks change over time
 
-## How ranks change over time 
-
-## Ranking of Endowment Beginning of Year Balance 
-
+## Ranking of Endowment Beginning of Year Balance
 
 ```{r, fig.height = 11, fig.cap="\\label{fig:rank-endowments}Rank of the endowment beginning of year balance over time. The 15 companies with the most variability in ranking, defined as the mean difference in rankings between fiscal years, are shown in color. Names of all companies are on the right.", results='hide'}
 
@@ -1605,8 +1629,6 @@ balance_ranks %>%
 
 ```
 
-
-
 ```{r, fig.height =10, fig.cap="\\label{fig:rank-endowments-color-contribution}Rank of the endowment beginning of year balance over time, where the color indicates the ranking of the mean contributions received over all years on file for the company."}
 
 
@@ -1659,7 +1681,6 @@ ggsave(here('final_report/images/rank-endowments-color-contribution.pdf'))
     
 
 ```
-
 
 ## Ranking of Contributions
 
@@ -1776,7 +1797,6 @@ balance_ranks <- endowment_data_wide %>%
  
 ```
 
-
 # Reporting of Endowments
 
 ```{r, results='asis', fig.cap="\\label{table:filled-scheduled}"}
@@ -1856,10 +1876,7 @@ filed_by_year %>%
   
 ```
 
-
-
-# Compensation 
-
+# Compensation
 
 ```{r,eval=TRUE}
 
@@ -1873,13 +1890,12 @@ employees <- readRDS(here("data", "employees.RDS")) %>%
 
 ```
 
- 
+# Top Employees Compensation Compared to Other Employee Compensation
 
-# Top Employees Compensation Compared to Other Employee Compensation 
-
-* For total employee compensation - `CYSalariesCompEmpBnftPaidAmt: Salaries, other compensation, employee benefits (Part IX, column (A), lines 5–10)`.
-* For top employee compensation - Schedule J, looking at total compensation
-
+-   For total employee compensation -
+    `CYSalariesCompEmpBnftPaidAmt: Salaries, other compensation, employee benefits (Part IX, column (A), lines 5–10)`.
+-   For top employee compensation - Schedule J, looking at total
+    compensation
 
 ```{r, eval=TRUE}
 
@@ -1893,7 +1909,6 @@ emp_comp <- employees %>%
 ```
 
 Only included companies with more than 5 observations.
-
 
 ```{r, fig.width = 12, fig.height=8.5, fig.cap="\\label{fig:frac-comp} percent of the total compensation paid to employees that was paid to officers, directors, trustees, or key employees, as reported in Part IX of the Form 990. Highlighted in the first panel are the 10 companies that had the greatest change in the percent paid to C-Suite employees from the earliest year on file to the latest. Only companies with a mean of more than 25 employees across the years on file and that reported complete data for more than 5 years are included."}
 
@@ -2148,7 +2163,6 @@ ggsave(here('final_report/images/frac-comp.pdf'))
 
 ```
 
-
 ```{r, fig.width=10,fig.height=6.5, fig.cap = "\\label{fig:csuite-comp-bar}"}
 
 ############################################################################################
@@ -2182,15 +2196,3 @@ emp_comp %>%
 ggsave(here('final_report/images/csuite-comp-bar.pdf'), dpi=400)
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-

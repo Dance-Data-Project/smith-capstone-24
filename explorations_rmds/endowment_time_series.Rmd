@@ -119,7 +119,7 @@ endowment_data <- read_rds(here("data",
 # extract return dates
 source(here("GET_VARS.R"))
 
-files <- dir(here("ballet_990_released_20230208"),
+files <- dir(here("990archivesfeb2024"),
               full.names = TRUE)
 
 
@@ -481,7 +481,7 @@ m <- list(
 
 source(here("GET_VARS.R"))
 
-files <- dir(here("ballet_990_released_20230208"),
+files <- dir(here("990archivesfeb2024"),
               full.names = TRUE)
 
 get_all_children_by_file(files[5], "/Return/ReturnData/IRS990" )

@@ -73,16 +73,16 @@ names <- names %>%
 ```{r, eval = TRUE}
 #### USE THIS
 ## (EYB - BYB)/BYB * 100
-## Rose has notes on her choice for this calculation
-
-endowment_data$BeginningYearBalanceAmt <- as.numeric(as.character(endowment_data$BeginningYearBalanceAmt))
-endowment_data$ContributionsAmt <- as.numeric(as.character(endowment_data$ContributionsAmt))
-endowment_data$OtherExpendituresAmt <- as.numeric(as.character(endowment_data$OtherExpendituresAmt))
-endowment_data$AdministrativeExpensesAmt <- as.numeric(as.character(endowment_data$AdministrativeExpensesAmt))
-endowment_data$GrantsOrScholarshipsAmt <- as.numeric(as.character(endowment_data$GrantsOrScholarshipsAmt))
-endowment_data$InvestmentEarningsOrLossesAmt <- as.numeric(as.character(endowment_data$InvestmentEarningsOrLossesAmt))
-endowment_data$EndYearBalanceAmt <- as.numeric(as.character(endowment_data$EndYearBalanceAmt))
-
+endowment_data <- endowment_data %>% 
+  mutate(BeginningYearBalanceAmt = as.numeric(as.character(BeginningYearBalanceAmt)),
+  ContributionsAmt = as.numeric(as.character(ContributionsAmt)),
+  OtherExpendituresAmt = as.numeric(as.character(OtherExpendituresAmt)),
+  AdministrativeExpensesAmt = as.numeric(as.character(AdministrativeExpensesAmt)),
+  GrantsOrScholarshipsAmt = as.numeric(as.character(GrantsOrScholarshipsAmt)),
+  InvestmentEarningsOrLossesAmt = as.numeric(as.character(InvestmentEarningsOrLossesAmt)),
+  EndYearBalanceAmt = as.numeric(as.character(EndYearBalanceAmt)),
+  EndingBalanceAmt = as.numeric(as.character(EndingBalanceAmt))
+  )
 
 pct_change_ds <- endowment_data %>%
   filter(!is.na(BeginningYearBalanceAmt)) %>%
@@ -513,6 +513,10 @@ pct_change_inv_ds <- ungroup(pct_change_inv_ds)
 ## WITH investments
 
 ```{r}
+
+## meaghan figure out what sp500 is/replace it properly, cannot run rest of file without it
+
+
 ## GETTING PERCENT CHANGE OF FISCAL YEARS THAT EXIST IN THE DATASET
 ## Year wise PCT change for S&P 500 
 sp_end <- read_csv(here('data','SP500.csv')) %>%
@@ -596,7 +600,6 @@ pc_endow_sp_fr_200 <- pct_change_ds %>%
   scale_x_date(breaks = scales::pretty_breaks(n = 20)) +
   geom_point(data = pct_change_med, aes(x = fiscal_year_dt, y = median), color = "black", size = 1) + 
   geom_line(data = sp_change_years, aes(x = date_end, y = pct_change_yr), color = "black", show.legend = FALSE)
-
 pc_endow_sp_fr_200
 ```
 

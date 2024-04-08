@@ -1,0 +1,49 @@
+---
+title: "m_calculations"
+author: "Meaghan Brennan"
+date: "2024-03-25"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+RUN SCHEDULE_D_EXPLORATIONS and data_dictionary FIRST
+
+```{r}
+
+sched_d_test <- schedule_d %>% 
+ select(EIN, fiscal_year, `/Return/ReturnData/IRS990ScheduleD/TotalExpensesPerForm990Amt`) %>% 
+  rename(TotalExpenses = `/Return/ReturnData/IRS990ScheduleD/TotalExpensesPerForm990Amt`)
+sched_d_test$fiscal_year = as.numeric(as.character(sched_d_test$fiscal_year))
+sched_d_test$TotalExpenses = as.numeric(as.character(sched_d_test$TotalExpenses))
+
+expenses_data <- endowment_data %>% 
+  select(EIN, fiscal_year, EndYearBalanceAmt) %>% 
+  left_join(sched_d_test, by = c('EIN', 'fiscal_year' = 'fiscal_year')) %>% 
+  filter(TotalExpenses <= 2000000) %>% 
+  filter(EIN == 237273533 | EIN ==356006394 | EIN == 421366753 | EIN == 510394850 | EIN == 630813626 | EIN == 930765746)
+
+eins <- unique(as.list(as.numeric(as.character(expenses_data$EIN))))
+expenses_data$EIN = as.numeric(as.character(expenses_data$EIN))
+
+total_expense_data <- endowment_data %>% 
+  select(EIN, fiscal_year, EndYearBalanceAmt) %>% 
+  left_join(sched_d_test, by = c('EIN', 'fiscal_year' = 'fiscal_year'))# %>% 
+  #drop_na()
+
+total_expense_data <- total_expense_data %>% 
+  filter(EIN == 237273533 | EIN ==356006394 | EIN == 421366753 | EIN == 510394850 | EIN == 630813626 | EIN == 930765746)
+
+company_names <- read_csv(here("data", "companies.csv")) %>%
+  mutate(EIN = as.character(EIN), organization_name = as.character(Company)) %>%
+  select(EIN, organization_name)
+
+total_expense_data <- total_expense_data %>% 
+  left_join(company_names, by = 'EIN')
+
+write.csv(total_expense_data, "expenses_data.csv")
+
+```

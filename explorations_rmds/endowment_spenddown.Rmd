@@ -53,6 +53,7 @@ pal <- pal[indexes]
 endowment_data <- read_rds(here("data", "endowments_by_most_recent_filings.RDS"))
 names <- readRDS(here("data","companies.RDS"))
 names <- names %>%
+  rename(organization_name = Company) %>% 
   mutate(organization_name = ifelse(
     organization_name == "Ballet Hispanico", 
     "Ballet Hispánico",
@@ -72,7 +73,17 @@ names <- names %>%
 ```{r, eval = TRUE}
 #### USE THIS
 ## (EYB - BYB)/BYB * 100
-## Rose has notes on her choice for this calculation
+endowment_data <- endowment_data %>% 
+  mutate(BeginningYearBalanceAmt = as.numeric(as.character(BeginningYearBalanceAmt)),
+  ContributionsAmt = as.numeric(as.character(ContributionsAmt)),
+  OtherExpendituresAmt = as.numeric(as.character(OtherExpendituresAmt)),
+  AdministrativeExpensesAmt = as.numeric(as.character(AdministrativeExpensesAmt)),
+  GrantsOrScholarshipsAmt = as.numeric(as.character(GrantsOrScholarshipsAmt)),
+  InvestmentEarningsOrLossesAmt = as.numeric(as.character(InvestmentEarningsOrLossesAmt)),
+  EndYearBalanceAmt = as.numeric(as.character(EndYearBalanceAmt)),
+  EndingBalanceAmt = as.numeric(as.character(EndingBalanceAmt))
+  )
+
 pct_change_ds <- endowment_data %>%
   filter(!is.na(BeginningYearBalanceAmt)) %>%
   mutate(change = EndYearBalanceAmt - BeginningYearBalanceAmt,
@@ -446,7 +457,7 @@ limited_scale_inv
 ## Adding end date 
 source(here("GET_VARS.R"))
 ##Specifically reading in Tax Period End Date
-files <- dir( here("ballet_990_released_20230208"),
+files <- dir( here("990archivesfeb2024"),
               full.names = TRUE)
 taxperiod_data <- map_df(files, ~
                     get_df(variables =  c("//Return//ReturnHeader//TaxPeriodEndDt"),
@@ -502,6 +513,10 @@ pct_change_inv_ds <- ungroup(pct_change_inv_ds)
 ## WITH investments
 
 ```{r}
+
+## meaghan figure out what sp500 is/replace it properly, cannot run rest of file without it
+
+
 ## GETTING PERCENT CHANGE OF FISCAL YEARS THAT EXIST IN THE DATASET
 ## Year wise PCT change for S&P 500 
 sp_end <- read_csv(here('data','SP500.csv')) %>%
@@ -585,7 +600,6 @@ pc_endow_sp_fr_200 <- pct_change_ds %>%
   scale_x_date(breaks = scales::pretty_breaks(n = 20)) +
   geom_point(data = pct_change_med, aes(x = fiscal_year_dt, y = median), color = "black", size = 1) + 
   geom_line(data = sp_change_years, aes(x = date_end, y = pct_change_yr), color = "black", show.legend = FALSE)
-
 pc_endow_sp_fr_200
 ```
 
@@ -969,7 +983,7 @@ There are `r inv_consist %>% filter(consistent == FALSE) %>% nrow()` companies w
 ##Getting employee data
 source(here("GET_VARS.R"))
 ##Specifically reading in employee data
-files <- dir( here("ballet_990_released_20230208"),
+files <- dir( here("990archivesfeb2024"),
               full.names = TRUE)
 employ_data <- map_df(files, ~
                     get_df(variables =  c("//Return//ReturnData//TotalEmployeeCnt"),
@@ -1176,7 +1190,7 @@ ggsave("pc_consist.png", path = here("final_report", "images"))
 ##Getting Total Revenue data
 source(here("GET_VARS.R"))
 ##Specifically reading in employee data
-files <- dir( here("ballet_990_released_20230208"),
+files <- dir( here("990archivesfeb2024"),
               full.names = TRUE)
 revenue_data <- map_df(files, ~
                     get_df(variables =  c("//Return//ReturnData//CYTotalRevenueAmt"),

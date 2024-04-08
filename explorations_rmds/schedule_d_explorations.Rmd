@@ -75,15 +75,15 @@ names <- names %>%
 
 ```
 
-
-```{r, eval = FALSE}
+```{r}
 ##Graphing difference between beginning and end periods  
 
 endowment_data %>%
   select(ReturnDate, EIN, CYBeginningYearBalanceAmt, CYEndYearBalanceAmt) %>%
   pivot_longer(cols = c(CYBeginningYearBalanceAmt, CYEndYearBalanceAmt), names_to = "Period", values_to = "Balance") %>%
   mutate(Period = as.factor(Period)) %>%
-  mutate(Year = substr(ReturnDate, 1, 4)) %>%
+  mutate(Year = as.integer(substr(ReturnDate, 1, 4))) %>%
+  filter(Year <= 2022) %>% # Filtering to include only data up to 2022
   ggplot(aes(x = Period, y = Balance, group = EIN)) +
   facet_wrap(~Year) +
   geom_point(alpha = 0.5) + 
@@ -94,9 +94,11 @@ endowment_data %>%
   labs(title = "Comparing Fiscal Year Beginning and End Endowment Totals") +
   scale_y_continuous(labels = scales::label_dollar())
 
-
-
 ```
+
+
+
+
 
 ## Which Years and Companies Filled out Schedule D  
 
@@ -162,7 +164,7 @@ filed_schd_d %>%
   row_spec(row = 0:1, align = "center")
 ```
 
-There are 241 uniquely filed Schedule D's. 
+There are 288 uniquely filed Schedule D's. 
 
 ```{r}
 filed_schd_d %>%
@@ -175,7 +177,7 @@ filed_schd_d %>%
   make_table(title = "Years with Endowment Reported", col_names = c("Year", "Total Endowments Reported filed within the year"))
 ```
 
-Years represented in the data are 2014-2021, based on the beginning financial year date. 
+Years represented in the data are 2016-2023, based on the beginning financial year date. Since there are only 9 reported endowment in 2023, our analysis will focus on 2016-2022.
 
 
 ## Determining Which Needed to File Schedule D for Endowment

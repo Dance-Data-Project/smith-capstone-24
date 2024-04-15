@@ -1,5 +1,5 @@
 ---
-title: "990s Endowment Funds"
+title: "Endowment Management"
 date: "Last updated on `r Sys.Date()`"
 author: "Ruiz-Fuentes"
 format: html
@@ -8,15 +8,9 @@ theme: cosmo
 number-sections: true
 ---
 
-### Endowment Management
-
 This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V.
 
 By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
-
-Examples of metrics
-
-1.  
 
 ```{r, include=FALSE}
 ## Set default behavior for all code chunks here:
@@ -28,7 +22,7 @@ knitr::opts_chunk$set(
   fig.height = 9/2)
 ```
 
-```{r, data wrangling}
+```{r, data wrangling, include=FALSE}
 
 ## Load packages
 library(dplyr) # data manipulation
@@ -92,17 +86,6 @@ schedule_d_cleaned <- schedule_d_cleaned %>%
 schedule_d_cleaned <- schedule_d_cleaned %>%
   left_join(companies , by = 'ein', relationship = "many-to-many")
 
-# Function to filter out year
-pick_vars <- function(data, fiscal_year) {
-  select("ein", 
-      "administrative_expenses", 
-      "boy_balance", 
-      "contributions", 
-      "eoy_balance", 
-      "grants_or_scholarships", 
-      "investment_earnings_or_losses", 
-      "other_expenditure")}
-
 # Converting data from wide to long and selecting Part V columns from 990s
 schedule_d_2017 <- subset(schedule_d_cleaned, fiscal_year == "2017")
 schedule_d_2018 <- subset(schedule_d_cleaned, fiscal_year == "2018")
@@ -116,13 +99,11 @@ schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
 
 `Schedule_d_cleaned` contains 1061 observations and 10 variables. Three of the variables are characters: the organization name, fiscal year and EIN code; while seven of the variables are integers demonstrating different quantitative aspects of the endowment fund.
 
-![](/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/partV_ss.png){width="100%"}
-
 For example,
 
 -   `organization_name` : Company names provided by DDP
 
--   `ein` : unique nine-digit number assigned by the IRS to identity a business entity, in this case 501(c) non-profits
+-   `ein` : unique nine-digit number assigned by the IRS to identity a business entity, 501(c) non-profits
 
 -   `fiscal_year` : a 12-month period that a non-profit organization uses for financial reporting and budgeting purposes
 
@@ -140,48 +121,103 @@ For example,
 
 -   `eoy_balance` **\[1g\]**: determined by adding investing earnings and subtracting investment losses to the beginning of year balance, after grants or scholarships have been awarded and other expenditures
 
-### Exploratory Data Analysis
+### Change Over Fiscal Year
+
+How does it evaluate the fund's [financial health]{.underline}: a healthy endowment may have consecutive positive changes in beginning of year balances from end of year balances; indicating a stronger endowment value attributed to larger contributions or investment earnings
+
+How does it evaluate the fund's [sustainability]{.underline} : trends of these endowment balances and their differences over multiple fiscal years can inform long-term planning and decision-making; perhaps making adjustments to total expenses or strategizing to increase investment earnings or contributions for the endowment's continued growth and perpetuity
+
+```{r}
+# creating a column with the difference between eoy - boy
+# calculating the change in endowment balance
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(difference = (eoy_balance - boy_balance))
+```
 
 ```{r, include=FALSE}
-# investments17 <-
-#   ggplot (data=schedule_d_2017, aes(x= investment_earnings_or_losses)) +
-#   geom_histogram () +
-#   labs(title = "Distribution of 2017 Investment Earnings and Losses",
-#     subtitle = "Assessing Central Tendency and Data Spread",
-#     x = "Amount (USD)",
-#     y = "Count") +
-#   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+# new df with diffs and vars of interest
+change_in_amt_df <- schedule_d_cleaned %>%
+  select(organization_name, fiscal_year, boy_balance, eoy_balance, difference)
+```
+
+```{r, include=FALSE}
+# Converting data from wide to long and selecting Part V columns from 990s
+change_in_amt_df_2017 <- subset(change_in_amt_df, fiscal_year == "2017")
+change_in_amt_df_2018 <- subset(change_in_amt_df, fiscal_year == "2018")
+change_in_amt_df_2019 <- subset(change_in_amt_df, fiscal_year == "2019")
+change_in_amt_df_2020 <- subset(change_in_amt_df, fiscal_year == "2020")
+change_in_amt_df_2021 <- subset(change_in_amt_df, fiscal_year == "2021")
+change_in_amt_df_2022 <- subset(change_in_amt_df, fiscal_year == "2022")
 ```
 
 ```{r}
-# investments17
+# example snapshot of change in fiscal year balance
+sanfrancisco_diff <- change_in_amt_df %>%
+  filter(organization_name == "San Francisco Ballet")
+# print the first few rows 
+print(head(sanfrancisco_diff))
 ```
 
+### Expense Ratio
+
+How does it evaluate the fund's [financial health]{.underline}: a healthy endowment may have a decreasing expense ratio because the firm may become more efficient at allocating expenses while an increase may indicate a financial strain or higher expenses on the firm.
+
+How does it evaluate the fund's [sustainability:]{.underline} a consistent expense ratio may reveal a pattern into the endowment's operations and their spending habits - maintaining a 'sustainable' ratio is crucial to maintaining the endowment's perpetuity and preserving their abilities to meet their objectives
+
 ```{r, include=FALSE}
-# investments17_summary <- schedule_d_2017 |> 
-#   group_by(ein) |>
-#   summarize(
-#     group_n = n(), 
-#     mean = mean(investment_earnings_or_losses),
-#     median = median(investment_earnings_or_losses),
-#     max = max(investment_earnings_or_losses),
-#     min = min(investment_earnings_or_losses),
-#     sd = sd(investment_earnings_or_losses))
+# creating a column titled total_expenses
+# sum of administrative_expenses, grants_or_scholarships, other_expenditure
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(total_expenses = rowSums(
+    select(., administrative_expenses, grants_or_scholarships, other_expenditure)))
 ```
 
 ```{r}
-# investments17_summary
+# calculating expense ratio
+# assess proportion of total expenses relative to the endowment's total assets
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(expense_ratio = (total_expenses / eoy_balance) * 100)
 ```
 
 ```{r, include=FALSE}
-# investments17 <-
-#   ggplot (data=schedule_d_2017, aes(x= grants_or_scholarships)) +
-#   geom_histogram () +
-#   labs(title = "Distribution of 2017 Grants",
-#     subtitle = "Assessing Central Tendency and Data Spread",
-#     x = "Amount (USD)",
-#     y = "Count") +
-#   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+# new df with expense ratios and vars of interests
+expense_ratio_df <- schedule_d_cleaned %>%
+  select(organization_name, fiscal_year, expense_ratio, eoy_balance, total_expenses)
 ```
+
+```{r, include=FALSE}
+# Converting data from wide to long and selecting Part V columns from 990s
+expense_ratio_df_2017 <- subset(expense_ratio_df, fiscal_year == "2017")
+expense_ratio_df_2018 <- subset(expense_ratio_df, fiscal_year == "2018")
+expense_ratio_df_2019 <- subset(expense_ratio_df, fiscal_year == "2019")
+expense_ratio_df_2020 <- subset(expense_ratio_df, fiscal_year == "2020")
+expense_ratio_df_2021 <- subset(expense_ratio_df, fiscal_year == "2021")
+expense_ratio_df_2022 <- subset(expense_ratio_df, fiscal_year == "2022")
+```
+
+```{r}
+# example snapshot of expense ratios for SF
+sanfrancisco_er <- expense_ratio_df %>%
+  filter(organization_name == "San Francisco Ballet")
+# print the first few rows 
+print(head(sanfrancisco_er ))
+```
+
+```{r, include=FALSE}
+expense_ratio_spread17 <- 
+  ggplot (expense_ratio_df_2017, aes(x= organization_name, y= expense_ratio)) +
+  geom_boxplot () + 
+  facet_wrap(~eoy_balance, scales = "free") + 
+  labs(title = "Distribution of Expense Ratios",
+    subtitle = "Schedule D, Part V, 2017 Filings",
+    x = "Expense Ratio (%)",
+    y = "Frequency") 
+```
+
+```{r}
+expense_ratio_spread17
+```
+
+### Change in Endowment Balance
 
 ### 

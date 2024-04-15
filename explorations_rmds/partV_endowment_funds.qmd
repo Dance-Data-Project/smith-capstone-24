@@ -1,0 +1,208 @@
+---
+title: "990s Endowment Funds"
+date: "Last updated on `r Sys.Date()`"
+author: "Ruiz-Fuentes"
+format: html
+editor: visual
+theme: cosmo
+number-sections: true
+---
+
+```{r, include=FALSE}
+## Set default behavior for all code chunks here:
+knitr::opts_chunk$set(
+  echo = TRUE, 
+  message = FALSE, 
+  warning = FALSE, 
+  fig.width = 16/2, 
+  fig.height = 9/2)
+```
+
+```{r, data wrangling, include=FALSE}
+
+## Load packages
+library(dplyr) # data manipulation
+library(readr) # scrapes web pages
+library(ggplot2) # data visualization
+library(janitor) # data manipulation
+
+## Set directort
+setwd("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation")
+
+## Load data
+schedule_d <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/schedule_d_vals.csv")  
+companies <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/companies.csv") 
+
+# Cleaning column names
+schedule_d <- schedule_d %>%
+  clean_names()
+
+schedule_d_cleaned <- 
+  schedule_d %>% 
+  rename(
+    administrative_expenses = x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_administrative_expenses_amt, 
+    boy_balance = 
+x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_beginning_year_balance_amt,
+    contributions = 
+x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_contributions_amt,
+    eoy_balance=
+x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_end_year_balance_amt,
+    grants_or_scholarships =
+x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_grants_or_scholarships_amt,
+    investment_earnings_or_losses = x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_investment_earnings_or_losses_amt,
+    other_expenditure = 
+x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_other_expenditures_amt)
+
+# Changing EIN to character - schedule_d
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(fiscal_year = as.character(fiscal_year)) 
+
+# Changing EIN to character - schedule_d
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(ein = as.character(ein)) 
+
+# Changing EIN to character - companies
+companies <- companies %>%
+  mutate(ein = as.character(ein)) %>%
+  select(ein, organization_name)
+
+# new df with focusedcolumns
+schedule_d_cleaned <- schedule_d_cleaned %>% 
+  select("ein", 
+      "fiscal_year",
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure")
+
+# Joining datasets 
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  left_join(companies , by = 'ein', relationship = "many-to-many")
+
+# Function to filter out year
+pick_vars <- function(data, fiscal_year) {
+  select("ein", 
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure")}
+
+# Converting data from wide to long and selecting Part V columns from 990s
+schedule_d_2017 <- subset(schedule_d_cleaned, fiscal_year == "2017")
+schedule_d_2018 <- subset(schedule_d_cleaned, fiscal_year == "2018")
+schedule_d_2019 <- subset(schedule_d_cleaned, fiscal_year == "2019")
+schedule_d_2020 <- subset(schedule_d_cleaned, fiscal_year == "2020")
+schedule_d_2021 <- subset(schedule_d_cleaned, fiscal_year == "2021")
+schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
+```
+
+### About the Data \[[1](https://www.irs.gov/pub/irs-pdf/i990sd.pdf)\]
+
+`schedule_d_cleaned` contains 1061 observations and 10 variables. Three of the variables are characters: the organization name, fiscal year and EIN code; while seven of the variables are integers demonstrating different quantitative aspects of the endowment fund. For example,
+
+### Exploratory Data Analysis
+
+```{r, EDA of investments17, include=FALSE}
+investments17 <-
+  ggplot (data=schedule_d_2017, aes(x= investment_earnings_or_losses)) +
+  geom_histogram () +
+  labs(title = "Distribution of 2017 Investment Earnings and Losses",
+    subtitle = "Assessing Central Tendency and Data Spread",
+    x = "Amount (USD)",
+    y = "Count") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+```
+
+```{r}
+investments17
+```
+
+```{r, age summary stats, include=FALSE}
+investments17_summary <- schedule_d_2017 |> 
+  group_by(ein) |>
+  summarize(
+    group_n = n(), 
+    mean = mean(investment_earnings_or_losses),
+    median = median(investment_earnings_or_losses),
+    max = max(investment_earnings_or_losses),
+    min = min(investment_earnings_or_losses),
+    sd = sd(investment_earnings_or_losses))
+```
+
+```{r}
+investments17_summary
+```
+
+```{r, EDA of investments17, include=FALSE}
+investments17 <-
+  ggplot (data=schedule_d_2017, aes(x= grants_or_scholarships)) +
+  geom_histogram () +
+  labs(title = "Distribution of 2017 Grants",
+    subtitle = "Assessing Central Tendency and Data Spread",
+    x = "Amount (USD)",
+    y = "Count") +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+```
+
+### Asset Allocation
+
+The section on asset allocation will provide a more detailed analysis of endowments, by investigating how their assets are distributed and diversified, examining the breakdown of asset distribution via percentages, and assessing whether the endowment performance trends mimic or deviate the S&P 500 overall performance. Our guiding questions include: a) How are assets allocated across different asset classes in the endowment (stocks, bonds, real estate etc.)? b) Adjustment of endowment in response to the pandemic: b1 How have the choices made within their asset allocation impacted their endowment performance? b2 What percentage of the total endowment S&P 500?
+
+### Perpetuity:
+
+When assessing perpetuity and long-term sustainability of the endowment funds, we will evaluate what investments and factors contributed to their resilience in the midst of economic downturns and market volatility that arose from the pandemic crisis.
+
+### Endowment Types:
+
+**Endowment management and purpose:** What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.
+
+### Capstone 2023 Resources:
+
+-   `endowment_spenddown` → how the endowment is composed
+
+-   `endowment_timeseries` → how the endowment has changed - this can be related to the stock market's changes, S&P 500 trends
+
+```{r}
+
+# schedule_d_2022 <- 
+#   subset(schedule_d_joined fiscal_year == "2022") %>% 
+#   select("ein",
+#       "administrative_expenses", 
+#       "boy_balance", 
+#       "contributions", 
+#       "eoy_balance", 
+#       "grants_or_scholarships", 
+#       "investment_earnings_or_losses", 
+#       "other_expenditure")
+
+
+
+## Renaming Section D, Part V: Endowment Fund Group Variables
+# rename_cols <- function(data, old_names, new_names) {
+#   # data
+#   # old_names: vector of old var names
+#   # new_names: a vector of new var names
+#   for (i in seq_along(old_names)) {
+#     names(data)[names(data) == old_names[i]] <- new_names[i]}
+#   return(data)} # sort(colnames(schedule_d))
+
+# ## Cleaning variable names
+# schedule_d <- rename_cols(schedule_d,
+# c("x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_administrative_expenses_amt",                            "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_beginning_year_balance_amt", "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_contributions_amt",        "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_end_year_balance_amt",     "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_grants_or_scholarships_amt",
+# "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_investment_earnings_or_losses_amt",                              "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_other_expenditures_amt"),
+#                               
+#     c("ein", 
+#       "administrative_expenses", 
+#       "boy_balance", 
+#       "contributions", 
+#       "eoy_balance", 
+#       "grants_or_scholarships", 
+#       "investment_earnings_or_losses", 
+#       "other_expenditure"))
+```

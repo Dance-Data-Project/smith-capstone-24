@@ -106,6 +106,22 @@ schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
 
 `schedule_d_cleaned` contains 1061 observations and 10 variables. Three of the variables are characters: the organization name, fiscal year and EIN code; while seven of the variables are integers demonstrating different quantitative aspects of the endowment fund. For example,
 
+-   `administrative_expenses` :
+
+-   `boy_balance` : beginning-of-year balances on the organization's endowment funds for the current year; amounts should agree with the organization's total permanent endowment, term endowment, and board or quasi-endowment funds at the beginning of the current year
+
+-   `contributions` : enter the amounts of contributions; includes donor gifts, grants, as well as additional funds established by the organization's governing board to function like an endowment
+
+-   `eoy_balance` :
+
+-   `grants_or_scholarships` : enter the amounts distributed for grants and scholarships; scholarships represent direct aid to individuals, they are distinguished from egneral programmatic aid referenced
+
+-   `investment_earnings_or_losses` : including both realized and unrealized amounts; for example reported net of transaction costs and earnings reported on a gross basis
+
+-   `other_expenditure` :
+
+-   `organization_name` :
+
 ### Exploratory Data Analysis
 
 ```{r, EDA of investments17, include=FALSE}

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Ruiz-Fuentes">
-<meta name="dcterms.date" content="2024-04-15">
+<meta name="dcterms.date" content="2024-04-16">
 
 <title>Endowment Management</title>
 <style>
@@ -122,7 +122,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 15, 2024</p>
+      <p class="date">April 16, 2024</p>
     </div>
   </div>
     
@@ -133,8 +133,269 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <p>This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V.</p>
 <p>By investigating variables 1a-g we can learn about the <strong>financial health</strong> and <strong>performance</strong> of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund’s <strong>long-term sustainability</strong> and <strong>perpetuity</strong> which is especially meaningful for smaller endowment’s because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.</p>
-<section id="about-the-data-1" class="level3" data-number="0.1">
-<h3 data-number="0.1" class="anchored" data-anchor-id="about-the-data-1"><span class="header-section-number">0.1</span> About the Data [<a href="https://www.irs.gov/pub/irs-pdf/i990sd.pdf">1</a>]</h3>
+<p>For this exploratory analysis I have used the top5 largest and bottom5 smallest endowments from 2022 to produce visualizations, and snippets of the calculations of one of the smallest and largest endowments.</p>
+<p><code>Metrics:</code></p>
+<ul>
+<li><p>Change over fiscal year</p></li>
+<li><p>Expense ratio</p></li>
+<li><p>Multiple regression - adjusted R^2</p></li>
+<li><p>Net contributions</p></li>
+</ul>
+<section id="change-over-fiscal-year" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="change-over-fiscal-year"><span class="header-section-number">1</span> Change Over Fiscal Year</h2>
+<section id="calculations" class="level4" data-number="1.0.1">
+<h4 data-number="1.0.1" class="anchored" data-anchor-id="calculations"><span class="header-section-number">1.0.1</span> <code>Calculations</code></h4>
+<p>How does it evaluate the fund’s <u>financial health</u>: a healthy endowment may have consecutive positive changes in beginning of year balances from end of year balances; indicating a stronger endowment value attributed to larger contributions or investment earnings</p>
+<p>How does it evaluate the fund’s <u>sustainability</u> : trends of these endowment balances and their differences over multiple fiscal years can inform long-term planning and decision-making; perhaps making adjustments to total expenses or strategizing to increase investment earnings or contributions for the endowment’s continued growth and perpetuity.</p>
+<p><code>difference = (eoy_balance - boy_balance)</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="do">## print the first few rows of New York City Ballet</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(diff_nyc))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     organization_name fiscal_year boy_balance eoy_balance difference
+1 New York City Ballet        2016   181363160   167823667  -13539493
+2 New York City Ballet        2017   167823667   189723371   21899704
+3 New York City Ballet        2018   189723371   220770500   31047129
+4 New York City Ballet        2019   220770500   220949309     178809
+5 New York City Ballet        2020   220949309   214442196   -6507113
+6 New York City Ballet        2021   214442196   263434555   48992359</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## print the first few rows of San Francisco Ballet</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(diff_sf))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     organization_name fiscal_year boy_balance eoy_balance difference
+1 San Francisco Ballet        2016         174         174          0
+2 San Francisco Ballet        2017   100219009   119047942   18828933
+3 San Francisco Ballet        2018   119047942   125015507    5967565
+4 San Francisco Ballet        2019   125015507   124452193    -563314
+5 San Francisco Ballet        2020   124452193   113923812  -10528381
+6 San Francisco Ballet        2021   113923812   137456934   23533122</code></pre>
+</div>
+</div>
+</section>
+<section id="visualization" class="level4" data-number="1.0.2">
+<h4 data-number="1.0.2" class="anchored" data-anchor-id="visualization"><span class="header-section-number">1.0.2</span> <code>Visualization</code></h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>viz_top5_change</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="partV_endowment_funds_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>viz_top5_spread </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="partV_endowment_funds_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>viz_bottom5_change</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="partV_endowment_funds_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>viz_bottom5_spread </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="partV_endowment_funds_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="expense-ratio" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="expense-ratio"><span class="header-section-number">2</span> Expense Ratio</h2>
+<section id="calculations-1" class="level4" data-number="2.0.1">
+<h4 data-number="2.0.1" class="anchored" data-anchor-id="calculations-1"><span class="header-section-number">2.0.1</span> <code>Calculations</code></h4>
+<p>How does it evaluate the fund’s <u>financial health</u>: a healthy endowment may have a decreasing expense ratio because the firm may become more efficient at allocating expenses while an increase may indicate a financial strain or higher expenses on the firm.</p>
+<p>How does it evaluate the fund’s <u>sustainability:</u> a consistent expense ratio may reveal a pattern into the endowment’s operations and spending habits; maintaining a ‘sustainable’ ratio is crucial to maintaining the endowment’s perpetuity and preserving their abilities to meet their objectives</p>
+<p><code>expense_ratio = (total_expenses / eoy_balance) * 100</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="do">## print the first few rows of New York City Ballet </span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(nyc_er))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     organization_name fiscal_year expense_ratio eoy_balance total_expenses
+1 New York City Ballet        2016            NA   167823667             NA
+2 New York City Ballet        2017            NA   189723371             NA
+3 New York City Ballet        2018            NA   220770500             NA
+4 New York City Ballet        2019            NA   220949309             NA
+5 New York City Ballet        2020            NA   214442196             NA
+6 New York City Ballet        2021            NA   263434555             NA</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="do">## print the first few rows of San Francisco Ballet</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(sf_er))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     organization_name fiscal_year expense_ratio eoy_balance total_expenses
+1 San Francisco Ballet        2016   7148.275862         174          12438
+2 San Francisco Ballet        2017      3.883340   119047942        4623036
+3 San Francisco Ballet        2018      5.524884   125015507        6906962
+4 San Francisco Ballet        2019      7.352321   124452193        9150125
+5 San Francisco Ballet        2020     10.081654   113923812       11485404
+6 San Francisco Ballet        2021            NA   137456934             NA</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizations" class="level4" data-number="2.0.2">
+<h4 data-number="2.0.2" class="anchored" data-anchor-id="visualizations"><span class="header-section-number">2.0.2</span> <code>Visualizations</code></h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>viz_top5_er</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="partV_endowment_funds_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>viz_top_er_spread <span class="ot">&lt;-</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="at">data =</span> top5, <span class="fu">aes</span>(<span class="at">x =</span> expense_ratio , <span class="at">y =</span> fiscal_year, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">group =</span> organization_name, <span class="at">color =</span> organization_name)) <span class="sc">+</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Top 5 Ballet Funds: Spread of Expense Ratios"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Fiscal Years 2016-2022"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Expense Ratio"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Company"</span>, </span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption=</span><span class="st">"Source: Schedule D, Part V"</span>) <span class="sc">+</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">format</span>(x, <span class="at">scientific =</span> <span class="cn">FALSE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>viz_top_er_spread</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="partV_endowment_funds_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="multiple-regression---adjusted-r2" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="multiple-regression---adjusted-r2"><span class="header-section-number">3</span> Multiple Regression - Adjusted R^2</h2>
+<p>The coefficients of the independent variables and the overall goodness-of-fit measures (e.g., R-squared) can indicate which variables contribute the most to explaining the variation in the dependent variable.</p>
+<p><code>Including all variables</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract coefficients</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stargazer</span>(lm_model_all, <span class="at">type =</span> <span class="st">"text"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+=========================================================
+                                  Dependent variable:    
+                              ---------------------------
+                                      eoy_balance        
+---------------------------------------------------------
+administrative_expenses                17.907**          
+                                        (7.646)          
+                                                         
+contributions                           5.955**          
+                                        (2.124)          
+                                                         
+grants_or_scholarships                  16.041           
+                                       (10.197)          
+                                                         
+investment_earnings_or_losses           3.889**          
+                                        (1.577)          
+                                                         
+other_expenditure                      6.685***          
+                                        (1.536)          
+                                                         
+Constant                            -2,637,842.000       
+                                    (5,212,088.000)      
+                                                         
+---------------------------------------------------------
+Observations                              28             
+R2                                       0.837           
+Adjusted R2                              0.800           
+Residual Std. Error            17,740,007.000 (df = 22)  
+F Statistic                     22.595*** (df = 5; 22)   
+=========================================================
+Note:                         *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Overall goodness-of-fit measures</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Adjusted R-squared:"</span>, <span class="fu">summary</span>(lm_model_all)<span class="sc">$</span>adj.r.squared, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Adjusted R-squared: 0.7999618 </code></pre>
+</div>
+</div>
+<p><code>Including only expenses</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract coefficients</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stargazer</span>(lm_model_total_expenses, <span class="at">type =</span> <span class="st">"text"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===================================================
+                            Dependent variable:    
+                        ---------------------------
+                                eoy_balance        
+---------------------------------------------------
+administrative_expenses           -6.897           
+                                  (6.593)          
+                                                   
+grants_or_scholarships            19.256           
+                                 (13.174)          
+                                                   
+other_expenditure                11.089***         
+                                  (1.523)          
+                                                   
+Constant                       5,387,674.000       
+                              (6,164,564.000)      
+                                                   
+---------------------------------------------------
+Observations                        28             
+R2                                 0.695           
+Adjusted R2                        0.656           
+Residual Std. Error      23,249,558.000 (df = 24)  
+F Statistic               18.194*** (df = 3; 24)   
+===================================================
+Note:                   *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Overall goodness-of-fit measures</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Adjusted R-squared:"</span>, <span class="fu">summary</span>(lm_model_total_expenses)<span class="sc">$</span>adj.r.squared, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Adjusted R-squared: 0.6564146 </code></pre>
+</div>
+</div>
+<p><code>Including only sources of revenue</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract coefficients</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">stargazer</span>(lm_model_revenue, <span class="at">type =</span> <span class="st">"text"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+=========================================================
+                                  Dependent variable:    
+                              ---------------------------
+                                      eoy_balance        
+---------------------------------------------------------
+contributions                          10.466***         
+                                        (1.259)          
+                                                         
+investment_earnings_or_losses          1.633***          
+                                        (0.444)          
+                                                         
+Constant                           11,757,374.000***     
+                                    (3,479,601.000)      
+                                                         
+---------------------------------------------------------
+Observations                              157            
+R2                                       0.390           
+Adjusted R2                              0.382           
+Residual Std. Error            39,477,090.000 (df = 154) 
+F Statistic                     49.222*** (df = 2; 154)  
+=========================================================
+Note:                         *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Overall goodness-of-fit measures</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Adjusted R-squared:"</span>, <span class="fu">summary</span>(lm_model_revenue)<span class="sc">$</span>adj.r.squared, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Adjusted R-squared: 0.3820428 </code></pre>
+</div>
+</div>
+</section>
+<section id="net-contributions" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="net-contributions"><span class="header-section-number">4</span> Net Contributions</h2>
+<p><code>Calculations</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Net Contributions = Contributions - Grants or Scholarships</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><code>Visualizations</code></p>
+</section>
+<section id="about-the-data-source" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="about-the-data-source"><span class="header-section-number">5</span> About the Data [<a href="https://www.irs.gov/pub/irs-pdf/i990sd.pdf">source</a>]</h2>
 <p><code>Schedule_d_cleaned</code> contains 1061 observations and 10 variables. Three of the variables are characters: the organization name, fiscal year and EIN code; while seven of the variables are integers demonstrating different quantitative aspects of the endowment fund.</p>
 <p>For example,</p>
 <ul>
@@ -149,71 +410,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><p><code>administrative_expenses</code> <strong>[1f]</strong>: expenses can arise from either internal or third-party sources; relate to general operation and management such as salaries of administrative staff, office rent, utilities, and other overhead expenses</p></li>
 <li><p><code>eoy_balance</code> <strong>[1g]</strong>: determined by adding investing earnings and subtracting investment losses to the beginning of year balance, after grants or scholarships have been awarded and other expenditures</p></li>
 </ul>
-</section>
-<section id="change-over-fiscal-year" class="level3" data-number="0.2">
-<h3 data-number="0.2" class="anchored" data-anchor-id="change-over-fiscal-year"><span class="header-section-number">0.2</span> Change Over Fiscal Year</h3>
-<p>How does it evaluate the fund’s <u>sustainability</u> : consecutive positive changes indicate higher endowment value and perhaps attributed to contributions, investment earnings, or administration</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creating a column with the difference between eoy - boy</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># calculating the change in endowment balance</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>schedule_d_cleaned <span class="ot">&lt;-</span> schedule_d_cleaned <span class="sc">%&gt;%</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">difference =</span> (eoy_balance <span class="sc">-</span> boy_balance))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># example snapshot of change in fiscal year balance</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sanfrancisco_diff <span class="ot">&lt;-</span> change_in_amt_df <span class="sc">%&gt;%</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(organization_name <span class="sc">==</span> <span class="st">"San Francisco Ballet"</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># print the first few rows </span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(sanfrancisco_diff))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>     organization_name fiscal_year boy_balance eoy_balance difference
-1 San Francisco Ballet        2016         174         174          0
-2 San Francisco Ballet        2017   100219009   119047942   18828933
-3 San Francisco Ballet        2018   119047942   125015507    5967565
-4 San Francisco Ballet        2019   125015507   124452193    -563314
-5 San Francisco Ballet        2020   124452193   113923812  -10528381
-6 San Francisco Ballet        2021   113923812   137456934   23533122</code></pre>
-</div>
-</div>
-</section>
-<section id="expense-ratio" class="level3" data-number="0.3">
-<h3 data-number="0.3" class="anchored" data-anchor-id="expense-ratio"><span class="header-section-number">0.3</span> Expense Ratio</h3>
-<p>How does it evaluate the fund’s <u>financial health</u>: a healthy endowment may have a decreasing expense ratio because the firm may become more efficient at allocating expenses while an increase may indicate a financial strain or higher expenses on the firm.</p>
-<p>How does it evaluate the fund’s <u>sustainability:</u> a consistent expense ratio may reveal a pattern into the endowment’s operations and their spending habits - maintaining a ‘sustainable’ ratio is crucial to maintaining the endowment’s perpetuity and preserving their abilities to meet their objectives</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># calculating expense ratio</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># assess proportion of total expenses relative to the endowment's total assets</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>schedule_d_cleaned <span class="ot">&lt;-</span> schedule_d_cleaned <span class="sc">%&gt;%</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">expense_ratio =</span> (total_expenses <span class="sc">/</span> eoy_balance) <span class="sc">*</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># example snapshot of expense ratios for SF</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sanfrancisco_er <span class="ot">&lt;-</span> expense_ratio_df <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(organization_name <span class="sc">==</span> <span class="st">"San Francisco Ballet"</span>)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># print the first few rows </span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(sanfrancisco_er ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>     organization_name fiscal_year expense_ratio eoy_balance total_expenses
-1 San Francisco Ballet        2016   7148.275862         174          12438
-2 San Francisco Ballet        2017      3.883340   119047942        4623036
-3 San Francisco Ballet        2018      5.524884   125015507        6906962
-4 San Francisco Ballet        2019      7.352321   124452193        9150125
-5 San Francisco Ballet        2020     10.081654   113923812       11485404
-6 San Francisco Ballet        2021            NA   137456934             NA</code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>expense_ratio_spread17</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="partV_endowment_funds_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="768"></p>
-</div>
-</div>
-</section>
-<section id="change-in-endowment-balance" class="level3" data-number="0.4">
-<h3 data-number="0.4" class="anchored" data-anchor-id="change-in-endowment-balance"><span class="header-section-number">0.4</span> Change in Endowment Balance</h3>
-</section>
-<section id="section" class="level3" data-number="0.5">
-<h3 data-number="0.5" class="anchored" data-anchor-id="section"><span class="header-section-number">0.5</span> </h3>
 </section>
 
 </main>

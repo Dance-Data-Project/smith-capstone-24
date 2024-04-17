@@ -99,14 +99,25 @@ theme_c <- function(...){
 companies_to_ein <- read_rds(here('data',   'companies.RDS'))
 
 companies_to_ein <- companies_to_ein %>%
+  rename(organization_name = Company) %>%
   mutate(organization_name = ifelse(
     organization_name == "Ballet Hispanico", 
     "Ballet Hispánico",
     organization_name))
 
+
 endowment_data <- read_rds(here("data", 
                                 "endowments_by_most_recent_filings.RDS")) %>%
   select(-c(EndowmentsHeldUnrelatedOrgInd, EndowmentsHeldRelatedOrgInd)) %>%
+  mutate(BeginningYearBalanceAmt = as.numeric(as.character(BeginningYearBalanceAmt)),
+  ContributionsAmt = as.numeric(as.character(ContributionsAmt)),
+  OtherExpendituresAmt = as.numeric(as.character(OtherExpendituresAmt)),
+  AdministrativeExpensesAmt = as.numeric(as.character(AdministrativeExpensesAmt)),
+  GrantsOrScholarshipsAmt = as.numeric(as.character(GrantsOrScholarshipsAmt)),
+  InvestmentEarningsOrLossesAmt = as.numeric(as.character(InvestmentEarningsOrLossesAmt)),
+  EndYearBalanceAmt = as.numeric(as.character(EndYearBalanceAmt)),
+  EndingBalanceAmt = as.numeric(as.character(EndingBalanceAmt))
+  ) %>% 
   pivot_longer(-c(EIN, fiscal_year),
                names_to = "variable_name") %>%
   left_join(companies_to_ein) %>%

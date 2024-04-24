@@ -1,6 +1,6 @@
 ---
 title: "Retrieve Endowment Funds"
-author: "Rose Evard"
+author: "Chi Qiu"
 date: "`r Sys.Date()`"
 output:
   rmdformats::html_clean:
@@ -139,7 +139,7 @@ filed_schd_d %>%
   summarize(num_ein = n()) %>%
   ggplot(aes(x = num_times_fil_sche_D, y = as.integer(num_ein))) +
   geom_bar(stat="identity") +
-  scale_x_continuous(breaks = 1:7) +
+  scale_x_continuous(breaks = 1:8) +
   labs(title = "For Companies that Reported and Endowment Least Once,\nNumber of Endowment Reports",
        x = "Number of Endowment Reports",
        y = "Number of EINs") +
@@ -151,6 +151,48 @@ filed_schd_d %>%
         axis.title = element_text(size = 16, face = "bold"),
         legend.position = "none")
 ```
+
+```{r}
+# COMPANIES THAT NEVER REPORTED ENDOWMENT
+all_eins <- filed_schd_d %>%
+  select(EIN) %>%
+  distinct()
+
+# EINs that reported endowments
+reported_eins <- filed_schd_d %>%
+  filter(Filled_Sch_D == "Yes") %>%
+  select(EIN) %>%
+  distinct()
+
+# Finding EINs that did NOT report endowments
+never_reported_eins <- setdiff(all_eins, reported_eins)
+
+# Joining with names to get organization names
+never_reported_eins <- never_reported_eins %>%
+  left_join(names, by = "EIN") %>%
+  select(EIN, organization_name) %>%
+  mutate(num_times_fil_sche_D = 0)  # Adding a column to show no filings
+
+# Create a table to display the result
+never_reported_eins %>%
+  kable("html", booktabs = TRUE) %>%
+  kable_styling(full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "450px") %>%
+  kableExtra::footnote(general = "This table lists EINs that have never reported an endowment.")
+
+```
+
+```{r}
+# Finding EINs that did NOT report endowments
+never_reported_eins <- setdiff(all_eins, reported_eins)
+
+# Counting the number of companies that never reported an endowment
+num_never_reported <- nrow(never_reported_eins)
+
+# Print the count
+print(paste("Number of companies that never reported an endowment:", num_never_reported))
+```
+
 
 There are `r filed_schd_d %>% filter(Filled_Sch_D == "Yes") %>%pull(EIN) %>% unique() %>% length()` EINs which, at one point, have filled out Schedule D. 
 
@@ -328,7 +370,7 @@ filed_schd_d %>%
   filter(gap > 1) %>%
   left_join(names, by = "EIN") %>%
   select(EIN, organization_name, gap, before, TaxPeriodBeginDt) %>%
-  make_table(title = "Endowment Reporting Gaps", col_names = c("EIN", "Organization Name", "Gap Length", "Gap Start Date", "Gap End Date"))
+  make_table(title = "Endowment Reporting Gaps", col_names = c("EIN", "Organization Name", "Gap Length (Days)", "Gap Start Date", "Gap End Date"))
 ```
 
 ```{r}
@@ -346,7 +388,7 @@ filed_schd_d %>%
   filter(gap > 1) %>%
   left_join(names, by = "EIN") %>%
   select(EIN, organization_name, gap, before, TaxPeriodBeginDt) %>%
-  make_table(title = "990 Filing Gaps for EINs\nwhich once reported an Endowment", col_names = c("EIN", "Organization Name", "Gap Length", "Gap Start Date", "Gap End Date"))
+  make_table(title = "990 Filing Gaps for EINs\nwhich once reported an Endowment", col_names = c("EIN", "Organization Name", "Gap Length (Days)", "Gap Start Date", "Gap End Date"))
 ```
 
 # Aligning 990 Filing Gaps and Schedule D Filing Gaps  
@@ -611,6 +653,24 @@ test_diff %>%
 #              col_names = c("Organization Name", "Total Miscalculations")) %>%
 #   scroll_box(height = "450px")
 ```
+
+```{r}
+
+miscalculation_table <- test_diff %>%
+  filter(same_end == FALSE) %>%
+  left_join(names, by = "EIN") %>%
+  select(fiscal_year, organization_name) %>%
+  arrange(fiscal_year, organization_name) %>%
+  rename(Year = fiscal_year, Company = organization_name) %>%
+  distinct()
+
+kable(miscalculation_table, format = "html", table.attr = "style='width:100%'") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+
+
 
 # Saving Relevant Images For Report 
 

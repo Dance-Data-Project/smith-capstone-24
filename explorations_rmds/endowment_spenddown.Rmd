@@ -859,6 +859,20 @@ inv_consist_ds <- inv_consist %>%
 
 ```
 
+
+```{r}
+
+inv_consist_true <- inv_consist %>% 
+  filter(consistent == TRUE)
+
+inv_consist_false <- inv_consist %>% 
+  filter(consistent == FALSE)
+
+mean(inv_consist_true$rank)
+mean(inv_consist_false$rank)
+
+```
+
 ```{r}
 ##plottinng
 consist_plot <- ggplot(inv_consist_ds, aes(x = TaxPeriodEndDt, y = pct_change, 
@@ -885,6 +899,7 @@ consist_plot <- ggplot(inv_consist_ds, aes(x = TaxPeriodEndDt, y = pct_change,
   geom_hline(yintercept = -7, alpha = .5, linetype = "dotted") 
 
 consist_plot
+ggsave("images/consist_plot.png", consist_plot)
 #ggplotly(consist_plot)
 
 ## Consistent by standard deviation ranking 
@@ -960,7 +975,10 @@ inv_consist %>%
   filter(consistent == TRUE) %>%
   select(-consistent) %>%
   make_table(title = "Companies with Consistent Endowment Changes", col_names = c("Organization Name", "Minimum Change", "Maximum Change", "Standard Deviation", "Rank")) %>%
-  scroll_box(height = "450px")
+  save_kable("images/consistent_changes.html")
+  
+  
+  #scroll_box(height = "450px")
 ```
 
 There are `r inv_consist %>% filter(consistent == TRUE) %>% nrow()` companies which have 'consistent' endowment percent change.
@@ -972,7 +990,10 @@ inv_consist %>%
   filter(consistent == FALSE) %>%
   select(-consistent) %>%
   make_table(title = "Companies with Inconsistent Endowment Changes", col_names = c("Organization Name", "Minimum Change", "Maximum Change", "Standard Deviation", "Rank")) %>%
-  scroll_box(height = "450px")
+  save_kable("images/inconsistent_changes.html")
+  
+  
+  #scroll_box(height = "450px")
 ```
 
 There are `r inv_consist %>% filter(consistent == FALSE) %>% nrow()` companies which have 'inconsistent' endowment percent change.

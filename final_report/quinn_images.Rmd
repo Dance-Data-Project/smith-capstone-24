@@ -418,6 +418,35 @@ ggsave(here('final_report/images/annual-growth.pdf'))
 
 ```
 
+```{r}
+
+percent_change <- end_sp %>%
+  inner_join(with_mean) %>%
+  mutate(pct_change_adjusted = (EndYearBalanceAmt + OtherExpendituresAmt + 
+                     GrantsOrScholarshipsAmt +  AdministrativeExpensesAmt
+                   - ContributionsAmt - BeginningYearBalanceAmt ) / BeginningYearBalanceAmt
+         ) %>%
+  mutate(organization_name = fct_reorder(organization_name,mean_balance, .desc=TRUE)) %>%
+  mutate(pct_change_sp = (sp500_end - sp500_begin) / sp500_begin) %>%
+  select(contains("pct_change"), organization_name, fiscal_year) %>%
+  mutate(pct_change_adjusted = round((100 * pct_change_adjusted), digits = 2), pct_change_sp = round((100 * pct_change_sp), digits = 2)) %>% 
+  rename("Relative Percent Change (%)" = pct_change_adjusted, "S&P 500 Percent Change (%)" = pct_change_sp, "Organization" = organization_name, "Fiscal Year" = fiscal_year)
+  #pivot_longer(c(contains('pct_change')))
+
+
+# DONT RUN MORE THAN ONCE
+percent_change <- percent_change[,c(3, 4, 1, 2)]
+
+library(kableExtra)
+percent_change %>% 
+  kbl(caption = "Relative and S&P 500 Percent Change for Ballet Companies") %>% 
+  kable_material(c("striped", "hover")) %>% 
+  save_kable("images/pct_change.html")
+
+#webshot::webshot(url = NULL, file = "pct_change.pdf")
+
+```
+
 ## Compound Growth Rate
 
 Letting $t$ denote the number of years considered,

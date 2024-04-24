@@ -124,7 +124,10 @@ filed_schd_d %>%
   arrange(desc(num_times_fil_sche_D)) %>%
   select(EIN, organization_name, num_times_fil_sche_D) %>%
   make_table(title = "EINs that reported an endowment at least once", col_names = c("EIN", "Organization Name", "# Times an endowment was filled out")) %>%
-  scroll_box(height = "450px")
+ save_kable("images/filled_schedule_d.html") 
+  
+
+#  scroll_box(height = "450px")
 
 ```
 

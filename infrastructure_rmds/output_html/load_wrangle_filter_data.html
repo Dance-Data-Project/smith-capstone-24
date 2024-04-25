@@ -7,7 +7,7 @@
 
         <meta name="author" content="Rose Evard" />
     
-        <meta name="date" content="2024-03-07" />
+        <meta name="date" content="2024-04-24" />
     
     <title>Loading, Wrangling, &amp; Filtering Data</title>
 
@@ -2641,7 +2641,7 @@ Data</a></h2>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Rose
 Evard</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-03-07</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-04-24</p>
           </div>
    </div>
      
@@ -2655,352 +2655,353 @@ Evard</p>
 - The initial metadata table<br />
 - The filtered metadata table<br />
 - The filtered endowment information</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xml2)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">&#39;GET_VARS.R&#39;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(xml2)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">&#39;GET_VARS.R&#39;</span>))</span></code></pre></div>
 <div id="generate-metadata-table-for-all-files" class="section level1">
 <h1>Generate Metadata Table for All Files</h1>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">##########################################################</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ITERATE THROUGH ALL FILES AND EXTRACT GIVEN VARIABLES</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="do">##########################################################</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @param variables character vector of variables to extract from the xml files</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @param filename string containing full path to xml file to be read</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @param include_paths logical; whether to include paths to extracted variables in data frame</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>get_df <span class="ot">&lt;-</span> <span class="cf">function</span>(variables,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                   filename, </span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                   <span class="at">include_paths =</span> <span class="cn">TRUE</span>) {</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># create column names with just the variables (no paths)</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  variables_no_path <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;*.*</span><span class="sc">\\</span><span class="st">/&quot;</span>, <span class="st">&quot;&quot;</span>, variables )</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  xml_file <span class="ot">&lt;-</span> <span class="fu">read_xml</span>(filename)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  xml_file <span class="ot">&lt;-</span> <span class="fu">xml_ns_strip</span>(xml_file)</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># extract each variable; if it isn&#39;t present, put NA </span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  extracted <span class="ot">&lt;-</span> <span class="fu">map</span>(variables, <span class="sc">~</span>{</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>      xml_file, </span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">xpath =</span>.x)</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                    <span class="cn">NA</span>, </span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">xml_text</span>(value)) })</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>   <span class="fu">names</span>(extracted) <span class="ot">&lt;-</span> variables_no_path</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>   extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>     <span class="fu">as_tibble</span>()</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>   <span class="co"># add columns with the paths to each variable within the xml file</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>   <span class="cf">if</span>(include_paths) {</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>      paths <span class="ot">&lt;-</span> <span class="fu">map</span>(variables, <span class="sc">~</span> {</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>        value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(</span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>          xml_file, </span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>          <span class="at">xpath =</span> <span class="fu">paste0</span>(.x)) </span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>         value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>                      <span class="cn">NA</span>, </span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">xml_path</span>(value)) })</span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>      <span class="fu">names</span>(paths) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(variables_no_path, <span class="st">&quot;_path&quot;</span>)</span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>      extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>        <span class="fu">bind_cols</span>(<span class="fu">as_tibble</span>(paths)) </span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>   }</span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>   <span class="co"># check how many of the entries are NA</span></span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>   <span class="co"># if all NA, prefix &#39;irs:&#39; may be needed</span></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>   columns_not_na <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(<span class="fu">as.data.frame</span>(extracted), <span class="sc">~!</span><span class="fu">is.na</span>(.x)) <span class="sc">%&gt;%</span> <span class="fu">sum</span>()</span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>   <span class="co"># handle case where prefix &#39;irs&#39; is in front</span></span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>   <span class="cf">if</span>(columns_not_na <span class="sc">==</span> <span class="dv">0</span>){</span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>     </span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>       extracted <span class="ot">&lt;-</span> <span class="fu">map</span>(variables_no_path, <span class="sc">~</span> {</span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>        value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(xml_file, </span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>                              <span class="at">xpath =</span> <span class="fu">paste0</span>(<span class="st">&quot;//irs:&quot;</span>, .x)) </span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>        value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>                    <span class="cn">NA</span>, </span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">xml_text</span>(value)) })</span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>        <span class="fu">names</span>(extracted) <span class="ot">&lt;-</span> variables_no_path</span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>         extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>           <span class="fu">as_tibble</span>()</span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>     </span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(include_paths) {</span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>        paths <span class="ot">&lt;-</span> <span class="fu">map</span>(variables_no_path, <span class="sc">~</span> {</span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>          value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(</span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>            xml_file, </span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>            <span class="at">xpath =</span> <span class="fu">paste0</span>(<span class="st">&quot;//irs:&quot;</span>, .x))</span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>          value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>                      <span class="cn">NA</span>, </span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">xml_path</span>(value)) })</span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>        <span class="fu">names</span>(paths) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(variables_no_path, <span class="st">&quot;_path&quot;</span>)  </span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>      extracted <span class="ot">&lt;-</span>  extracted <span class="sc">%&gt;%</span></span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>        <span class="fu">bind_cols</span>(<span class="fu">as_tibble</span>(paths)) </span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>     }</span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>   }</span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a> <span class="co"># add name of file to data frame</span></span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a> extracted <span class="sc">%&gt;%</span></span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">filename =</span> <span class="fu">gsub</span>(<span class="st">&quot;*.*</span><span class="sc">\\</span><span class="st">/&quot;</span>, <span class="st">&quot;&quot;</span>, filename))</span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reference for Field Names</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># https://vtechworks.lib.vt.edu/bitstream/handle/10919/109974/TaxDataFinalReport.pdf?sequence=10&amp;isAllowed=y</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># path assumes zip-file is unzipped in smith-capstone-23 directory</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># generates vector of the full paths to all files in the ballet_990_released_20230208 directory</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="fu">here</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>),</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># variables to extract from each xml file</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>variables_to_extract <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;//Return//ReturnHeader//ReturnTs&quot;</span>,  </span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//Filer//EIN&quot;</span>, </span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span>,</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//TaxPeriodBeginDt&quot;</span>,</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//TaxPeriodEndDt&quot;</span>,</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;//AmendedReturnInd&quot;</span>,</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//BusinessName&quot;</span>)</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co"># if data directory does not exist in current directory, create it </span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>))) {<span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>))}</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co"># iterate over all xml files in the directory and extract data</span></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co"># each iteration generates one row of the data frame</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>all_data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">get_df</span>(<span class="at">variables =</span> variables_to_extract,</span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>                     <span class="at">filename =</span> .x)) </span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co"># clean timestamp and dates</span></span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co"># fiscal year is defined as the year of TaxPeriodEndDt</span></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>all_data <span class="ot">&lt;-</span> all_data <span class="sc">%&gt;%</span></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ReturnDate =</span> <span class="fu">as.Date</span>(ReturnTs,</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>                              <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(TaxPeriodBeginDt, </span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>                  TaxPeriodEndDt),</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>                as.Date, </span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>                <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">fiscal_year =</span> <span class="fu">year</span>(TaxPeriodEndDt),</span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>         <span class="at">fiscal_year =</span> <span class="fu">factor</span>(fiscal_year),</span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>         <span class="at">BusinessName =</span> <span class="fu">toupper</span>(BusinessName))</span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="co"># check all files are present in data frame</span></span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a><span class="co"># nrow(all_data) == length(files)</span></span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="co"># save RDS file to data directory</span></span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(all_data, <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;data_990.RDS&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">##########################################################</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># ITERATE THROUGH ALL FILES AND EXTRACT GIVEN VARIABLES</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="do">##########################################################</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&#39; @param variables character vector of variables to extract from the xml files</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&#39; @param filename string containing full path to xml file to be read</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&#39; @param include_paths logical; whether to include paths to extracted variables in data frame</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>get_df <span class="ot">&lt;-</span> <span class="cf">function</span>(variables,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>                   filename, </span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>                   <span class="at">include_paths =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  </span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  <span class="co"># create column names with just the variables (no paths)</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  variables_no_path <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;*.*</span><span class="sc">\\</span><span class="st">/&quot;</span>, <span class="st">&quot;&quot;</span>, variables )</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  </span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  xml_file <span class="ot">&lt;-</span> <span class="fu">read_xml</span>(filename)</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  xml_file <span class="ot">&lt;-</span> <span class="fu">xml_ns_strip</span>(xml_file)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  </span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>  <span class="co"># extract each variable; if it isn&#39;t present, put NA </span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>  extracted <span class="ot">&lt;-</span> <span class="fu">map</span>(variables, <span class="sc">~</span>{</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>    value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>      xml_file, </span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>      <span class="at">xpath =</span>.x)</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>    value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>                    <span class="cn">NA</span>, </span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>                    <span class="fu">xml_text</span>(value)) })</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>  </span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>   <span class="fu">names</span>(extracted) <span class="ot">&lt;-</span> variables_no_path</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>   </span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>   extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>     <span class="fu">as_tibble</span>()</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a> </span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a> </span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>   <span class="co"># add columns with the paths to each variable within the xml file</span></span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>   <span class="cf">if</span>(include_paths) {</span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>      paths <span class="ot">&lt;-</span> <span class="fu">map</span>(variables, <span class="sc">~</span> {</span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a>        value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(</span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a>          xml_file, </span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a>          <span class="at">xpath =</span> <span class="fu">paste0</span>(.x)) </span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>         value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
+<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a>                      <span class="cn">NA</span>, </span>
+<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a>                      <span class="fu">xml_path</span>(value)) })</span>
+<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a>      </span>
+<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a>      <span class="fu">names</span>(paths) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(variables_no_path, <span class="st">&quot;_path&quot;</span>)</span>
+<span id="cb2-46"><a href="#cb2-46" tabindex="-1"></a>      </span>
+<span id="cb2-47"><a href="#cb2-47" tabindex="-1"></a>      extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
+<span id="cb2-48"><a href="#cb2-48" tabindex="-1"></a>        <span class="fu">bind_cols</span>(<span class="fu">as_tibble</span>(paths)) </span>
+<span id="cb2-49"><a href="#cb2-49" tabindex="-1"></a>  </span>
+<span id="cb2-50"><a href="#cb2-50" tabindex="-1"></a>   }</span>
+<span id="cb2-51"><a href="#cb2-51" tabindex="-1"></a>    </span>
+<span id="cb2-52"><a href="#cb2-52" tabindex="-1"></a>   <span class="co"># check how many of the entries are NA</span></span>
+<span id="cb2-53"><a href="#cb2-53" tabindex="-1"></a>   <span class="co"># if all NA, prefix &#39;irs:&#39; may be needed</span></span>
+<span id="cb2-54"><a href="#cb2-54" tabindex="-1"></a>   columns_not_na <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(<span class="fu">as.data.frame</span>(extracted), <span class="sc">~!</span><span class="fu">is.na</span>(.x)) <span class="sc">%&gt;%</span> <span class="fu">sum</span>()</span>
+<span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a>   </span>
+<span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a>   <span class="co"># handle case where prefix &#39;irs&#39; is in front</span></span>
+<span id="cb2-57"><a href="#cb2-57" tabindex="-1"></a>   <span class="cf">if</span>(columns_not_na <span class="sc">==</span> <span class="dv">0</span>){</span>
+<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a>     </span>
+<span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a>       extracted <span class="ot">&lt;-</span> <span class="fu">map</span>(variables_no_path, <span class="sc">~</span> {</span>
+<span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a>        value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(xml_file, </span>
+<span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a>                              <span class="at">xpath =</span> <span class="fu">paste0</span>(<span class="st">&quot;//irs:&quot;</span>, .x)) </span>
+<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a>        value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
+<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a>                    <span class="cn">NA</span>, </span>
+<span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a>                    <span class="fu">xml_text</span>(value)) })</span>
+<span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a>        <span class="fu">names</span>(extracted) <span class="ot">&lt;-</span> variables_no_path</span>
+<span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a>        </span>
+<span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a>         extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
+<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a>           <span class="fu">as_tibble</span>()</span>
+<span id="cb2-69"><a href="#cb2-69" tabindex="-1"></a>     </span>
+<span id="cb2-70"><a href="#cb2-70" tabindex="-1"></a>        <span class="cf">if</span>(include_paths) {</span>
+<span id="cb2-71"><a href="#cb2-71" tabindex="-1"></a>        paths <span class="ot">&lt;-</span> <span class="fu">map</span>(variables_no_path, <span class="sc">~</span> {</span>
+<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a>          value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(</span>
+<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a>            xml_file, </span>
+<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a>            <span class="at">xpath =</span> <span class="fu">paste0</span>(<span class="st">&quot;//irs:&quot;</span>, .x))</span>
+<span id="cb2-75"><a href="#cb2-75" tabindex="-1"></a>      </span>
+<span id="cb2-76"><a href="#cb2-76" tabindex="-1"></a>          value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
+<span id="cb2-77"><a href="#cb2-77" tabindex="-1"></a>                      <span class="cn">NA</span>, </span>
+<span id="cb2-78"><a href="#cb2-78" tabindex="-1"></a>                      <span class="fu">xml_path</span>(value)) })</span>
+<span id="cb2-79"><a href="#cb2-79" tabindex="-1"></a>        </span>
+<span id="cb2-80"><a href="#cb2-80" tabindex="-1"></a>        <span class="fu">names</span>(paths) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(variables_no_path, <span class="st">&quot;_path&quot;</span>)  </span>
+<span id="cb2-81"><a href="#cb2-81" tabindex="-1"></a>        </span>
+<span id="cb2-82"><a href="#cb2-82" tabindex="-1"></a>      extracted <span class="ot">&lt;-</span>  extracted <span class="sc">%&gt;%</span></span>
+<span id="cb2-83"><a href="#cb2-83" tabindex="-1"></a>        <span class="fu">bind_cols</span>(<span class="fu">as_tibble</span>(paths)) </span>
+<span id="cb2-84"><a href="#cb2-84" tabindex="-1"></a>     }</span>
+<span id="cb2-85"><a href="#cb2-85" tabindex="-1"></a>   }</span>
+<span id="cb2-86"><a href="#cb2-86" tabindex="-1"></a>   </span>
+<span id="cb2-87"><a href="#cb2-87" tabindex="-1"></a> <span class="co"># add name of file to data frame</span></span>
+<span id="cb2-88"><a href="#cb2-88" tabindex="-1"></a> extracted <span class="sc">%&gt;%</span></span>
+<span id="cb2-89"><a href="#cb2-89" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">filename =</span> <span class="fu">gsub</span>(<span class="st">&quot;*.*</span><span class="sc">\\</span><span class="st">/&quot;</span>, <span class="st">&quot;&quot;</span>, filename))</span>
+<span id="cb2-90"><a href="#cb2-90" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Reference for Field Names</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># https://vtechworks.lib.vt.edu/bitstream/handle/10919/109974/TaxDataFinalReport.pdf?sequence=10&amp;isAllowed=y</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># path assumes zip-file is unzipped in smith-capstone-23 directory</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co"># generates vector of the full paths to all files in the ballet_990_released_20230208 directory</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="fu">here</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>),</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co"># variables to extract from each xml file</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>variables_to_extract <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;//Return//ReturnHeader//ReturnTs&quot;</span>,  </span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//Filer//EIN&quot;</span>, </span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//TaxPeriodBeginDt&quot;</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//TaxPeriodEndDt&quot;</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>                          <span class="st">&quot;//AmendedReturnInd&quot;</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>                          <span class="st">&quot;//Return//ReturnHeader//BusinessName&quot;</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co"># if data directory does not exist in current directory, create it </span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>))) {<span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>))}</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co"># iterate over all xml files in the directory and extract data</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co"># each iteration generates one row of the data frame</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>all_data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>                     <span class="fu">get_df</span>(<span class="at">variables =</span> variables_to_extract,</span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a>                     <span class="at">filename =</span> .x)) </span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co"># clean timestamp and dates</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co"># fiscal year is defined as the year of TaxPeriodEndDt</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>all_data <span class="ot">&lt;-</span> all_data <span class="sc">%&gt;%</span></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ReturnDate =</span> <span class="fu">as.Date</span>(ReturnTs,</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a>                              <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(TaxPeriodBeginDt, </span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a>                  TaxPeriodEndDt),</span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a>                as.Date, </span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a>                <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">fiscal_year =</span> <span class="fu">year</span>(TaxPeriodEndDt),</span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a>         <span class="at">fiscal_year =</span> <span class="fu">factor</span>(fiscal_year),</span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a>         <span class="at">BusinessName =</span> <span class="fu">toupper</span>(BusinessName))</span>
+<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a></span>
+<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a><span class="co"># check all files are present in data frame</span></span>
+<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a><span class="co"># nrow(all_data) == length(files)</span></span>
+<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a></span>
+<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a><span class="co"># save RDS file to data directory</span></span>
+<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a><span class="fu">saveRDS</span>(all_data, <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;data_990.RDS&quot;</span>))</span></code></pre></div>
 </div>
 <div id="filtering-the-metadata-table" class="section level1">
 <h1>Filtering the metadata table</h1>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Filtering for most recent version, </span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>filter_data <span class="ot">&lt;-</span> all_data <span class="sc">%&gt;%</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990&quot;</span> <span class="sc">|</span> ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990EZ&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amended_return_filled =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(AmendedReturnInd),<span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(<span class="at">order_by =</span>amended_return_filled, <span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()  </span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Saving data</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>filter_data <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ReturnTs, EIN, filename) <span class="sc">%&gt;%</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;ein_ts_filter.RDS&quot;</span>))</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(filter_data, <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;data_filter_990.RDS&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="do">## Filtering for most recent version, </span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>filter_data <span class="ot">&lt;-</span> all_data <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="fu">filter</span>(ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990&quot;</span> <span class="sc">|</span> ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990EZ&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amended_return_filled =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(AmendedReturnInd),<span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="fu">slice_max</span>(<span class="at">order_by =</span>amended_return_filled, <span class="at">n =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="fu">ungroup</span>()  </span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">## Saving data</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>filter_data <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="fu">select</span>(ReturnTs, EIN, filename) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="fu">saveRDS</span>(<span class="fu">here</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;ein_ts_filter.RDS&quot;</span>))</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">saveRDS</span>(filter_data, <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;data_filter_990.RDS&quot;</span>))</span></code></pre></div>
 </div>
 <div id="extracting-endowment-data" class="section level1">
 <h1>Extracting Endowment Data</h1>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For variable information, see https://www.irs.gov/pub/irs-pdf/i990sd.pdf Page 4 Part V</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="do">##########################################################</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ITERATE THROUGH ALL FILES AND ENDOWMENT  VARIABLES</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="do">##########################################################</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&#39; @param filename string containing full path to xml file to be read</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="do">##Based off of Quinn&#39;s strategy to extract metadata</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>get_endowment <span class="ot">&lt;-</span> <span class="cf">function</span>(filename) {</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Retrieving the same endowment information for all </span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  variables <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;//Return//ReturnHeader//ReturnTs&quot;</span>, </span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnHeader//Filer//EIN&quot;</span>, </span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;//Return//ReturnHeader//TaxPeriodBeginDt&quot;</span>,</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;//Return//ReturnHeader//TaxPeriodEndDt&quot;</span>,</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990//DonorRstrOrQuasiEndowmentsInd&quot;</span>,</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>                 </span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>                </span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>                 </span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>                 </span>
-<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
-<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>                 </span>
-<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//BoardDesignatedBalanceEOYPct&quot;</span>,</span>
-<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//PrmnntEndowmentBalanceEOYPct&quot;</span>,</span>
-<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//TermEndowmentBalanceEOYPct&quot;</span>,</span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//EndowmentsHeldUnrelatedOrgInd&quot;</span>,</span>
-<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//EndowmentsHeldRelatedOrgInd&quot;</span>,</span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>                 </span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//AmendedReturnInd&quot;</span>,</span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span></span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>                 )</span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Column name; order matters, needs to align with retrieval order</span></span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>  variables_no_path <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;ReturnTs&quot;</span>, </span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;EIN&quot;</span>,</span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;TaxPeriodBeginDt&quot;</span>,</span>
-<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;TaxPeriodEndDt&quot;</span>,</span>
-<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;DonorRstrOrQuasiEndowmentsInd&quot;</span>,</span>
-<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYBeginningYearBalanceAmt&quot;</span>, </span>
-<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYContributionsAmt&quot;</span>, </span>
-<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYInvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYOtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYEndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>                        </span>
-<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM1BeginningYearBalanceAmt&quot;</span>, </span>
-<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM1ContributionsAmt&quot;</span>, </span>
-<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM1InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM1OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM1EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>                        </span>
-<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM2BeginningYearBalanceAmt&quot;</span>, </span>
-<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM2ContributionsAmt&quot;</span>, </span>
-<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM2InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM2OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM2EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>                        </span>
-<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM3BeginningYearBalanceAmt&quot;</span>, </span>
-<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM3ContributionsAmt&quot;</span>, </span>
-<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM3InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM3OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM3EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>                        </span>
-<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM4BeginningYearBalanceAmt&quot;</span>, </span>
-<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM4ContributionsAmt&quot;</span>, </span>
-<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM4InvestmentEarningsOrLossesAmt&quot;</span>,</span>
-<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM4OtherExpendituresAmt&quot;</span>,</span>
-<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;CYM4EndYearBalanceAmt&quot;</span>,</span>
-<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a>                        </span>
-<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;BoardDesignatedBalanceEOYPct&quot;</span>,</span>
-<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;PrmnntEndowmentBalanceEOYPct&quot;</span>,</span>
-<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;TermEndowmentBalanceEOYPct&quot;</span>,</span>
-<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;EndowmentsHeldUnrelatedOrgInd&quot;</span>,</span>
-<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;EndowmentsHeldRelatedOrgInd&quot;</span>,</span>
-<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>                        </span>
-<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;AmendedReturnInd&quot;</span>,</span>
-<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;ReturnTypeCd&quot;</span></span>
-<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>                        )</span>
-<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>  xml_file <span class="ot">&lt;-</span> <span class="fu">read_xml</span>(filename)</span>
-<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>  xml_file <span class="ot">&lt;-</span> <span class="fu">xml_ns_strip</span>(xml_file)</span>
-<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a>  <span class="co"># extract each variable; if it isn&#39;t present, put NA </span></span>
-<span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a>  extracted <span class="ot">&lt;-</span> <span class="fu">map</span>(variables, <span class="sc">~</span>{</span>
-<span id="cb6-109"><a href="#cb6-109" aria-hidden="true" tabindex="-1"></a>    value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(</span>
-<span id="cb6-110"><a href="#cb6-110" aria-hidden="true" tabindex="-1"></a>      xml_file, </span>
-<span id="cb6-111"><a href="#cb6-111" aria-hidden="true" tabindex="-1"></a>      <span class="at">xpath =</span>.x)</span>
-<span id="cb6-112"><a href="#cb6-112" aria-hidden="true" tabindex="-1"></a>    value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
-<span id="cb6-113"><a href="#cb6-113" aria-hidden="true" tabindex="-1"></a>                    <span class="cn">NA</span>, </span>
-<span id="cb6-114"><a href="#cb6-114" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">xml_text</span>(value)) })</span>
-<span id="cb6-115"><a href="#cb6-115" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-116"><a href="#cb6-116" aria-hidden="true" tabindex="-1"></a>   <span class="fu">names</span>(extracted) <span class="ot">&lt;-</span> variables_no_path</span>
-<span id="cb6-117"><a href="#cb6-117" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb6-118"><a href="#cb6-118" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check how many of the entries are NA</span></span>
-<span id="cb6-119"><a href="#cb6-119" aria-hidden="true" tabindex="-1"></a>  <span class="co"># if all NA, prefix &#39;irs:&#39; may be needed</span></span>
-<span id="cb6-120"><a href="#cb6-120" aria-hidden="true" tabindex="-1"></a>  columns_not_na <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(<span class="fu">as.data.frame</span>(extracted), <span class="sc">~!</span><span class="fu">is.na</span>(.x)) <span class="sc">%&gt;%</span> <span class="fu">sum</span>()</span>
-<span id="cb6-121"><a href="#cb6-121" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-122"><a href="#cb6-122" aria-hidden="true" tabindex="-1"></a>  <span class="co"># handle case where prefix &#39;irs&#39; is in front</span></span>
-<span id="cb6-123"><a href="#cb6-123" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(columns_not_na <span class="sc">==</span> <span class="dv">0</span>){</span>
-<span id="cb6-124"><a href="#cb6-124" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-125"><a href="#cb6-125" aria-hidden="true" tabindex="-1"></a>    extracted <span class="ot">&lt;-</span> <span class="fu">map</span>(variables_no_path, <span class="sc">~</span> {</span>
-<span id="cb6-126"><a href="#cb6-126" aria-hidden="true" tabindex="-1"></a>      value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(xml_file, </span>
-<span id="cb6-127"><a href="#cb6-127" aria-hidden="true" tabindex="-1"></a>                            <span class="at">xpath =</span> <span class="fu">paste0</span>(<span class="st">&quot;//irs:&quot;</span>, .x)) </span>
-<span id="cb6-128"><a href="#cb6-128" aria-hidden="true" tabindex="-1"></a>      value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
-<span id="cb6-129"><a href="#cb6-129" aria-hidden="true" tabindex="-1"></a>                      <span class="cn">NA</span>, </span>
-<span id="cb6-130"><a href="#cb6-130" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">xml_text</span>(value)) })</span>
-<span id="cb6-131"><a href="#cb6-131" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(extracted) <span class="ot">&lt;-</span> variables_no_path</span>
-<span id="cb6-132"><a href="#cb6-132" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-133"><a href="#cb6-133" aria-hidden="true" tabindex="-1"></a>    extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
-<span id="cb6-134"><a href="#cb6-134" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as_tibble</span>()</span>
-<span id="cb6-135"><a href="#cb6-135" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-136"><a href="#cb6-136" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb6-137"><a href="#cb6-137" aria-hidden="true" tabindex="-1"></a>   extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
-<span id="cb6-138"><a href="#cb6-138" aria-hidden="true" tabindex="-1"></a>     <span class="fu">as_tibble</span>()</span>
-<span id="cb6-139"><a href="#cb6-139" aria-hidden="true" tabindex="-1"></a> <span class="co"># add name of file to data frame</span></span>
-<span id="cb6-140"><a href="#cb6-140" aria-hidden="true" tabindex="-1"></a> extracted <span class="sc">%&gt;%</span></span>
-<span id="cb6-141"><a href="#cb6-141" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">filename =</span> <span class="fu">gsub</span>(<span class="st">&quot;*.*</span><span class="sc">\\</span><span class="st">/&quot;</span>, <span class="st">&quot;&quot;</span>, filename))</span>
-<span id="cb6-142"><a href="#cb6-142" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="do">##Applying get_endowment to entire output </span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="fu">here</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>),</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>endowment_data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">get_endowment</span>(.x)) </span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="do">##Retriving Ts and EINs for filtered data </span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>filter_ids <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ReturnTs, EIN)</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="do">## Adjusting data type, filtering to proper 990s</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>endowment_data_filtered <span class="ot">&lt;-</span> endowment_data <span class="sc">%&gt;%</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ReturnDate =</span> <span class="fu">as.Date</span>(ReturnTs,</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                              <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>),</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">TaxPeriodBeginDt =</span> <span class="fu">as.Date</span>(TaxPeriodBeginDt,</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>),</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">TaxPeriodEndDt =</span> <span class="fu">as.Date</span>(TaxPeriodEndDt,</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>),</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">fiscal_year =</span> <span class="fu">as.factor</span>(<span class="fu">year</span>(TaxPeriodEndDt))) <span class="sc">%&gt;%</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(CYBeginningYearBalanceAmt<span class="sc">:</span>TermEndowmentBalanceEOYPct,</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                as.numeric)) <span class="sc">%&gt;%</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(EndowmentsHeldRelatedOrgInd, </span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>                  EndowmentsHeldUnrelatedOrgInd,</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>                  DonorRstrOrQuasiEndowmentsInd),</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>                <span class="sc">~</span><span class="fu">ifelse</span>(.x <span class="sc">==</span> <span class="st">&quot;true&quot;</span> <span class="sc">|</span> .x <span class="sc">==</span> <span class="st">&quot;1&quot;</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990&quot;</span> <span class="sc">|</span> ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990EZ&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(filter_ids, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;ReturnTs&quot;</span>, <span class="st">&quot;EIN&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Removing columns needed for filtering</span></span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(ReturnTypeCd,AmendedReturnInd)) </span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(endowment_data_filtered, <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;endowment_filter_data_990.RDS&quot;</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&#39;data&#39;</span>, <span class="st">&#39;companies.csv&#39;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">EIN =</span> <span class="fu">as.character</span>(EIN),</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">EIN =</span> <span class="fu">ifelse</span>(<span class="fu">nchar</span>(EIN) <span class="sc">==</span> <span class="dv">8</span>, <span class="fu">paste</span>(<span class="st">&quot;0&quot;</span>, EIN, <span class="at">sep=</span><span class="st">&quot;&quot;</span>), EIN)) <span class="sc">%&gt;%</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Company, EIN) <span class="sc">%&gt;%</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(<span class="fu">here</span>(<span class="st">&#39;data&#39;</span>, <span class="st">&#39;companies.RDS&#39;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># For variable information, see https://www.irs.gov/pub/irs-pdf/i990sd.pdf Page 4 Part V</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="do">##########################################################</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co"># ITERATE THROUGH ALL FILES AND ENDOWMENT  VARIABLES</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="do">##########################################################</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&#39; @param filename string containing full path to xml file to be read</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="do">##Based off of Quinn&#39;s strategy to extract metadata</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>get_endowment <span class="ot">&lt;-</span> <span class="cf">function</span>(filename) {</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  </span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  <span class="co"># Retrieving the same endowment information for all </span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  variables <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;//Return//ReturnHeader//ReturnTs&quot;</span>, </span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnHeader//Filer//EIN&quot;</span>, </span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>                  <span class="st">&quot;//Return//ReturnHeader//TaxPeriodBeginDt&quot;</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>                  <span class="st">&quot;//Return//ReturnHeader//TaxPeriodEndDt&quot;</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990//DonorRstrOrQuasiEndowmentsInd&quot;</span>,</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>                 </span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus1YrEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a>                </span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus2YrEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a>                 </span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus3YrEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a>                 </span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//BeginningYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//ContributionsAmt&quot;</span>,</span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//CYMinus4YrEndwmtFundGrp//EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a>                 </span>
+<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//BoardDesignatedBalanceEOYPct&quot;</span>,</span>
+<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//PrmnntEndowmentBalanceEOYPct&quot;</span>,</span>
+<span id="cb6-50"><a href="#cb6-50" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//TermEndowmentBalanceEOYPct&quot;</span>,</span>
+<span id="cb6-51"><a href="#cb6-51" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//EndowmentsHeldUnrelatedOrgInd&quot;</span>,</span>
+<span id="cb6-52"><a href="#cb6-52" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnData//IRS990ScheduleD//EndowmentsHeldRelatedOrgInd&quot;</span>,</span>
+<span id="cb6-53"><a href="#cb6-53" tabindex="-1"></a>                 </span>
+<span id="cb6-54"><a href="#cb6-54" tabindex="-1"></a>                 <span class="st">&quot;//AmendedReturnInd&quot;</span>,</span>
+<span id="cb6-55"><a href="#cb6-55" tabindex="-1"></a>                 <span class="st">&quot;//Return//ReturnHeader//ReturnTypeCd&quot;</span></span>
+<span id="cb6-56"><a href="#cb6-56" tabindex="-1"></a>                 )</span>
+<span id="cb6-57"><a href="#cb6-57" tabindex="-1"></a>  </span>
+<span id="cb6-58"><a href="#cb6-58" tabindex="-1"></a>  <span class="co"># Column name; order matters, needs to align with retrieval order</span></span>
+<span id="cb6-59"><a href="#cb6-59" tabindex="-1"></a>  variables_no_path <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;ReturnTs&quot;</span>, </span>
+<span id="cb6-60"><a href="#cb6-60" tabindex="-1"></a>                         <span class="st">&quot;EIN&quot;</span>,</span>
+<span id="cb6-61"><a href="#cb6-61" tabindex="-1"></a>                         <span class="st">&quot;TaxPeriodBeginDt&quot;</span>,</span>
+<span id="cb6-62"><a href="#cb6-62" tabindex="-1"></a>                         <span class="st">&quot;TaxPeriodEndDt&quot;</span>,</span>
+<span id="cb6-63"><a href="#cb6-63" tabindex="-1"></a>                         <span class="st">&quot;DonorRstrOrQuasiEndowmentsInd&quot;</span>,</span>
+<span id="cb6-64"><a href="#cb6-64" tabindex="-1"></a>                        <span class="st">&quot;CYBeginningYearBalanceAmt&quot;</span>, </span>
+<span id="cb6-65"><a href="#cb6-65" tabindex="-1"></a>                        <span class="st">&quot;CYContributionsAmt&quot;</span>, </span>
+<span id="cb6-66"><a href="#cb6-66" tabindex="-1"></a>                        <span class="st">&quot;CYInvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-67"><a href="#cb6-67" tabindex="-1"></a>                        <span class="st">&quot;CYOtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-68"><a href="#cb6-68" tabindex="-1"></a>                        <span class="st">&quot;CYEndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-69"><a href="#cb6-69" tabindex="-1"></a>                        </span>
+<span id="cb6-70"><a href="#cb6-70" tabindex="-1"></a>                        <span class="st">&quot;CYM1BeginningYearBalanceAmt&quot;</span>, </span>
+<span id="cb6-71"><a href="#cb6-71" tabindex="-1"></a>                        <span class="st">&quot;CYM1ContributionsAmt&quot;</span>, </span>
+<span id="cb6-72"><a href="#cb6-72" tabindex="-1"></a>                        <span class="st">&quot;CYM1InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-73"><a href="#cb6-73" tabindex="-1"></a>                        <span class="st">&quot;CYM1OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-74"><a href="#cb6-74" tabindex="-1"></a>                        <span class="st">&quot;CYM1EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-75"><a href="#cb6-75" tabindex="-1"></a>                        </span>
+<span id="cb6-76"><a href="#cb6-76" tabindex="-1"></a>                        <span class="st">&quot;CYM2BeginningYearBalanceAmt&quot;</span>, </span>
+<span id="cb6-77"><a href="#cb6-77" tabindex="-1"></a>                        <span class="st">&quot;CYM2ContributionsAmt&quot;</span>, </span>
+<span id="cb6-78"><a href="#cb6-78" tabindex="-1"></a>                        <span class="st">&quot;CYM2InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-79"><a href="#cb6-79" tabindex="-1"></a>                        <span class="st">&quot;CYM2OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-80"><a href="#cb6-80" tabindex="-1"></a>                        <span class="st">&quot;CYM2EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-81"><a href="#cb6-81" tabindex="-1"></a>                        </span>
+<span id="cb6-82"><a href="#cb6-82" tabindex="-1"></a>                        <span class="st">&quot;CYM3BeginningYearBalanceAmt&quot;</span>, </span>
+<span id="cb6-83"><a href="#cb6-83" tabindex="-1"></a>                        <span class="st">&quot;CYM3ContributionsAmt&quot;</span>, </span>
+<span id="cb6-84"><a href="#cb6-84" tabindex="-1"></a>                        <span class="st">&quot;CYM3InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-85"><a href="#cb6-85" tabindex="-1"></a>                        <span class="st">&quot;CYM3OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-86"><a href="#cb6-86" tabindex="-1"></a>                        <span class="st">&quot;CYM3EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-87"><a href="#cb6-87" tabindex="-1"></a>                        </span>
+<span id="cb6-88"><a href="#cb6-88" tabindex="-1"></a>                        <span class="st">&quot;CYM4BeginningYearBalanceAmt&quot;</span>, </span>
+<span id="cb6-89"><a href="#cb6-89" tabindex="-1"></a>                        <span class="st">&quot;CYM4ContributionsAmt&quot;</span>, </span>
+<span id="cb6-90"><a href="#cb6-90" tabindex="-1"></a>                        <span class="st">&quot;CYM4InvestmentEarningsOrLossesAmt&quot;</span>,</span>
+<span id="cb6-91"><a href="#cb6-91" tabindex="-1"></a>                        <span class="st">&quot;CYM4OtherExpendituresAmt&quot;</span>,</span>
+<span id="cb6-92"><a href="#cb6-92" tabindex="-1"></a>                        <span class="st">&quot;CYM4EndYearBalanceAmt&quot;</span>,</span>
+<span id="cb6-93"><a href="#cb6-93" tabindex="-1"></a>                        </span>
+<span id="cb6-94"><a href="#cb6-94" tabindex="-1"></a>                        <span class="st">&quot;BoardDesignatedBalanceEOYPct&quot;</span>,</span>
+<span id="cb6-95"><a href="#cb6-95" tabindex="-1"></a>                        <span class="st">&quot;PrmnntEndowmentBalanceEOYPct&quot;</span>,</span>
+<span id="cb6-96"><a href="#cb6-96" tabindex="-1"></a>                        <span class="st">&quot;TermEndowmentBalanceEOYPct&quot;</span>,</span>
+<span id="cb6-97"><a href="#cb6-97" tabindex="-1"></a>                        <span class="st">&quot;EndowmentsHeldUnrelatedOrgInd&quot;</span>,</span>
+<span id="cb6-98"><a href="#cb6-98" tabindex="-1"></a>                        <span class="st">&quot;EndowmentsHeldRelatedOrgInd&quot;</span>,</span>
+<span id="cb6-99"><a href="#cb6-99" tabindex="-1"></a>                        </span>
+<span id="cb6-100"><a href="#cb6-100" tabindex="-1"></a>                        <span class="st">&quot;AmendedReturnInd&quot;</span>,</span>
+<span id="cb6-101"><a href="#cb6-101" tabindex="-1"></a>                        <span class="st">&quot;ReturnTypeCd&quot;</span></span>
+<span id="cb6-102"><a href="#cb6-102" tabindex="-1"></a>                        )</span>
+<span id="cb6-103"><a href="#cb6-103" tabindex="-1"></a>  </span>
+<span id="cb6-104"><a href="#cb6-104" tabindex="-1"></a>  xml_file <span class="ot">&lt;-</span> <span class="fu">read_xml</span>(filename)</span>
+<span id="cb6-105"><a href="#cb6-105" tabindex="-1"></a>  xml_file <span class="ot">&lt;-</span> <span class="fu">xml_ns_strip</span>(xml_file)</span>
+<span id="cb6-106"><a href="#cb6-106" tabindex="-1"></a>  </span>
+<span id="cb6-107"><a href="#cb6-107" tabindex="-1"></a>  <span class="co"># extract each variable; if it isn&#39;t present, put NA </span></span>
+<span id="cb6-108"><a href="#cb6-108" tabindex="-1"></a>  extracted <span class="ot">&lt;-</span> <span class="fu">map</span>(variables, <span class="sc">~</span>{</span>
+<span id="cb6-109"><a href="#cb6-109" tabindex="-1"></a>    value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(</span>
+<span id="cb6-110"><a href="#cb6-110" tabindex="-1"></a>      xml_file, </span>
+<span id="cb6-111"><a href="#cb6-111" tabindex="-1"></a>      <span class="at">xpath =</span>.x)</span>
+<span id="cb6-112"><a href="#cb6-112" tabindex="-1"></a>    value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
+<span id="cb6-113"><a href="#cb6-113" tabindex="-1"></a>                    <span class="cn">NA</span>, </span>
+<span id="cb6-114"><a href="#cb6-114" tabindex="-1"></a>                    <span class="fu">xml_text</span>(value)) })</span>
+<span id="cb6-115"><a href="#cb6-115" tabindex="-1"></a>  </span>
+<span id="cb6-116"><a href="#cb6-116" tabindex="-1"></a>   <span class="fu">names</span>(extracted) <span class="ot">&lt;-</span> variables_no_path</span>
+<span id="cb6-117"><a href="#cb6-117" tabindex="-1"></a>   </span>
+<span id="cb6-118"><a href="#cb6-118" tabindex="-1"></a>  <span class="co"># check how many of the entries are NA</span></span>
+<span id="cb6-119"><a href="#cb6-119" tabindex="-1"></a>  <span class="co"># if all NA, prefix &#39;irs:&#39; may be needed</span></span>
+<span id="cb6-120"><a href="#cb6-120" tabindex="-1"></a>  columns_not_na <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(<span class="fu">as.data.frame</span>(extracted), <span class="sc">~!</span><span class="fu">is.na</span>(.x)) <span class="sc">%&gt;%</span> <span class="fu">sum</span>()</span>
+<span id="cb6-121"><a href="#cb6-121" tabindex="-1"></a>  </span>
+<span id="cb6-122"><a href="#cb6-122" tabindex="-1"></a>  <span class="co"># handle case where prefix &#39;irs&#39; is in front</span></span>
+<span id="cb6-123"><a href="#cb6-123" tabindex="-1"></a>  <span class="cf">if</span>(columns_not_na <span class="sc">==</span> <span class="dv">0</span>){</span>
+<span id="cb6-124"><a href="#cb6-124" tabindex="-1"></a>    </span>
+<span id="cb6-125"><a href="#cb6-125" tabindex="-1"></a>    extracted <span class="ot">&lt;-</span> <span class="fu">map</span>(variables_no_path, <span class="sc">~</span> {</span>
+<span id="cb6-126"><a href="#cb6-126" tabindex="-1"></a>      value <span class="ot">&lt;-</span> <span class="fu">xml_find_all</span>(xml_file, </span>
+<span id="cb6-127"><a href="#cb6-127" tabindex="-1"></a>                            <span class="at">xpath =</span> <span class="fu">paste0</span>(<span class="st">&quot;//irs:&quot;</span>, .x)) </span>
+<span id="cb6-128"><a href="#cb6-128" tabindex="-1"></a>      value <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(value) <span class="sc">==</span><span class="dv">0</span>, </span>
+<span id="cb6-129"><a href="#cb6-129" tabindex="-1"></a>                      <span class="cn">NA</span>, </span>
+<span id="cb6-130"><a href="#cb6-130" tabindex="-1"></a>                      <span class="fu">xml_text</span>(value)) })</span>
+<span id="cb6-131"><a href="#cb6-131" tabindex="-1"></a>    <span class="fu">names</span>(extracted) <span class="ot">&lt;-</span> variables_no_path</span>
+<span id="cb6-132"><a href="#cb6-132" tabindex="-1"></a>    </span>
+<span id="cb6-133"><a href="#cb6-133" tabindex="-1"></a>    extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
+<span id="cb6-134"><a href="#cb6-134" tabindex="-1"></a>      <span class="fu">as_tibble</span>()</span>
+<span id="cb6-135"><a href="#cb6-135" tabindex="-1"></a>  }</span>
+<span id="cb6-136"><a href="#cb6-136" tabindex="-1"></a>   </span>
+<span id="cb6-137"><a href="#cb6-137" tabindex="-1"></a>   extracted <span class="ot">&lt;-</span> extracted <span class="sc">%&gt;%</span></span>
+<span id="cb6-138"><a href="#cb6-138" tabindex="-1"></a>     <span class="fu">as_tibble</span>()</span>
+<span id="cb6-139"><a href="#cb6-139" tabindex="-1"></a> <span class="co"># add name of file to data frame</span></span>
+<span id="cb6-140"><a href="#cb6-140" tabindex="-1"></a> extracted <span class="sc">%&gt;%</span></span>
+<span id="cb6-141"><a href="#cb6-141" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">filename =</span> <span class="fu">gsub</span>(<span class="st">&quot;*.*</span><span class="sc">\\</span><span class="st">/&quot;</span>, <span class="st">&quot;&quot;</span>, filename))</span>
+<span id="cb6-142"><a href="#cb6-142" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">##Applying get_endowment to entire output </span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">dir</span>(<span class="fu">here</span>(<span class="st">&quot;990archivesfeb2024&quot;</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>              <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>endowment_data <span class="ot">&lt;-</span> <span class="fu">map_df</span>(files, <span class="sc">~</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>                     <span class="fu">get_endowment</span>(.x)) </span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="do">##Retriving Ts and EINs for filtered data </span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>filter_ids <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="fu">select</span>(ReturnTs, EIN)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="do">## Adjusting data type, filtering to proper 990s</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>endowment_data_filtered <span class="ot">&lt;-</span> endowment_data <span class="sc">%&gt;%</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ReturnDate =</span> <span class="fu">as.Date</span>(ReturnTs,</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>                              <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>),</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>         <span class="at">TaxPeriodBeginDt =</span> <span class="fu">as.Date</span>(TaxPeriodBeginDt,</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>                                  <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>),</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>         <span class="at">TaxPeriodEndDt =</span> <span class="fu">as.Date</span>(TaxPeriodEndDt,</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>                                  <span class="at">format =</span> <span class="st">&quot;%Y-%m-%d&quot;</span>),</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>         <span class="at">fiscal_year =</span> <span class="fu">as.factor</span>(<span class="fu">year</span>(TaxPeriodEndDt))) <span class="sc">%&gt;%</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(CYBeginningYearBalanceAmt<span class="sc">:</span>TermEndowmentBalanceEOYPct,</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>                as.numeric)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(EndowmentsHeldRelatedOrgInd, </span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>                  EndowmentsHeldUnrelatedOrgInd,</span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>                  DonorRstrOrQuasiEndowmentsInd),</span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a>                <span class="sc">~</span><span class="fu">ifelse</span>(.x <span class="sc">==</span> <span class="st">&quot;true&quot;</span> <span class="sc">|</span> .x <span class="sc">==</span> <span class="st">&quot;1&quot;</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a>  </span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>  <span class="fu">filter</span>(ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990&quot;</span> <span class="sc">|</span> ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990EZ&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a>  <span class="fu">right_join</span>(filter_ids, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;ReturnTs&quot;</span>, <span class="st">&quot;EIN&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a>  <span class="co">#Removing columns needed for filtering</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(ReturnTypeCd,AmendedReturnInd)) </span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">saveRDS</span>(endowment_data_filtered, <span class="fu">here</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;endowment_filter_data_990.RDS&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">&#39;data&#39;</span>, <span class="st">&#39;companies.csv&#39;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">EIN =</span> ein) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">EIN =</span> <span class="fu">as.character</span>(EIN),</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>         <span class="at">EIN =</span> <span class="fu">ifelse</span>(<span class="fu">nchar</span>(EIN) <span class="sc">==</span> <span class="dv">8</span>, <span class="fu">paste</span>(<span class="st">&quot;0&quot;</span>, EIN, <span class="at">sep=</span><span class="st">&quot;&quot;</span>), EIN)) <span class="sc">%&gt;%</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="fu">select</span>(Company, EIN) <span class="sc">%&gt;%</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="fu">saveRDS</span>(<span class="fu">here</span>(<span class="st">&#39;data&#39;</span>, <span class="st">&#39;companies.RDS&#39;</span>))</span></code></pre></div>
 </div>
 </div>
 

@@ -7,7 +7,7 @@
 
         <meta name="author" content="Rose Evard" />
     
-        <meta name="date" content="2024-03-07" />
+        <meta name="date" content="2024-04-24" />
     
     <title>Filtering out Filings</title>
 
@@ -2866,7 +2866,7 @@ margin-left: 0 !important;
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Rose
 Evard</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-03-07</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-04-24</p>
           </div>
    </div>
      
@@ -2882,64 +2882,64 @@ Evard</p>
 max-width:2300px;
 }
 </style>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make kable table with consistent formatting</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>make_table <span class="ot">&lt;-</span> <span class="cf">function</span>(..., <span class="at">title =</span> <span class="st">&quot;&quot;</span>) {</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  title <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;&lt;center&gt;&lt;span style = &#39;font-size:150%;color:black&#39;&gt;&lt;b&gt;&quot;</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                  title,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;&lt;/span&gt;&lt;/b&gt;&lt;center&gt;&quot;</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>   <span class="fu">as_tibble</span>(...) <span class="sc">%&gt;%</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">kable_material</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">row_spec</span>(<span class="at">row=</span><span class="dv">0</span>, <span class="at">background =</span> <span class="st">&quot;#43494C&quot;</span> , <span class="at">color =</span> <span class="st">&quot;white&quot;</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># make kable table with consistent formatting</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>make_table <span class="ot">&lt;-</span> <span class="cf">function</span>(..., <span class="at">title =</span> <span class="st">&quot;&quot;</span>) {</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  title <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;&lt;center&gt;&lt;span style = &#39;font-size:150%;color:black&#39;&gt;&lt;b&gt;&quot;</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>                  title,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>                  <span class="st">&quot;&lt;/span&gt;&lt;/b&gt;&lt;center&gt;&quot;</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>   <span class="fu">as_tibble</span>(...) <span class="sc">%&gt;%</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>    <span class="fu">kbl</span>(<span class="at">caption =</span> title) <span class="sc">%&gt;%</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>    <span class="fu">kable_material</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>    <span class="fu">row_spec</span>(<span class="at">row=</span><span class="dv">0</span>, <span class="at">background =</span> <span class="st">&quot;#43494C&quot;</span> , <span class="at">color =</span> <span class="st">&quot;white&quot;</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>}</span></code></pre></div>
 <div id="filtering-amended-990s-and-990t" class="section level2">
 <h2>Filtering Amended 990s and 990T</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Retain only 990, 990 EZ&#39;s that are not marked as amended</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>filter_data <span class="ot">&lt;-</span> all_data <span class="sc">%&gt;%</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990&quot;</span> <span class="sc">|</span> ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990EZ&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">## Retain only 990, 990 EZ&#39;s that are not marked as amended</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>filter_data <span class="ot">&lt;-</span> all_data <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="fu">filter</span>(ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990&quot;</span> <span class="sc">|</span> ReturnTypeCd <span class="sc">==</span> <span class="st">&quot;990EZ&quot;</span>)</span></code></pre></div>
 </div>
 <div id="companies-with-multiple-filings-in-a-fiscal-year" class="section level2">
 <h2>Companies with Multiple Filings in a Fiscal Year</h2>
-<p>There are 46 companies that have multiple filings in a year. No
+<p>There are 7 companies that have multiple filings in a year. No
 company had more than 2 filings for a given fiscal year.</p>
 <p>Additionally, in cases where there were 2 filings, one was always an
 amended filing, as we would expect.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check if one of the filings was amended for </span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># every company that had multiple filings  </span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>companies_mult_filings <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n=</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(AmendedReturnInd, EIN, n, ReturnDate) <span class="sc">%&gt;%</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n), EIN, fiscal_year)  <span class="sc">%&gt;%</span> </span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n<span class="sc">&gt;</span><span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amended_return_filled =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(AmendedReturnInd),<span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">filled_out_ammended_total_for_year =</span> <span class="fu">sum</span>(amended_return_filled)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">form_was_amended =</span> <span class="fu">case_when</span>(</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    filled_out_ammended_total_for_year <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">&quot;Amended Once&quot;</span>,</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    filled_out_ammended_total_for_year <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;Not Amended&quot;</span>,</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    filled_out_ammended_total_for_year <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">&quot;Amended More than Once&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n), EIN, fiscal_year, AmendedReturnInd) <span class="sc">%&gt;%</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(amended_return_filled, filled_out_ammended_total_for_year))</span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>companies_mult_filings <span class="sc">%&gt;%</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(form_was_amended <span class="sc">!=</span> <span class="st">&quot;Amended Once&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># check if one of the filings was amended for </span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># every company that had multiple filings  </span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>companies_mult_filings <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n=</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="fu">select</span>(AmendedReturnInd, EIN, n, ReturnDate) <span class="sc">%&gt;%</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n), EIN, fiscal_year)  <span class="sc">%&gt;%</span> </span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="fu">filter</span>(n<span class="sc">&gt;</span><span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amended_return_filled =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(AmendedReturnInd),<span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">filled_out_ammended_total_for_year =</span> <span class="fu">sum</span>(amended_return_filled)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">form_was_amended =</span> <span class="fu">case_when</span>(</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>    filled_out_ammended_total_for_year <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">&quot;Amended Once&quot;</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>    filled_out_ammended_total_for_year <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">&quot;Not Amended&quot;</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>    filled_out_ammended_total_for_year <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">&quot;Amended More than Once&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n), EIN, fiscal_year, AmendedReturnInd) <span class="sc">%&gt;%</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(amended_return_filled, filled_out_ammended_total_for_year))</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>companies_mult_filings <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">filter</span>(form_was_amended <span class="sc">!=</span> <span class="st">&quot;Amended Once&quot;</span>)</span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["fiscal_year"],"name":[1],"type":["fct"],"align":["left"]},{"label":["AmendedReturnInd"],"name":[2],"type":["chr"],"align":["left"]},{"label":["EIN"],"name":[3],"type":["chr"],"align":["left"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]},{"label":["ReturnDate"],"name":[5],"type":["date"],"align":["right"]},{"label":["form_was_amended"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"2022","2":"NA","3":"844735639","4":"2","5":"2022-10-31","6":"Not Amended"},{"1":"2022","2":"NA","3":"844735639","4":"2","5":"2023-05-10","6":"Not Amended"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["fiscal_year"],"name":[1],"type":["fct"],"align":["left"]},{"label":["AmendedReturnInd"],"name":[2],"type":["chr"],"align":["left"]},{"label":["EIN"],"name":[3],"type":["chr"],"align":["left"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]},{"label":["ReturnDate"],"name":[5],"type":["date"],"align":["right"]},{"label":["form_was_amended"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"2021","2":"X","3":"131664054","4":"3","5":"2022-07-25","6":"Amended More than Once"},{"1":"2021","2":"X","3":"131664054","4":"3","5":"2023-09-08","6":"Amended More than Once"},{"1":"2021","2":"NA","3":"131664054","4":"3","5":"2022-06-30","6":"Amended More than Once"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># table showing companies with multiple filings per year</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>companies_mult_filings <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">Fiscal Year</span><span class="st">`</span> <span class="ot">=</span> fiscal_year,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Amended</span><span class="st">`</span> <span class="ot">=</span> AmendedReturnInd,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>         EIN, </span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Form was Amended</span><span class="st">`</span> <span class="ot">=</span> form_was_amended,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Return Date</span><span class="st">`</span> <span class="ot">=</span> ReturnDate,</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Number of Filings&lt;br&gt;for Fiscal Year</span><span class="st">`</span> <span class="ot">=</span> n</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">make_table</span>(<span class="at">title =</span> <span class="st">&quot;Companies with Multiple Filings in a Fiscal Year&quot;</span> ) <span class="sc">%&gt;%</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scroll_box</span>(<span class="at">height =</span> <span class="st">&quot;400px&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># table showing companies with multiple filings per year</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>companies_mult_filings <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">Fiscal Year</span><span class="st">`</span> <span class="ot">=</span> fiscal_year,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>         <span class="st">`</span><span class="at">Amended</span><span class="st">`</span> <span class="ot">=</span> AmendedReturnInd,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>         EIN, </span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>         <span class="st">`</span><span class="at">Form was Amended</span><span class="st">`</span> <span class="ot">=</span> form_was_amended,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>         <span class="st">`</span><span class="at">Return Date</span><span class="st">`</span> <span class="ot">=</span> ReturnDate,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>         <span class="st">`</span><span class="at">Number of Filings&lt;br&gt;for Fiscal Year</span><span class="st">`</span> <span class="ot">=</span> n</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="fu">make_table</span>(<span class="at">title =</span> <span class="st">&quot;Companies with Multiple Filings in a Fiscal Year&quot;</span> ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="fu">scroll_box</span>(<span class="at">height =</span> <span class="st">&quot;400px&quot;</span>)</span></code></pre></div>
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; ">
 <table class=" lightable-material" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; margin-left: auto; margin-right: auto;">
 <caption>
@@ -2981,76 +2981,16 @@ Number of Filings&lt;br&gt;for Fiscal Year
 X
 </td>
 <td style="text-align:left;">
-010372997
+131664054
 </td>
 <td style="text-align:left;">
-Amended Once
+Amended More than Once
 </td>
 <td style="text-align:left;">
-2022-05-06
+2022-07-25
 </td>
 <td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2021
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-010372997
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2022-01-12
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-010420070
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-07-24
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-010420070
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-07-17
-</td>
-<td style="text-align:right;">
-2
+3
 </td>
 </tr>
 <tr>
@@ -3061,16 +3001,16 @@ Amended Once
 X
 </td>
 <td style="text-align:left;">
-020569320
+131664054
 </td>
 <td style="text-align:left;">
-Amended Once
+Amended More than Once
 </td>
 <td style="text-align:left;">
-2023-08-03
+2023-09-08
 </td>
 <td style="text-align:right;">
-2
+3
 </td>
 </tr>
 <tr>
@@ -3081,187 +3021,27 @@ Amended Once
 NA
 </td>
 <td style="text-align:left;">
-020569320
+131664054
 </td>
 <td style="text-align:left;">
-Amended Once
+Amended More than Once
 </td>
 <td style="text-align:left;">
-2022-05-11
+2022-06-30
 </td>
 <td style="text-align:right;">
-2
+3
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-2019
+2021
 </td>
 <td style="text-align:left;">
 X
 </td>
 <td style="text-align:left;">
-061537525
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-12-03
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2019
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-061537525
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2020-11-13
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-203447830
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-02-08
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-203447830
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-02-01
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-222587551
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2022-06-23
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-222587551
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-11-15
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2018
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-271093011
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2019-06-19
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2018
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-271093011
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2019-05-15
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-311784286
+581371843
 </td>
 <td style="text-align:left;">
 Amended Once
@@ -3275,259 +3055,19 @@ Amended Once
 </tr>
 <tr>
 <td style="text-align:left;">
-2022
+2021
 </td>
 <td style="text-align:left;">
 NA
 </td>
 <td style="text-align:left;">
-311784286
+581371843
 </td>
 <td style="text-align:left;">
 Amended Once
 </td>
 <td style="text-align:left;">
-2023-01-30
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-436052680
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2022-08-31
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-436052680
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-05-14
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-454443676
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2022-11-07
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-454443676
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2022-04-04
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2018
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-462580700
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2019-08-09
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2018
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-462580700
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2019-02-26
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-471758099
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-06-12
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-471758099
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-05-05
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2019
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-542124670
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2020-07-15
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2019
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-542124670
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2020-07-14
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-581420599
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2022-11-04
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-581420599
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-05-16
+2022-05-09
 </td>
 <td style="text-align:right;">
 2
@@ -3541,13 +3081,13 @@ Amended Once
 X
 </td>
 <td style="text-align:left;">
-581420599
+952040874
 </td>
 <td style="text-align:left;">
 Amended Once
 </td>
 <td style="text-align:left;">
-2022-08-10
+2022-07-28
 </td>
 <td style="text-align:right;">
 2
@@ -3561,7 +3101,7 @@ Amended Once
 NA
 </td>
 <td style="text-align:left;">
-581420599
+952040874
 </td>
 <td style="text-align:left;">
 Amended Once
@@ -3573,1230 +3113,358 @@ Amended Once
 2
 </td>
 </tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-581420599
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-09-15
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-581420599
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-05-15
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2019
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-710508968
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2020-05-28
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2019
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-710508968
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2020-04-22
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-08-09
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-05-17
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-770154765
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-09-09
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2020
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-770154765
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2021-03-05
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2021
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-841150857
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-01-26
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2021
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-841150857
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2022-07-15
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-844735639
-</td>
-<td style="text-align:left;">
-Not Amended
-</td>
-<td style="text-align:left;">
-2022-10-31
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-844735639
-</td>
-<td style="text-align:left;">
-Not Amended
-</td>
-<td style="text-align:left;">
-2023-05-10
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-860717486
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-10-20
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-860717486
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-05-15
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-X
-</td>
-<td style="text-align:left;">
-881045747
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-08-24
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-881045747
-</td>
-<td style="text-align:left;">
-Amended Once
-</td>
-<td style="text-align:left;">
-2023-02-27
-</td>
-<td style="text-align:right;">
-2
-</td>
-</tr>
 </tbody>
 </table>
 </div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># notice we have 799 filings before filtering based on amended filings</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># from the previous code there were 14 cases where a company filed </span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 2 times in a single fiscal year</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>filter_data <span class="sc">%&gt;%</span> <span class="fu">nrow</span>() </span></code></pre></div>
-<pre><code>## [1] 1076</code></pre>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># take the amended version</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>filter_data_amended <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amended_return_filled =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(AmendedReturnInd),<span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(<span class="at">order_by =</span>amended_return_filled, <span class="at">n =</span> <span class="dv">1</span>)</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># take the most recent return date</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>max_by_date <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amended_return_filled =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(AmendedReturnInd),<span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(<span class="at">order_by =</span>ReturnDate, <span class="at">n =</span> <span class="dv">1</span>)</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># check that picking max return date is the same as picking the amended one</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(filter_data_amended, max_by_date)</span></code></pre></div>
-<pre><code>##   [1] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 360: Numeric: lengths (1, 2) differ &gt;&quot;       
-##   [2] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 361: Mean relative difference: 0.002770083 &gt;&quot;
-##   [3] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 362: Mean relative difference: 0.002762431 &gt;&quot;
-##   [4] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 363: Mean relative difference: 0.002754821 &gt;&quot;
-##   [5] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 364: Mean relative difference: 0.002747253 &gt;&quot;
-##   [6] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 365: Mean relative difference: 0.002739726 &gt;&quot;
-##   [7] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 366: Mean relative difference: 0.00273224 &gt;&quot; 
-##   [8] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 367: Mean relative difference: 0.002724796 &gt;&quot;
-##   [9] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 368: Mean relative difference: 0.002717391 &gt;&quot;
-##  [10] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 369: Mean relative difference: 0.002710027 &gt;&quot;
-##  [11] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 370: Mean relative difference: 0.002702703 &gt;&quot;
-##  [12] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 371: Mean relative difference: 0.002695418 &gt;&quot;
-##  [13] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 372: Mean relative difference: 0.002688172 &gt;&quot;
-##  [14] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 373: Mean relative difference: 0.002680965 &gt;&quot;
-##  [15] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 374: Mean relative difference: 0.002673797 &gt;&quot;
-##  [16] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 375: Mean relative difference: 0.002666667 &gt;&quot;
-##  [17] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 376: Mean relative difference: 0.002659574 &gt;&quot;
-##  [18] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 377: Mean relative difference: 0.00265252 &gt;&quot; 
-##  [19] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 378: Mean relative difference: 0.002645503 &gt;&quot;
-##  [20] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 379: Mean relative difference: 0.002638522 &gt;&quot;
-##  [21] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 380: Mean relative difference: 0.002631579 &gt;&quot;
-##  [22] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 381: Mean relative difference: 0.002624672 &gt;&quot;
-##  [23] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 382: Mean relative difference: 0.002617801 &gt;&quot;
-##  [24] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 383: Mean relative difference: 0.002610966 &gt;&quot;
-##  [25] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 384: Mean relative difference: 0.002604167 &gt;&quot;
-##  [26] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 385: Mean relative difference: 0.002597403 &gt;&quot;
-##  [27] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 386: Mean relative difference: 0.002590674 &gt;&quot;
-##  [28] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 387: Mean relative difference: 0.002583979 &gt;&quot;
-##  [29] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 388: Mean relative difference: 0.00257732 &gt;&quot; 
-##  [30] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 389: Mean relative difference: 0.002570694 &gt;&quot;
-##  [31] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 390: Mean relative difference: 0.002564103 &gt;&quot;
-##  [32] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 391: Mean relative difference: 0.002557545 &gt;&quot;
-##  [33] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 392: Mean relative difference: 0.00255102 &gt;&quot; 
-##  [34] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 393: Mean relative difference: 0.002544529 &gt;&quot;
-##  [35] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 394: Mean relative difference: 0.002538071 &gt;&quot;
-##  [36] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 395: Mean relative difference: 0.002531646 &gt;&quot;
-##  [37] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 396: Mean relative difference: 0.002525253 &gt;&quot;
-##  [38] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 397: Mean relative difference: 0.002518892 &gt;&quot;
-##  [39] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 398: Mean relative difference: 0.002512563 &gt;&quot;
-##  [40] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 399: Mean relative difference: 0.002506266 &gt;&quot;
-##  [41] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 400: Mean relative difference: 0.0025 &gt;&quot;     
-##  [42] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 401: Mean relative difference: 0.002493766 &gt;&quot;
-##  [43] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 402: Mean relative difference: 0.002487562 &gt;&quot;
-##  [44] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 403: Mean relative difference: 0.00248139 &gt;&quot; 
-##  [45] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 404: Mean relative difference: 0.002475248 &gt;&quot;
-##  [46] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 405: Mean relative difference: 0.002469136 &gt;&quot;
-##  [47] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 406: Mean relative difference: 0.002463054 &gt;&quot;
-##  [48] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 407: Mean relative difference: 0.002457002 &gt;&quot;
-##  [49] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 408: Mean relative difference: 0.00245098 &gt;&quot; 
-##  [50] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 409: Mean relative difference: 0.002444988 &gt;&quot;
-##  [51] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 410: Mean relative difference: 0.002439024 &gt;&quot;
-##  [52] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 411: Mean relative difference: 0.00243309 &gt;&quot; 
-##  [53] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 412: Mean relative difference: 0.002427184 &gt;&quot;
-##  [54] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 413: Mean relative difference: 0.002421308 &gt;&quot;
-##  [55] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 414: Mean relative difference: 0.002415459 &gt;&quot;
-##  [56] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 415: Mean relative difference: 0.002409639 &gt;&quot;
-##  [57] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 416: Mean relative difference: 0.002403846 &gt;&quot;
-##  [58] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 417: Mean relative difference: 0.002398082 &gt;&quot;
-##  [59] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 418: Mean relative difference: 0.002392344 &gt;&quot;
-##  [60] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 419: Mean relative difference: 0.002386635 &gt;&quot;
-##  [61] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 420: Mean relative difference: 0.002380952 &gt;&quot;
-##  [62] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 421: Mean relative difference: 0.002375297 &gt;&quot;
-##  [63] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 422: Mean relative difference: 0.002369668 &gt;&quot;
-##  [64] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 423: Mean relative difference: 0.002364066 &gt;&quot;
-##  [65] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 424: Mean relative difference: 0.002358491 &gt;&quot;
-##  [66] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 425: Mean relative difference: 0.002352941 &gt;&quot;
-##  [67] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 426: Mean relative difference: 0.002347418 &gt;&quot;
-##  [68] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 427: Mean relative difference: 0.00234192 &gt;&quot; 
-##  [69] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 428: Mean relative difference: 0.002336449 &gt;&quot;
-##  [70] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 429: Mean relative difference: 0.002331002 &gt;&quot;
-##  [71] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 430: Mean relative difference: 0.002325581 &gt;&quot;
-##  [72] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 431: Mean relative difference: 0.002320186 &gt;&quot;
-##  [73] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 432: Mean relative difference: 0.002314815 &gt;&quot;
-##  [74] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 433: Mean relative difference: 0.002309469 &gt;&quot;
-##  [75] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 434: Mean relative difference: 0.002304147 &gt;&quot;
-##  [76] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 435: Mean relative difference: 0.002298851 &gt;&quot;
-##  [77] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 436: Mean relative difference: 0.002293578 &gt;&quot;
-##  [78] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 437: Mean relative difference: 0.00228833 &gt;&quot; 
-##  [79] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 438: Mean relative difference: 0.002283105 &gt;&quot;
-##  [80] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 439: Mean relative difference: 0.002277904 &gt;&quot;
-##  [81] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 440: Mean relative difference: 0.002272727 &gt;&quot;
-##  [82] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 441: Mean relative difference: 0.002267574 &gt;&quot;
-##  [83] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 442: Mean relative difference: 0.002262443 &gt;&quot;
-##  [84] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 443: Mean relative difference: 0.002257336 &gt;&quot;
-##  [85] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 444: Mean relative difference: 0.002252252 &gt;&quot;
-##  [86] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 445: Mean relative difference: 0.002247191 &gt;&quot;
-##  [87] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 446: Mean relative difference: 0.002242152 &gt;&quot;
-##  [88] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 447: Mean relative difference: 0.002237136 &gt;&quot;
-##  [89] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 448: Mean relative difference: 0.002232143 &gt;&quot;
-##  [90] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 449: Mean relative difference: 0.002227171 &gt;&quot;
-##  [91] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 450: Mean relative difference: 0.002222222 &gt;&quot;
-##  [92] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 451: Mean relative difference: 0.002217295 &gt;&quot;
-##  [93] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 452: Mean relative difference: 0.002212389 &gt;&quot;
-##  [94] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 453: Mean relative difference: 0.002207506 &gt;&quot;
-##  [95] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 454: Mean relative difference: 0.002202643 &gt;&quot;
-##  [96] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 455: Mean relative difference: 0.002197802 &gt;&quot;
-##  [97] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 456: Mean relative difference: 0.002192982 &gt;&quot;
-##  [98] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 457: Mean relative difference: 0.002188184 &gt;&quot;
-##  [99] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 458: Mean relative difference: 0.002183406 &gt;&quot;
-## [100] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 459: Mean relative difference: 0.002178649 &gt;&quot;
-## [101] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 460: Mean relative difference: 0.002173913 &gt;&quot;
-## [102] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 461: Mean relative difference: 0.002169197 &gt;&quot;
-## [103] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 462: Mean relative difference: 0.002164502 &gt;&quot;
-## [104] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 463: Mean relative difference: 0.002159827 &gt;&quot;
-## [105] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 464: Mean relative difference: 0.002155172 &gt;&quot;
-## [106] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 465: Mean relative difference: 0.002150538 &gt;&quot;
-## [107] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 466: Mean relative difference: 0.002145923 &gt;&quot;
-## [108] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 467: Mean relative difference: 0.002141328 &gt;&quot;
-## [109] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 468: Mean relative difference: 0.002136752 &gt;&quot;
-## [110] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 469: Mean relative difference: 0.002132196 &gt;&quot;
-## [111] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 470: Mean relative difference: 0.00212766 &gt;&quot; 
-## [112] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 471: Mean relative difference: 0.002123142 &gt;&quot;
-## [113] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 472: Mean relative difference: 0.002118644 &gt;&quot;
-## [114] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 473: Mean relative difference: 0.002114165 &gt;&quot;
-## [115] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 474: Mean relative difference: 0.002109705 &gt;&quot;
-## [116] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 475: Mean relative difference: 0.002105263 &gt;&quot;
-## [117] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 476: Mean relative difference: 0.00210084 &gt;&quot; 
-## [118] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 477: Mean relative difference: 0.002096436 &gt;&quot;
-## [119] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 478: Mean relative difference: 0.00209205 &gt;&quot; 
-## [120] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 479: Mean relative difference: 0.002087683 &gt;&quot;
-## [121] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 480: Mean relative difference: 0.002083333 &gt;&quot;
-## [122] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 481: Mean relative difference: 0.002079002 &gt;&quot;
-## [123] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 482: Mean relative difference: 0.002074689 &gt;&quot;
-## [124] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 483: Mean relative difference: 0.002070393 &gt;&quot;
-## [125] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 484: Mean relative difference: 0.002066116 &gt;&quot;
-## [126] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 485: Mean relative difference: 0.002061856 &gt;&quot;
-## [127] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 486: Mean relative difference: 0.002057613 &gt;&quot;
-## [128] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 487: Mean relative difference: 0.002053388 &gt;&quot;
-## [129] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 488: Mean relative difference: 0.00204918 &gt;&quot; 
-## [130] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 489: Mean relative difference: 0.00204499 &gt;&quot; 
-## [131] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 490: Mean relative difference: 0.002040816 &gt;&quot;
-## [132] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 491: Mean relative difference: 0.00203666 &gt;&quot; 
-## [133] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 492: Mean relative difference: 0.00203252 &gt;&quot; 
-## [134] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 493: Mean relative difference: 0.002028398 &gt;&quot;
-## [135] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 494: Mean relative difference: 0.002024291 &gt;&quot;
-## [136] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 495: Mean relative difference: 0.002020202 &gt;&quot;
-## [137] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 496: Mean relative difference: 0.002016129 &gt;&quot;
-## [138] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 497: Mean relative difference: 0.002012072 &gt;&quot;
-## [139] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 498: Mean relative difference: 0.002008032 &gt;&quot;
-## [140] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 499: Mean relative difference: 0.002004008 &gt;&quot;
-## [141] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 500: Mean relative difference: 0.002 &gt;&quot;      
-## [142] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 501: Mean relative difference: 0.001996008 &gt;&quot;
-## [143] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 502: Mean relative difference: 0.001992032 &gt;&quot;
-## [144] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 503: Mean relative difference: 0.001988072 &gt;&quot;
-## [145] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 504: Mean relative difference: 0.001984127 &gt;&quot;
-## [146] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 505: Mean relative difference: 0.001980198 &gt;&quot;
-## [147] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 506: Mean relative difference: 0.001976285 &gt;&quot;
-## [148] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 507: Mean relative difference: 0.001972387 &gt;&quot;
-## [149] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 508: Mean relative difference: 0.001968504 &gt;&quot;
-## [150] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 509: Mean relative difference: 0.001964637 &gt;&quot;
-## [151] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 510: Mean relative difference: 0.001960784 &gt;&quot;
-## [152] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 511: Mean relative difference: 0.001956947 &gt;&quot;
-## [153] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 512: Mean relative difference: 0.001953125 &gt;&quot;
-## [154] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 513: Mean relative difference: 0.001949318 &gt;&quot;
-## [155] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 514: Mean relative difference: 0.001945525 &gt;&quot;
-## [156] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 515: Mean relative difference: 0.001941748 &gt;&quot;
-## [157] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 516: Mean relative difference: 0.001937984 &gt;&quot;
-## [158] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 517: Mean relative difference: 0.001934236 &gt;&quot;
-## [159] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 518: Mean relative difference: 0.001930502 &gt;&quot;
-## [160] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 519: Mean relative difference: 0.001926782 &gt;&quot;
-## [161] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 520: Mean relative difference: 0.001923077 &gt;&quot;
-## [162] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 521: Mean relative difference: 0.001919386 &gt;&quot;
-## [163] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 522: Mean relative difference: 0.001915709 &gt;&quot;
-## [164] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 523: Mean relative difference: 0.001912046 &gt;&quot;
-## [165] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 524: Mean relative difference: 0.001908397 &gt;&quot;
-## [166] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 525: Mean relative difference: 0.001904762 &gt;&quot;
-## [167] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 526: Mean relative difference: 0.001901141 &gt;&quot;
-## [168] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 527: Mean relative difference: 0.001897533 &gt;&quot;
-## [169] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 528: Mean relative difference: 0.001893939 &gt;&quot;
-## [170] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 529: Mean relative difference: 0.001890359 &gt;&quot;
-## [171] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 530: Mean relative difference: 0.001886792 &gt;&quot;
-## [172] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 531: Mean relative difference: 0.001883239 &gt;&quot;
-## [173] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 532: Mean relative difference: 0.001879699 &gt;&quot;
-## [174] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 533: Mean relative difference: 0.001876173 &gt;&quot;
-## [175] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 534: Mean relative difference: 0.001872659 &gt;&quot;
-## [176] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 535: Mean relative difference: 0.001869159 &gt;&quot;
-## [177] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 536: Mean relative difference: 0.001865672 &gt;&quot;
-## [178] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 537: Mean relative difference: 0.001862197 &gt;&quot;
-## [179] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 538: Mean relative difference: 0.001858736 &gt;&quot;
-## [180] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 539: Mean relative difference: 0.001855288 &gt;&quot;
-## [181] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 540: Mean relative difference: 0.001851852 &gt;&quot;
-## [182] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 541: Mean relative difference: 0.001848429 &gt;&quot;
-## [183] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 542: Mean relative difference: 0.001845018 &gt;&quot;
-## [184] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 543: Mean relative difference: 0.001841621 &gt;&quot;
-## [185] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 544: Mean relative difference: 0.001838235 &gt;&quot;
-## [186] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 545: Mean relative difference: 0.001834862 &gt;&quot;
-## [187] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 546: Mean relative difference: 0.001831502 &gt;&quot;
-## [188] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 547: Mean relative difference: 0.001828154 &gt;&quot;
-## [189] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 548: Mean relative difference: 0.001824818 &gt;&quot;
-## [190] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 549: Mean relative difference: 0.001821494 &gt;&quot;
-## [191] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 550: Mean relative difference: 0.001818182 &gt;&quot;
-## [192] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 551: Mean relative difference: 0.001814882 &gt;&quot;
-## [193] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 552: Mean relative difference: 0.001811594 &gt;&quot;
-## [194] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 553: Mean relative difference: 0.001808318 &gt;&quot;
-## [195] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 554: Mean relative difference: 0.001805054 &gt;&quot;
-## [196] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 555: Mean relative difference: 0.001801802 &gt;&quot;
-## [197] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 556: Mean relative difference: 0.001798561 &gt;&quot;
-## [198] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 557: Mean relative difference: 0.001795332 &gt;&quot;
-## [199] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 558: Mean relative difference: 0.001792115 &gt;&quot;
-## [200] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 559: Mean relative difference: 0.001788909 &gt;&quot;
-## [201] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 560: Mean relative difference: 0.001785714 &gt;&quot;
-## [202] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 561: Mean relative difference: 0.001782531 &gt;&quot;
-## [203] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 562: Mean relative difference: 0.001779359 &gt;&quot;
-## [204] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 563: Mean relative difference: 0.001776199 &gt;&quot;
-## [205] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 564: Mean relative difference: 0.00177305 &gt;&quot; 
-## [206] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 565: Mean relative difference: 0.001769912 &gt;&quot;
-## [207] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 566: Mean relative difference: 0.001766784 &gt;&quot;
-## [208] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 567: Mean relative difference: 0.001763668 &gt;&quot;
-## [209] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 568: Mean relative difference: 0.001760563 &gt;&quot;
-## [210] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 569: Mean relative difference: 0.001757469 &gt;&quot;
-## [211] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 570: Mean relative difference: 0.001754386 &gt;&quot;
-## [212] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 571: Mean relative difference: 0.001751313 &gt;&quot;
-## [213] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 572: Mean relative difference: 0.001748252 &gt;&quot;
-## [214] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 573: Mean relative difference: 0.001745201 &gt;&quot;
-## [215] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 574: Mean relative difference: 0.00174216 &gt;&quot; 
-## [216] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 575: Mean relative difference: 0.00173913 &gt;&quot; 
-## [217] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 576: Mean relative difference: 0.001736111 &gt;&quot;
-## [218] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 577: Mean relative difference: 0.001733102 &gt;&quot;
-## [219] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 578: Mean relative difference: 0.001730104 &gt;&quot;
-## [220] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 579: Mean relative difference: 0.001727116 &gt;&quot;
-## [221] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 580: Mean relative difference: 0.001724138 &gt;&quot;
-## [222] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 581: Mean relative difference: 0.00172117 &gt;&quot; 
-## [223] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 582: Mean relative difference: 0.001718213 &gt;&quot;
-## [224] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 583: Mean relative difference: 0.001715266 &gt;&quot;
-## [225] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 584: Mean relative difference: 0.001712329 &gt;&quot;
-## [226] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 585: Mean relative difference: 0.001709402 &gt;&quot;
-## [227] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 586: Mean relative difference: 0.001706485 &gt;&quot;
-## [228] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 587: Mean relative difference: 0.001703578 &gt;&quot;
-## [229] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 588: Mean relative difference: 0.00170068 &gt;&quot; 
-## [230] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 589: Mean relative difference: 0.001697793 &gt;&quot;
-## [231] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 590: Mean relative difference: 0.001694915 &gt;&quot;
-## [232] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 591: Mean relative difference: 0.001692047 &gt;&quot;
-## [233] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 592: Mean relative difference: 0.001689189 &gt;&quot;
-## [234] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 593: Mean relative difference: 0.001686341 &gt;&quot;
-## [235] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 594: Mean relative difference: 0.001683502 &gt;&quot;
-## [236] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 595: Mean relative difference: 0.001680672 &gt;&quot;
-## [237] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 596: Mean relative difference: 0.001677852 &gt;&quot;
-## [238] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 597: Mean relative difference: 0.001675042 &gt;&quot;
-## [239] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 598: Mean relative difference: 0.001672241 &gt;&quot;
-## [240] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 599: Mean relative difference: 0.001669449 &gt;&quot;
-## [241] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 600: Mean relative difference: 0.001666667 &gt;&quot;
-## [242] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 601: Mean relative difference: 0.001663894 &gt;&quot;
-## [243] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 602: Mean relative difference: 0.00166113 &gt;&quot; 
-## [244] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 603: Mean relative difference: 0.001658375 &gt;&quot;
-## [245] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 604: Mean relative difference: 0.001655629 &gt;&quot;
-## [246] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 605: Mean relative difference: 0.001652893 &gt;&quot;
-## [247] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 606: Mean relative difference: 0.001650165 &gt;&quot;
-## [248] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 607: Mean relative difference: 0.001647446 &gt;&quot;
-## [249] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 608: Mean relative difference: 0.001644737 &gt;&quot;
-## [250] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 609: Mean relative difference: 0.001642036 &gt;&quot;
-## [251] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 610: Mean relative difference: 0.001639344 &gt;&quot;
-## [252] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 611: Mean relative difference: 0.001636661 &gt;&quot;
-## [253] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 612: Mean relative difference: 0.001633987 &gt;&quot;
-## [254] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 613: Mean relative difference: 0.001631321 &gt;&quot;
-## [255] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 614: Mean relative difference: 0.001628664 &gt;&quot;
-## [256] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 615: Mean relative difference: 0.001626016 &gt;&quot;
-## [257] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 616: Mean relative difference: 0.001623377 &gt;&quot;
-## [258] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 617: Mean relative difference: 0.001620746 &gt;&quot;
-## [259] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 618: Mean relative difference: 0.001618123 &gt;&quot;
-## [260] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 619: Mean relative difference: 0.001615509 &gt;&quot;
-## [261] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 620: Mean relative difference: 0.001612903 &gt;&quot;
-## [262] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 621: Mean relative difference: 0.001610306 &gt;&quot;
-## [263] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 622: Mean relative difference: 0.001607717 &gt;&quot;
-## [264] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 623: Mean relative difference: 0.001605136 &gt;&quot;
-## [265] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 624: Mean relative difference: 0.001602564 &gt;&quot;
-## [266] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 625: Mean relative difference: 0.0016 &gt;&quot;     
-## [267] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 626: Mean relative difference: 0.001597444 &gt;&quot;
-## [268] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 627: Mean relative difference: 0.001594896 &gt;&quot;
-## [269] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 628: Mean relative difference: 0.001592357 &gt;&quot;
-## [270] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 629: Mean relative difference: 0.001589825 &gt;&quot;
-## [271] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 630: Mean relative difference: 0.001587302 &gt;&quot;
-## [272] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 631: Mean relative difference: 0.001584786 &gt;&quot;
-## [273] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 632: Mean relative difference: 0.001582278 &gt;&quot;
-## [274] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 633: Mean relative difference: 0.001579779 &gt;&quot;
-## [275] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 634: Mean relative difference: 0.001577287 &gt;&quot;
-## [276] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 635: Mean relative difference: 0.001574803 &gt;&quot;
-## [277] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 636: Mean relative difference: 0.001572327 &gt;&quot;
-## [278] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 637: Mean relative difference: 0.001569859 &gt;&quot;
-## [279] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 638: Mean relative difference: 0.001567398 &gt;&quot;
-## [280] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 639: Mean relative difference: 0.001564945 &gt;&quot;
-## [281] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 640: Mean relative difference: 0.0015625 &gt;&quot;  
-## [282] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 641: Mean relative difference: 0.001560062 &gt;&quot;
-## [283] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 642: Mean relative difference: 0.001557632 &gt;&quot;
-## [284] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 643: Mean relative difference: 0.00155521 &gt;&quot; 
-## [285] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 644: Mean relative difference: 0.001552795 &gt;&quot;
-## [286] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 645: Mean relative difference: 0.001550388 &gt;&quot;
-## [287] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 646: Mean relative difference: 0.001547988 &gt;&quot;
-## [288] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 647: Mean relative difference: 0.001545595 &gt;&quot;
-## [289] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 648: Mean relative difference: 0.00154321 &gt;&quot; 
-## [290] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 649: Mean relative difference: 0.001540832 &gt;&quot;
-## [291] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 650: Mean relative difference: 0.001538462 &gt;&quot;
-## [292] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 651: Mean relative difference: 0.001536098 &gt;&quot;
-## [293] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 652: Mean relative difference: 0.001533742 &gt;&quot;
-## [294] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 653: Mean relative difference: 0.001531394 &gt;&quot;
-## [295] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 654: Mean relative difference: 0.001529052 &gt;&quot;
-## [296] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 655: Mean relative difference: 0.001526718 &gt;&quot;
-## [297] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 656: Mean relative difference: 0.00152439 &gt;&quot; 
-## [298] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 657: Mean relative difference: 0.00152207 &gt;&quot; 
-## [299] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 658: Mean relative difference: 0.001519757 &gt;&quot;
-## [300] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 659: Mean relative difference: 0.001517451 &gt;&quot;
-## [301] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 660: Mean relative difference: 0.001515152 &gt;&quot;
-## [302] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 661: Mean relative difference: 0.001512859 &gt;&quot;
-## [303] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 662: Mean relative difference: 0.001510574 &gt;&quot;
-## [304] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 663: Mean relative difference: 0.001508296 &gt;&quot;
-## [305] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 664: Mean relative difference: 0.001506024 &gt;&quot;
-## [306] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 665: Mean relative difference: 0.001503759 &gt;&quot;
-## [307] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 666: Mean relative difference: 0.001501502 &gt;&quot;
-## [308] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 667: Mean relative difference: 0.00149925 &gt;&quot; 
-## [309] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 668: Mean relative difference: 0.001497006 &gt;&quot;
-## [310] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 669: Mean relative difference: 0.001494768 &gt;&quot;
-## [311] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 670: Mean relative difference: 0.001492537 &gt;&quot;
-## [312] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 671: Mean relative difference: 0.001490313 &gt;&quot;
-## [313] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 672: Mean relative difference: 0.001488095 &gt;&quot;
-## [314] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 673: Mean relative difference: 0.001485884 &gt;&quot;
-## [315] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 674: Mean relative difference: 0.00148368 &gt;&quot; 
-## [316] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 675: Mean relative difference: 0.001481481 &gt;&quot;
-## [317] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 676: Mean relative difference: 0.00147929 &gt;&quot; 
-## [318] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 677: Mean relative difference: 0.001477105 &gt;&quot;
-## [319] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 678: Mean relative difference: 0.001474926 &gt;&quot;
-## [320] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 679: Mean relative difference: 0.001472754 &gt;&quot;
-## [321] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 680: Mean relative difference: 0.001470588 &gt;&quot;
-## [322] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 681: Mean relative difference: 0.001468429 &gt;&quot;
-## [323] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 682: Mean relative difference: 0.001466276 &gt;&quot;
-## [324] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 683: Mean relative difference: 0.001464129 &gt;&quot;
-## [325] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 684: Mean relative difference: 0.001461988 &gt;&quot;
-## [326] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 685: Mean relative difference: 0.001459854 &gt;&quot;
-## [327] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 686: Mean relative difference: 0.001457726 &gt;&quot;
-## [328] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 687: Mean relative difference: 0.001455604 &gt;&quot;
-## [329] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 688: Mean relative difference: 0.001453488 &gt;&quot;
-## [330] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 689: Mean relative difference: 0.001451379 &gt;&quot;
-## [331] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 690: Mean relative difference: 0.001449275 &gt;&quot;
-## [332] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 691: Mean relative difference: 0.001447178 &gt;&quot;
-## [333] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 692: Mean relative difference: 0.001445087 &gt;&quot;
-## [334] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 693: Mean relative difference: 0.001443001 &gt;&quot;
-## [335] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 694: Mean relative difference: 0.001440922 &gt;&quot;
-## [336] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 695: Mean relative difference: 0.001438849 &gt;&quot;
-## [337] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 696: Mean relative difference: 0.001436782 &gt;&quot;
-## [338] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 697: Mean relative difference: 0.00143472 &gt;&quot; 
-## [339] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 698: Mean relative difference: 0.001432665 &gt;&quot;
-## [340] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 699: Mean relative difference: 0.001430615 &gt;&quot;
-## [341] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 700: Mean relative difference: 0.001428571 &gt;&quot;
-## [342] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 701: Mean relative difference: 0.001426534 &gt;&quot;
-## [343] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 702: Mean relative difference: 0.001424501 &gt;&quot;
-## [344] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 703: Mean relative difference: 0.001422475 &gt;&quot;
-## [345] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 704: Mean relative difference: 0.001420455 &gt;&quot;
-## [346] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 705: Mean relative difference: 0.00141844 &gt;&quot; 
-## [347] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 706: Mean relative difference: 0.001416431 &gt;&quot;
-## [348] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 707: Mean relative difference: 0.001414427 &gt;&quot;
-## [349] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 708: Mean relative difference: 0.001412429 &gt;&quot;
-## [350] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 709: Mean relative difference: 0.001410437 &gt;&quot;
-## [351] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 710: Mean relative difference: 0.001408451 &gt;&quot;
-## [352] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 711: Mean relative difference: 0.00140647 &gt;&quot; 
-## [353] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 712: Mean relative difference: 0.001404494 &gt;&quot;
-## [354] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 713: Mean relative difference: 0.001402525 &gt;&quot;
-## [355] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 714: Mean relative difference: 0.00140056 &gt;&quot; 
-## [356] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 715: Mean relative difference: 0.001398601 &gt;&quot;
-## [357] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 716: Mean relative difference: 0.001396648 &gt;&quot;
-## [358] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 717: Mean relative difference: 0.0013947 &gt;&quot;  
-## [359] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 718: Mean relative difference: 0.001392758 &gt;&quot;
-## [360] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 719: Mean relative difference: 0.001390821 &gt;&quot;
-## [361] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 720: Mean relative difference: 0.001388889 &gt;&quot;
-## [362] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 721: Mean relative difference: 0.001386963 &gt;&quot;
-## [363] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 722: Mean relative difference: 0.001385042 &gt;&quot;
-## [364] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 723: Mean relative difference: 0.001383126 &gt;&quot;
-## [365] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 724: Mean relative difference: 0.001381215 &gt;&quot;
-## [366] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 725: Mean relative difference: 0.00137931 &gt;&quot; 
-## [367] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 726: Mean relative difference: 0.00137741 &gt;&quot; 
-## [368] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 727: Mean relative difference: 0.001375516 &gt;&quot;
-## [369] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 728: Mean relative difference: 0.001373626 &gt;&quot;
-## [370] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 729: Mean relative difference: 0.001371742 &gt;&quot;
-## [371] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 730: Mean relative difference: 0.001369863 &gt;&quot;
-## [372] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 731: Mean relative difference: 0.001367989 &gt;&quot;
-## [373] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 732: Mean relative difference: 0.00136612 &gt;&quot; 
-## [374] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 733: Mean relative difference: 0.001364256 &gt;&quot;
-## [375] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 734: Mean relative difference: 0.001362398 &gt;&quot;
-## [376] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 735: Mean relative difference: 0.001360544 &gt;&quot;
-## [377] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 736: Mean relative difference: 0.001358696 &gt;&quot;
-## [378] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 737: Mean relative difference: 0.001356852 &gt;&quot;
-## [379] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 738: Mean relative difference: 0.001355014 &gt;&quot;
-## [380] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 739: Mean relative difference: 0.00135318 &gt;&quot; 
-## [381] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 740: Mean relative difference: 0.001351351 &gt;&quot;
-## [382] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 741: Mean relative difference: 0.001349528 &gt;&quot;
-## [383] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 742: Mean relative difference: 0.001347709 &gt;&quot;
-## [384] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 743: Mean relative difference: 0.001345895 &gt;&quot;
-## [385] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 744: Mean relative difference: 0.001344086 &gt;&quot;
-## [386] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 745: Mean relative difference: 0.001342282 &gt;&quot;
-## [387] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 746: Mean relative difference: 0.001340483 &gt;&quot;
-## [388] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 747: Mean relative difference: 0.001338688 &gt;&quot;
-## [389] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 748: Mean relative difference: 0.001336898 &gt;&quot;
-## [390] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 749: Mean relative difference: 0.001335113 &gt;&quot;
-## [391] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 750: Mean relative difference: 0.001333333 &gt;&quot;
-## [392] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 751: Mean relative difference: 0.001331558 &gt;&quot;
-## [393] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 752: Mean relative difference: 0.001329787 &gt;&quot;
-## [394] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 753: Mean relative difference: 0.001328021 &gt;&quot;
-## [395] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 754: Mean relative difference: 0.00132626 &gt;&quot; 
-## [396] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 755: Mean relative difference: 0.001324503 &gt;&quot;
-## [397] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 756: Mean relative difference: 0.001322751 &gt;&quot;
-## [398] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 757: Mean relative difference: 0.001321004 &gt;&quot;
-## [399] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 758: Mean relative difference: 0.001319261 &gt;&quot;
-## [400] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 759: Mean relative difference: 0.001317523 &gt;&quot;
-## [401] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 760: Mean relative difference: 0.001315789 &gt;&quot;
-## [402] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 761: Mean relative difference: 0.00131406 &gt;&quot; 
-## [403] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 762: Mean relative difference: 0.001312336 &gt;&quot;
-## [404] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 763: Mean relative difference: 0.001310616 &gt;&quot;
-## [405] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 764: Mean relative difference: 0.001308901 &gt;&quot;
-## [406] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 765: Mean relative difference: 0.00130719 &gt;&quot; 
-## [407] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 766: Mean relative difference: 0.001305483 &gt;&quot;
-## [408] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 767: Mean relative difference: 0.001303781 &gt;&quot;
-## [409] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 768: Mean relative difference: 0.001302083 &gt;&quot;
-## [410] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 769: Mean relative difference: 0.00130039 &gt;&quot; 
-## [411] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 770: Mean relative difference: 0.001298701 &gt;&quot;
-## [412] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 771: Mean relative difference: 0.001297017 &gt;&quot;
-## [413] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 772: Mean relative difference: 0.001295337 &gt;&quot;
-## [414] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 773: Mean relative difference: 0.001293661 &gt;&quot;
-## [415] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 774: Mean relative difference: 0.00129199 &gt;&quot; 
-## [416] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 775: Mean relative difference: 0.001290323 &gt;&quot;
-## [417] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 776: Mean relative difference: 0.00128866 &gt;&quot; 
-## [418] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 777: Mean relative difference: 0.001287001 &gt;&quot;
-## [419] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 778: Mean relative difference: 0.001285347 &gt;&quot;
-## [420] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 779: Mean relative difference: 0.001283697 &gt;&quot;
-## [421] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 780: Mean relative difference: 0.001282051 &gt;&quot;
-## [422] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 781: Mean relative difference: 0.00128041 &gt;&quot; 
-## [423] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 782: Mean relative difference: 0.001278772 &gt;&quot;
-## [424] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 783: Mean relative difference: 0.001277139 &gt;&quot;
-## [425] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 784: Mean relative difference: 0.00127551 &gt;&quot; 
-## [426] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 785: Mean relative difference: 0.001273885 &gt;&quot;
-## [427] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 786: Mean relative difference: 0.001272265 &gt;&quot;
-## [428] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 787: Mean relative difference: 0.001270648 &gt;&quot;
-## [429] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 788: Mean relative difference: 0.001269036 &gt;&quot;
-## [430] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 789: Mean relative difference: 0.001267427 &gt;&quot;
-## [431] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 790: Mean relative difference: 0.001265823 &gt;&quot;
-## [432] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 791: Mean relative difference: 0.001264223 &gt;&quot;
-## [433] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 792: Mean relative difference: 0.001262626 &gt;&quot;
-## [434] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 793: Mean relative difference: 0.001261034 &gt;&quot;
-## [435] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 794: Mean relative difference: 0.001259446 &gt;&quot;
-## [436] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 795: Mean relative difference: 0.001257862 &gt;&quot;
-## [437] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 796: Mean relative difference: 0.001256281 &gt;&quot;
-## [438] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 797: Mean relative difference: 0.001254705 &gt;&quot;
-## [439] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 798: Mean relative difference: 0.001253133 &gt;&quot;
-## [440] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 799: Mean relative difference: 0.001251564 &gt;&quot;
-## [441] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 800: Mean relative difference: 0.00125 &gt;&quot;    
-## [442] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 801: Mean relative difference: 0.001248439 &gt;&quot;
-## [443] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 802: Mean relative difference: 0.001246883 &gt;&quot;
-## [444] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 803: Mean relative difference: 0.00124533 &gt;&quot; 
-## [445] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 804: Mean relative difference: 0.001243781 &gt;&quot;
-## [446] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 805: Mean relative difference: 0.001242236 &gt;&quot;
-## [447] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 806: Mean relative difference: 0.001240695 &gt;&quot;
-## [448] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 807: Mean relative difference: 0.001239157 &gt;&quot;
-## [449] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 808: Mean relative difference: 0.001237624 &gt;&quot;
-## [450] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 809: Mean relative difference: 0.001236094 &gt;&quot;
-## [451] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 810: Mean relative difference: 0.001234568 &gt;&quot;
-## [452] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 811: Mean relative difference: 0.001233046 &gt;&quot;
-## [453] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 812: Mean relative difference: 0.001231527 &gt;&quot;
-## [454] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 813: Mean relative difference: 0.001230012 &gt;&quot;
-## [455] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 814: Mean relative difference: 0.001228501 &gt;&quot;
-## [456] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 815: Mean relative difference: 0.001226994 &gt;&quot;
-## [457] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 816: Mean relative difference: 0.00122549 &gt;&quot; 
-## [458] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 817: Mean relative difference: 0.00122399 &gt;&quot; 
-## [459] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 818: Mean relative difference: 0.001222494 &gt;&quot;
-## [460] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 819: Mean relative difference: 0.001221001 &gt;&quot;
-## [461] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 820: Mean relative difference: 0.001219512 &gt;&quot;
-## [462] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 821: Mean relative difference: 0.001218027 &gt;&quot;
-## [463] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 822: Mean relative difference: 0.001216545 &gt;&quot;
-## [464] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 823: Mean relative difference: 0.001215067 &gt;&quot;
-## [465] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 824: Mean relative difference: 0.001213592 &gt;&quot;
-## [466] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 825: Mean relative difference: 0.001212121 &gt;&quot;
-## [467] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 826: Mean relative difference: 0.001210654 &gt;&quot;
-## [468] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 827: Mean relative difference: 0.00120919 &gt;&quot; 
-## [469] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 828: Mean relative difference: 0.001207729 &gt;&quot;
-## [470] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 829: Mean relative difference: 0.001206273 &gt;&quot;
-## [471] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 830: Mean relative difference: 0.001204819 &gt;&quot;
-## [472] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 831: Mean relative difference: 0.001203369 &gt;&quot;
-## [473] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 832: Mean relative difference: 0.001201923 &gt;&quot;
-## [474] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 833: Mean relative difference: 0.00120048 &gt;&quot; 
-## [475] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 834: Mean relative difference: 0.001199041 &gt;&quot;
-## [476] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 835: Mean relative difference: 0.001197605 &gt;&quot;
-## [477] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 836: Mean relative difference: 0.001196172 &gt;&quot;
-## [478] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 837: Mean relative difference: 0.001194743 &gt;&quot;
-## [479] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 838: Mean relative difference: 0.001193317 &gt;&quot;
-## [480] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 839: Mean relative difference: 0.001191895 &gt;&quot;
-## [481] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 840: Mean relative difference: 0.001190476 &gt;&quot;
-## [482] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 841: Mean relative difference: 0.001189061 &gt;&quot;
-## [483] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 842: Mean relative difference: 0.001187648 &gt;&quot;
-## [484] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 843: Mean relative difference: 0.00118624 &gt;&quot; 
-## [485] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 844: Mean relative difference: 0.001184834 &gt;&quot;
-## [486] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 845: Mean relative difference: 0.001183432 &gt;&quot;
-## [487] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 846: Mean relative difference: 0.001182033 &gt;&quot;
-## [488] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 847: Mean relative difference: 0.001180638 &gt;&quot;
-## [489] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 848: Mean relative difference: 0.001179245 &gt;&quot;
-## [490] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 849: Mean relative difference: 0.001177856 &gt;&quot;
-## [491] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 850: Mean relative difference: 0.001176471 &gt;&quot;
-## [492] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 851: Mean relative difference: 0.001175088 &gt;&quot;
-## [493] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 852: Mean relative difference: 0.001173709 &gt;&quot;
-## [494] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 853: Mean relative difference: 0.001172333 &gt;&quot;
-## [495] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 854: Mean relative difference: 0.00117096 &gt;&quot; 
-## [496] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 855: Mean relative difference: 0.001169591 &gt;&quot;
-## [497] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 856: Mean relative difference: 0.001168224 &gt;&quot;
-## [498] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 857: Mean relative difference: 0.001166861 &gt;&quot;
-## [499] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 858: Mean relative difference: 0.001165501 &gt;&quot;
-## [500] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 859: Mean relative difference: 0.001164144 &gt;&quot;
-## [501] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 860: Mean relative difference: 0.001162791 &gt;&quot;
-## [502] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 861: Mean relative difference: 0.00116144 &gt;&quot; 
-## [503] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 862: Mean relative difference: 0.001160093 &gt;&quot;
-## [504] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 863: Mean relative difference: 0.001158749 &gt;&quot;
-## [505] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 864: Mean relative difference: 0.001157407 &gt;&quot;
-## [506] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 865: Mean relative difference: 0.001156069 &gt;&quot;
-## [507] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 866: Mean relative difference: 0.001154734 &gt;&quot;
-## [508] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 867: Mean relative difference: 0.001153403 &gt;&quot;
-## [509] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 868: Mean relative difference: 0.001152074 &gt;&quot;
-## [510] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 869: Mean relative difference: 0.001150748 &gt;&quot;
-## [511] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 870: Mean relative difference: 0.001149425 &gt;&quot;
-## [512] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 871: Mean relative difference: 0.001148106 &gt;&quot;
-## [513] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 872: Mean relative difference: 0.001146789 &gt;&quot;
-## [514] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 873: Mean relative difference: 0.001145475 &gt;&quot;
-## [515] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 874: Mean relative difference: 0.001144165 &gt;&quot;
-## [516] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 875: Mean relative difference: 0.001142857 &gt;&quot;
-## [517] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 876: Mean relative difference: 0.001141553 &gt;&quot;
-## [518] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 877: Mean relative difference: 0.001140251 &gt;&quot;
-## [519] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 878: Mean relative difference: 0.001138952 &gt;&quot;
-## [520] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 879: Mean relative difference: 0.001137656 &gt;&quot;
-## [521] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 880: Mean relative difference: 0.001136364 &gt;&quot;
-## [522] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 881: Mean relative difference: 0.001135074 &gt;&quot;
-## [523] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 882: Mean relative difference: 0.001133787 &gt;&quot;
-## [524] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 883: Mean relative difference: 0.001132503 &gt;&quot;
-## [525] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 884: Numeric: lengths (2, 1) differ &gt;&quot;       
-## [526] &quot;Component \&quot;ReturnTs\&quot;: 524 string mismatches&quot;                                                                  
-## [527] &quot;Component \&quot;EIN\&quot;: 94 string mismatches&quot;                                                                        
-## [528] &quot;Component \&quot;TaxPeriodEndDt\&quot;: Mean relative difference: 0.03376583&quot;                                             
-## [529] &quot;Component \&quot;ReturnTypeCd\&quot;: 36 string mismatches&quot;                                                               
-## [530] &quot;Component \&quot;TaxPeriodBeginDt\&quot;: Mean relative difference: 0.03446098&quot;                                           
-## [531] &quot;Component \&quot;AmendedReturnInd\&quot;: &#39;is.NA&#39; value mismatch: 1025 in current 1025 in target&quot;                         
-## [532] &quot;Component \&quot;BusinessName\&quot;: 106 string mismatches&quot;                                                              
-## [533] &quot;Component \&quot;fiscal_year\&quot;: 521 string mismatches&quot;                                                               
-## [534] &quot;Component \&quot;filename\&quot;: 524 string mismatches&quot;                                                                  
-## [535] &quot;Component \&quot;ReturnDate\&quot;: Mean relative difference: 0.03297304&quot;                                                 
-## [536] &quot;Component \&quot;amended_return_filled\&quot;: Mean relative difference: 2&quot;</code></pre>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># now we have 799 - 14 = 785 observtions, as we would expect, </span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># because we only took the 14 amended ones</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(filter_data_amended)</span></code></pre></div>
-<pre><code>## [1] 1054</code></pre>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>eins_with_multiple <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n=</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># need both fiscal year and ein number to check</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># which year/ein combinations had multiple filings</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">EIN_year =</span><span class="fu">paste0</span>(EIN, fiscal_year)) <span class="sc">%&gt;%</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(EIN_year)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># of the eins with multiple filings, now we only have</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co"># the ones that were ammended (AmendedReturnInd is &quot;X&quot;, not NA)</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>filter_data_amended <span class="sc">%&gt;%</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">EIN_year =</span><span class="fu">paste0</span>(EIN, fiscal_year)) <span class="sc">%&gt;%</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(EIN_year <span class="sc">%in%</span> eins_with_multiple) <span class="sc">%&gt;%</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(AmendedReturnInd)) </span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># notice we have 799 filings before filtering based on amended filings</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># from the previous code there were 14 cases where a company filed </span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co"># 2 times in a single fiscal year</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>filter_data <span class="sc">%&gt;%</span> <span class="fu">nrow</span>() </span></code></pre></div>
+<pre><code>## [1] 268</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># take the amended version</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>filter_data_amended <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amended_return_filled =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(AmendedReturnInd),<span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="fu">slice_max</span>(<span class="at">order_by =</span>amended_return_filled, <span class="at">n =</span> <span class="dv">1</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co"># take the most recent return date</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>max_by_date <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">amended_return_filled =</span> <span class="fu">ifelse</span>(<span class="sc">!</span><span class="fu">is.na</span>(AmendedReturnInd),<span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="fu">slice_max</span>(<span class="at">order_by =</span>ReturnDate, <span class="at">n =</span> <span class="dv">1</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co"># check that picking max return date is the same as picking the amended one</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="fu">all.equal</span>(filter_data_amended, max_by_date)</span></code></pre></div>
+<pre><code>##   [1] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 13: Numeric: lengths (2, 1) differ &gt;&quot;        
+##   [2] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 14: Mean relative difference: 0.06666667 &gt;&quot;  
+##   [3] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 15: Mean relative difference: 0.0625 &gt;&quot;      
+##   [4] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 16: Mean relative difference: 0.05882353 &gt;&quot;  
+##   [5] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 17: Mean relative difference: 0.05555556 &gt;&quot;  
+##   [6] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 18: Mean relative difference: 0.05263158 &gt;&quot;  
+##   [7] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 19: Mean relative difference: 0.05 &gt;&quot;        
+##   [8] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 20: Mean relative difference: 0.04761905 &gt;&quot;  
+##   [9] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 21: Mean relative difference: 0.04545455 &gt;&quot;  
+##  [10] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 22: Mean relative difference: 0.04347826 &gt;&quot;  
+##  [11] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 23: Mean relative difference: 0.04166667 &gt;&quot;  
+##  [12] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 24: Mean relative difference: 0.04 &gt;&quot;        
+##  [13] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 25: Mean relative difference: 0.03846154 &gt;&quot;  
+##  [14] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 26: Mean relative difference: 0.03703704 &gt;&quot;  
+##  [15] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 27: Mean relative difference: 0.03571429 &gt;&quot;  
+##  [16] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 28: Mean relative difference: 0.03448276 &gt;&quot;  
+##  [17] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 29: Mean relative difference: 0.03333333 &gt;&quot;  
+##  [18] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 30: Mean relative difference: 0.03225806 &gt;&quot;  
+##  [19] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 31: Mean relative difference: 0.03125 &gt;&quot;     
+##  [20] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 32: Mean relative difference: 0.03030303 &gt;&quot;  
+##  [21] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 33: Mean relative difference: 0.02941176 &gt;&quot;  
+##  [22] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 34: Mean relative difference: 0.02857143 &gt;&quot;  
+##  [23] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 35: Mean relative difference: 0.02777778 &gt;&quot;  
+##  [24] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 36: Mean relative difference: 0.02702703 &gt;&quot;  
+##  [25] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 37: Mean relative difference: 0.02631579 &gt;&quot;  
+##  [26] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 38: Mean relative difference: 0.02564103 &gt;&quot;  
+##  [27] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 39: Mean relative difference: 0.025 &gt;&quot;       
+##  [28] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 40: Mean relative difference: 0.02439024 &gt;&quot;  
+##  [29] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 41: Mean relative difference: 0.02380952 &gt;&quot;  
+##  [30] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 42: Mean relative difference: 0.02325581 &gt;&quot;  
+##  [31] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 43: Mean relative difference: 0.02272727 &gt;&quot;  
+##  [32] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 44: Mean relative difference: 0.02222222 &gt;&quot;  
+##  [33] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 45: Mean relative difference: 0.02173913 &gt;&quot;  
+##  [34] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 46: Mean relative difference: 0.0212766 &gt;&quot;   
+##  [35] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 47: Mean relative difference: 0.02083333 &gt;&quot;  
+##  [36] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 48: Mean relative difference: 0.02040816 &gt;&quot;  
+##  [37] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 49: Mean relative difference: 0.02 &gt;&quot;        
+##  [38] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 50: Mean relative difference: 0.01960784 &gt;&quot;  
+##  [39] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 51: Mean relative difference: 0.01923077 &gt;&quot;  
+##  [40] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 52: Mean relative difference: 0.01886792 &gt;&quot;  
+##  [41] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 53: Mean relative difference: 0.01851852 &gt;&quot;  
+##  [42] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 54: Mean relative difference: 0.01818182 &gt;&quot;  
+##  [43] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 55: Mean relative difference: 0.01785714 &gt;&quot;  
+##  [44] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 56: Mean relative difference: 0.01754386 &gt;&quot;  
+##  [45] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 57: Mean relative difference: 0.01724138 &gt;&quot;  
+##  [46] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 58: Mean relative difference: 0.01694915 &gt;&quot;  
+##  [47] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 59: Mean relative difference: 0.01666667 &gt;&quot;  
+##  [48] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 60: Mean relative difference: 0.01639344 &gt;&quot;  
+##  [49] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 61: Mean relative difference: 0.01612903 &gt;&quot;  
+##  [50] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 62: Mean relative difference: 0.01587302 &gt;&quot;  
+##  [51] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 63: Mean relative difference: 0.015625 &gt;&quot;    
+##  [52] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 64: Mean relative difference: 0.01538462 &gt;&quot;  
+##  [53] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 65: Mean relative difference: 0.01515152 &gt;&quot;  
+##  [54] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 66: Mean relative difference: 0.01492537 &gt;&quot;  
+##  [55] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 67: Mean relative difference: 0.01470588 &gt;&quot;  
+##  [56] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 68: Mean relative difference: 0.01449275 &gt;&quot;  
+##  [57] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 69: Mean relative difference: 0.01428571 &gt;&quot;  
+##  [58] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 70: Mean relative difference: 0.01408451 &gt;&quot;  
+##  [59] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 71: Mean relative difference: 0.01388889 &gt;&quot;  
+##  [60] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 72: Mean relative difference: 0.01369863 &gt;&quot;  
+##  [61] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 73: Mean relative difference: 0.01351351 &gt;&quot;  
+##  [62] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 74: Mean relative difference: 0.01333333 &gt;&quot;  
+##  [63] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 75: Mean relative difference: 0.01315789 &gt;&quot;  
+##  [64] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 76: Mean relative difference: 0.01298701 &gt;&quot;  
+##  [65] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 77: Mean relative difference: 0.01282051 &gt;&quot;  
+##  [66] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 78: Mean relative difference: 0.01265823 &gt;&quot;  
+##  [67] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 79: Mean relative difference: 0.0125 &gt;&quot;      
+##  [68] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 80: Mean relative difference: 0.01234568 &gt;&quot;  
+##  [69] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 81: Mean relative difference: 0.01219512 &gt;&quot;  
+##  [70] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 82: Mean relative difference: 0.01204819 &gt;&quot;  
+##  [71] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 83: Mean relative difference: 0.01190476 &gt;&quot;  
+##  [72] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 84: Mean relative difference: 0.01176471 &gt;&quot;  
+##  [73] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 85: Mean relative difference: 0.01162791 &gt;&quot;  
+##  [74] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 86: Mean relative difference: 0.01149425 &gt;&quot;  
+##  [75] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 87: Mean relative difference: 0.01136364 &gt;&quot;  
+##  [76] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 88: Mean relative difference: 0.01123596 &gt;&quot;  
+##  [77] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 89: Mean relative difference: 0.01111111 &gt;&quot;  
+##  [78] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 90: Mean relative difference: 0.01098901 &gt;&quot;  
+##  [79] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 91: Mean relative difference: 0.01086957 &gt;&quot;  
+##  [80] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 92: Mean relative difference: 0.01075269 &gt;&quot;  
+##  [81] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 93: Mean relative difference: 0.0106383 &gt;&quot;   
+##  [82] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 94: Mean relative difference: 0.01052632 &gt;&quot;  
+##  [83] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 95: Mean relative difference: 0.01041667 &gt;&quot;  
+##  [84] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 96: Mean relative difference: 0.01030928 &gt;&quot;  
+##  [85] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 97: Mean relative difference: 0.01020408 &gt;&quot;  
+##  [86] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 98: Mean relative difference: 0.01010101 &gt;&quot;  
+##  [87] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 99: Mean relative difference: 0.01 &gt;&quot;        
+##  [88] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 100: Mean relative difference: 0.00990099 &gt;&quot; 
+##  [89] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 101: Mean relative difference: 0.009803922 &gt;&quot;
+##  [90] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 102: Mean relative difference: 0.009708738 &gt;&quot;
+##  [91] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 103: Mean relative difference: 0.009615385 &gt;&quot;
+##  [92] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 104: Mean relative difference: 0.00952381 &gt;&quot; 
+##  [93] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 105: Mean relative difference: 0.009433962 &gt;&quot;
+##  [94] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 106: Mean relative difference: 0.009345794 &gt;&quot;
+##  [95] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 107: Mean relative difference: 0.009259259 &gt;&quot;
+##  [96] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 108: Mean relative difference: 0.009174312 &gt;&quot;
+##  [97] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 109: Mean relative difference: 0.009090909 &gt;&quot;
+##  [98] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 110: Mean relative difference: 0.009009009 &gt;&quot;
+##  [99] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 111: Mean relative difference: 0.008928571 &gt;&quot;
+## [100] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 112: Mean relative difference: 0.008849558 &gt;&quot;
+## [101] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 113: Mean relative difference: 0.00877193 &gt;&quot; 
+## [102] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 114: Mean relative difference: 0.008695652 &gt;&quot;
+## [103] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 115: Mean relative difference: 0.00862069 &gt;&quot; 
+## [104] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 116: Mean relative difference: 0.008547009 &gt;&quot;
+## [105] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 117: Mean relative difference: 0.008474576 &gt;&quot;
+## [106] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 118: Mean relative difference: 0.008403361 &gt;&quot;
+## [107] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 119: Mean relative difference: 0.008333333 &gt;&quot;
+## [108] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 120: Mean relative difference: 0.008264463 &gt;&quot;
+## [109] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 121: Mean relative difference: 0.008196721 &gt;&quot;
+## [110] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 122: Mean relative difference: 0.008130081 &gt;&quot;
+## [111] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 123: Mean relative difference: 0.008064516 &gt;&quot;
+## [112] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 124: Mean relative difference: 0.008 &gt;&quot;      
+## [113] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 125: Mean relative difference: 0.007936508 &gt;&quot;
+## [114] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 126: Mean relative difference: 0.007874016 &gt;&quot;
+## [115] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 127: Mean relative difference: 0.0078125 &gt;&quot;  
+## [116] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 128: Mean relative difference: 0.007751938 &gt;&quot;
+## [117] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 129: Mean relative difference: 0.007692308 &gt;&quot;
+## [118] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 130: Mean relative difference: 0.007633588 &gt;&quot;
+## [119] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 131: Mean relative difference: 0.007575758 &gt;&quot;
+## [120] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 132: Mean relative difference: 0.007518797 &gt;&quot;
+## [121] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 133: Mean relative difference: 0.007462687 &gt;&quot;
+## [122] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 134: Mean relative difference: 0.007407407 &gt;&quot;
+## [123] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 135: Mean relative difference: 0.007352941 &gt;&quot;
+## [124] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 136: Mean relative difference: 0.00729927 &gt;&quot; 
+## [125] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 137: Mean relative difference: 0.007246377 &gt;&quot;
+## [126] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 138: Mean relative difference: 0.007194245 &gt;&quot;
+## [127] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 139: Mean relative difference: 0.007142857 &gt;&quot;
+## [128] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 140: Mean relative difference: 0.007092199 &gt;&quot;
+## [129] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 141: Mean relative difference: 0.007042254 &gt;&quot;
+## [130] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 142: Mean relative difference: 0.006993007 &gt;&quot;
+## [131] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 143: Mean relative difference: 0.006944444 &gt;&quot;
+## [132] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 144: Mean relative difference: 0.006896552 &gt;&quot;
+## [133] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 145: Mean relative difference: 0.006849315 &gt;&quot;
+## [134] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 146: Mean relative difference: 0.006802721 &gt;&quot;
+## [135] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 147: Mean relative difference: 0.006756757 &gt;&quot;
+## [136] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 148: Mean relative difference: 0.006711409 &gt;&quot;
+## [137] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 149: Mean relative difference: 0.006666667 &gt;&quot;
+## [138] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 150: Mean relative difference: 0.006622517 &gt;&quot;
+## [139] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 151: Mean relative difference: 0.006578947 &gt;&quot;
+## [140] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 152: Mean relative difference: 0.006535948 &gt;&quot;
+## [141] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 153: Mean relative difference: 0.006493506 &gt;&quot;
+## [142] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 154: Mean relative difference: 0.006451613 &gt;&quot;
+## [143] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 155: Mean relative difference: 0.006410256 &gt;&quot;
+## [144] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 156: Mean relative difference: 0.006369427 &gt;&quot;
+## [145] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 157: Mean relative difference: 0.006329114 &gt;&quot;
+## [146] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 158: Mean relative difference: 0.006289308 &gt;&quot;
+## [147] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 159: Mean relative difference: 0.00625 &gt;&quot;    
+## [148] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 160: Mean relative difference: 0.00621118 &gt;&quot; 
+## [149] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 161: Mean relative difference: 0.00617284 &gt;&quot; 
+## [150] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 162: Mean relative difference: 0.006134969 &gt;&quot;
+## [151] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 163: Mean relative difference: 0.006097561 &gt;&quot;
+## [152] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 164: Mean relative difference: 0.006060606 &gt;&quot;
+## [153] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 165: Mean relative difference: 0.006024096 &gt;&quot;
+## [154] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 166: Mean relative difference: 0.005988024 &gt;&quot;
+## [155] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 167: Mean relative difference: 0.005952381 &gt;&quot;
+## [156] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 168: Mean relative difference: 0.00591716 &gt;&quot; 
+## [157] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 169: Mean relative difference: 0.005882353 &gt;&quot;
+## [158] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 170: Mean relative difference: 0.005847953 &gt;&quot;
+## [159] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 171: Mean relative difference: 0.005813953 &gt;&quot;
+## [160] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 172: Mean relative difference: 0.005780347 &gt;&quot;
+## [161] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 173: Mean relative difference: 0.005747126 &gt;&quot;
+## [162] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 174: Mean relative difference: 0.005714286 &gt;&quot;
+## [163] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 175: Mean relative difference: 0.005681818 &gt;&quot;
+## [164] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 176: Mean relative difference: 0.005649718 &gt;&quot;
+## [165] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 177: Mean relative difference: 0.005617978 &gt;&quot;
+## [166] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 178: Mean relative difference: 0.005586592 &gt;&quot;
+## [167] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 179: Mean relative difference: 0.005555556 &gt;&quot;
+## [168] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 180: Mean relative difference: 0.005524862 &gt;&quot;
+## [169] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 181: Mean relative difference: 0.005494505 &gt;&quot;
+## [170] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 182: Mean relative difference: 0.005464481 &gt;&quot;
+## [171] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 183: Mean relative difference: 0.005434783 &gt;&quot;
+## [172] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 184: Mean relative difference: 0.005405405 &gt;&quot;
+## [173] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 185: Mean relative difference: 0.005376344 &gt;&quot;
+## [174] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 186: Mean relative difference: 0.005347594 &gt;&quot;
+## [175] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 187: Mean relative difference: 0.005319149 &gt;&quot;
+## [176] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 188: Mean relative difference: 0.005291005 &gt;&quot;
+## [177] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 189: Mean relative difference: 0.005263158 &gt;&quot;
+## [178] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 190: Mean relative difference: 0.005235602 &gt;&quot;
+## [179] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 191: Mean relative difference: 0.005208333 &gt;&quot;
+## [180] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 192: Mean relative difference: 0.005181347 &gt;&quot;
+## [181] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 193: Mean relative difference: 0.005154639 &gt;&quot;
+## [182] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 194: Mean relative difference: 0.005128205 &gt;&quot;
+## [183] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 195: Mean relative difference: 0.005102041 &gt;&quot;
+## [184] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 196: Mean relative difference: 0.005076142 &gt;&quot;
+## [185] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 197: Mean relative difference: 0.005050505 &gt;&quot;
+## [186] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 198: Mean relative difference: 0.005025126 &gt;&quot;
+## [187] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 199: Mean relative difference: 0.005 &gt;&quot;      
+## [188] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 200: Mean relative difference: 0.004975124 &gt;&quot;
+## [189] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 201: Mean relative difference: 0.004950495 &gt;&quot;
+## [190] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 202: Mean relative difference: 0.004926108 &gt;&quot;
+## [191] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 203: Mean relative difference: 0.004901961 &gt;&quot;
+## [192] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 204: Mean relative difference: 0.004878049 &gt;&quot;
+## [193] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 205: Mean relative difference: 0.004854369 &gt;&quot;
+## [194] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 206: Mean relative difference: 0.004830918 &gt;&quot;
+## [195] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 207: Mean relative difference: 0.004807692 &gt;&quot;
+## [196] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 208: Mean relative difference: 0.004784689 &gt;&quot;
+## [197] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 209: Mean relative difference: 0.004761905 &gt;&quot;
+## [198] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 210: Mean relative difference: 0.004739336 &gt;&quot;
+## [199] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 211: Mean relative difference: 0.004716981 &gt;&quot;
+## [200] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 212: Mean relative difference: 0.004694836 &gt;&quot;
+## [201] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 213: Mean relative difference: 0.004672897 &gt;&quot;
+## [202] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 214: Mean relative difference: 0.004651163 &gt;&quot;
+## [203] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 215: Mean relative difference: 0.00462963 &gt;&quot; 
+## [204] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 216: Mean relative difference: 0.004608295 &gt;&quot;
+## [205] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 217: Mean relative difference: 0.004587156 &gt;&quot;
+## [206] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 218: Mean relative difference: 0.00456621 &gt;&quot; 
+## [207] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 219: Mean relative difference: 0.004545455 &gt;&quot;
+## [208] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 220: Mean relative difference: 0.004524887 &gt;&quot;
+## [209] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 221: Mean relative difference: 0.004504505 &gt;&quot;
+## [210] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 222: Mean relative difference: 0.004484305 &gt;&quot;
+## [211] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 223: Mean relative difference: 0.004464286 &gt;&quot;
+## [212] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 224: Mean relative difference: 0.004444444 &gt;&quot;
+## [213] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 225: Mean relative difference: 0.004424779 &gt;&quot;
+## [214] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 226: Mean relative difference: 0.004405286 &gt;&quot;
+## [215] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 227: Mean relative difference: 0.004385965 &gt;&quot;
+## [216] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 228: Mean relative difference: 0.004366812 &gt;&quot;
+## [217] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 229: Mean relative difference: 0.004347826 &gt;&quot;
+## [218] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 230: Mean relative difference: 0.004329004 &gt;&quot;
+## [219] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 231: Mean relative difference: 0.004310345 &gt;&quot;
+## [220] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 232: Mean relative difference: 0.004291845 &gt;&quot;
+## [221] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 233: Mean relative difference: 0.004273504 &gt;&quot;
+## [222] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 234: Mean relative difference: 0.004255319 &gt;&quot;
+## [223] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 235: Mean relative difference: 0.004237288 &gt;&quot;
+## [224] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 236: Mean relative difference: 0.004219409 &gt;&quot;
+## [225] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 237: Mean relative difference: 0.004201681 &gt;&quot;
+## [226] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 238: Mean relative difference: 0.0041841 &gt;&quot;  
+## [227] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 239: Mean relative difference: 0.004166667 &gt;&quot;
+## [228] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 240: Mean relative difference: 0.004149378 &gt;&quot;
+## [229] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 241: Mean relative difference: 0.004132231 &gt;&quot;
+## [230] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 242: Mean relative difference: 0.004115226 &gt;&quot;
+## [231] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 243: Mean relative difference: 0.004098361 &gt;&quot;
+## [232] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 244: Mean relative difference: 0.004081633 &gt;&quot;
+## [233] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 245: Mean relative difference: 0.004065041 &gt;&quot;
+## [234] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 246: Mean relative difference: 0.004048583 &gt;&quot;
+## [235] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 247: Mean relative difference: 0.004032258 &gt;&quot;
+## [236] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 248: Mean relative difference: 0.004016064 &gt;&quot;
+## [237] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 249: Mean relative difference: 0.004 &gt;&quot;      
+## [238] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 250: Mean relative difference: 0.003984064 &gt;&quot;
+## [239] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 251: Mean relative difference: 0.003968254 &gt;&quot;
+## [240] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 252: Mean relative difference: 0.003952569 &gt;&quot;
+## [241] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 253: Mean relative difference: 0.003937008 &gt;&quot;
+## [242] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 254: Mean relative difference: 0.003921569 &gt;&quot;
+## [243] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 255: Mean relative difference: 0.00390625 &gt;&quot; 
+## [244] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 256: Mean relative difference: 0.003891051 &gt;&quot;
+## [245] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 257: Mean relative difference: 0.003875969 &gt;&quot;
+## [246] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 258: Mean relative difference: 0.003861004 &gt;&quot;
+## [247] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 259: Mean relative difference: 0.003846154 &gt;&quot;
+## [248] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 260: Mean relative difference: 0.003831418 &gt;&quot;
+## [249] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 261: Mean relative difference: 0.003816794 &gt;&quot;
+## [250] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 262: Mean relative difference: 0.003802281 &gt;&quot;
+## [251] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 263: Mean relative difference: 0.003787879 &gt;&quot;
+## [252] &quot;Attributes: &lt; Component \&quot;groups\&quot;: Component \&quot;.rows\&quot;: Component 264: Mean relative difference: 0.003773585 &gt;&quot;
+## [253] &quot;Attributes: &lt; Component \&quot;row.names\&quot;: Numeric: lengths (265, 264) differ &gt;&quot;                                    
+## [254] &quot;Component \&quot;ReturnTs\&quot;: Lengths (265, 264) differ (string compare on first 264)&quot;                                
+## [255] &quot;Component \&quot;ReturnTs\&quot;: 252 string mismatches&quot;                                                                  
+## [256] &quot;Component \&quot;EIN\&quot;: Lengths (265, 264) differ (string compare on first 264)&quot;                                     
+## [257] &quot;Component \&quot;EIN\&quot;: 36 string mismatches&quot;                                                                        
+## [258] &quot;Component \&quot;TaxPeriodEndDt\&quot;: Numeric: lengths (265, 264) differ&quot;                                               
+## [259] &quot;Component \&quot;ReturnTypeCd\&quot;: Lengths (265, 264) differ (string compare on first 264)&quot;                            
+## [260] &quot;Component \&quot;TaxPeriodBeginDt\&quot;: Numeric: lengths (265, 264) differ&quot;                                             
+## [261] &quot;Component \&quot;AmendedReturnInd\&quot;: Lengths (265, 264) differ (string compare on first 264)&quot;                        
+## [262] &quot;Component \&quot;AmendedReturnInd\&quot;: &#39;is.NA&#39; value mismatch: 261 in current 260 in target&quot;                           
+## [263] &quot;Component \&quot;BusinessName\&quot;: Lengths (265, 264) differ (string compare on first 264)&quot;                            
+## [264] &quot;Component \&quot;BusinessName\&quot;: 39 string mismatches&quot;                                                               
+## [265] &quot;Component \&quot;fiscal_year\&quot;: Lengths: 265, 264&quot;                                                                   
+## [266] &quot;Component \&quot;fiscal_year\&quot;: Lengths (265, 264) differ (string compare on first 264)&quot;                             
+## [267] &quot;Component \&quot;fiscal_year\&quot;: 251 string mismatches&quot;                                                               
+## [268] &quot;Component \&quot;filename\&quot;: Lengths (265, 264) differ (string compare on first 264)&quot;                                
+## [269] &quot;Component \&quot;filename\&quot;: 252 string mismatches&quot;                                                                  
+## [270] &quot;Component \&quot;ReturnDate\&quot;: Numeric: lengths (265, 264) differ&quot;                                                   
+## [271] &quot;Component \&quot;amended_return_filled\&quot;: Numeric: lengths (265, 264) differ&quot;</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># now we have 799 - 14 = 785 observtions, as we would expect, </span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co"># because we only took the 14 amended ones</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">nrow</span>(filter_data_amended)</span></code></pre></div>
+<pre><code>## [1] 265</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>eins_with_multiple <span class="ot">&lt;-</span> filter_data <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="fu">group_by</span>(EIN, fiscal_year) <span class="sc">%&gt;%</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n=</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="co"># need both fiscal year and ein number to check</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="co"># which year/ein combinations had multiple filings</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">EIN_year =</span><span class="fu">paste0</span>(EIN, fiscal_year)) <span class="sc">%&gt;%</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="fu">pull</span>(EIN_year)</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>  </span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co"># of the eins with multiple filings, now we only have</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co"># the ones that were ammended (AmendedReturnInd is &quot;X&quot;, not NA)</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>filter_data_amended <span class="sc">%&gt;%</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">EIN_year =</span><span class="fu">paste0</span>(EIN, fiscal_year)) <span class="sc">%&gt;%</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>  <span class="fu">filter</span>(EIN_year <span class="sc">%in%</span> eins_with_multiple) <span class="sc">%&gt;%</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(AmendedReturnInd)) </span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["ReturnTs"],"name":[1],"type":["chr"],"align":["left"]},{"label":["EIN"],"name":[2],"type":["chr"],"align":["left"]},{"label":["TaxPeriodEndDt"],"name":[3],"type":["date"],"align":["right"]},{"label":["ReturnTypeCd"],"name":[4],"type":["chr"],"align":["left"]},{"label":["TaxPeriodBeginDt"],"name":[5],"type":["date"],"align":["right"]},{"label":["AmendedReturnInd"],"name":[6],"type":["chr"],"align":["left"]},{"label":["BusinessName"],"name":[7],"type":["chr"],"align":["left"]},{"label":["fiscal_year"],"name":[8],"type":["fct"],"align":["left"]},{"label":["filename"],"name":[9],"type":["chr"],"align":["left"]},{"label":["ReturnDate"],"name":[10],"type":["date"],"align":["right"]},{"label":["amended_return_filled"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["EIN_year"],"name":[12],"type":["chr"],"align":["left"]}],"data":[{"1":"2022-10-31T15:19:47-07:00","2":"844735639","3":"2022-09-30","4":"990","5":"2021-10-01","6":"NA","7":"THE ROSIN BOX PROJECT INC","8":"2022","9":"202203049349302370_public.xml","10":"2022-10-31","11":"0","12":"8447356392022"},{"1":"2023-05-10T14:35:27-07:00","2":"844735639","3":"2022-12-31","4":"990","5":"2022-01-01","6":"NA","7":"THE ROSIN BOX PROJECT INC","8":"2022","9":"202331309349305118_public.xml","10":"2023-05-10","11":"0","12":"8447356392022"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["ReturnTs"],"name":[1],"type":["chr"],"align":["left"]},{"label":["EIN"],"name":[2],"type":["chr"],"align":["left"]},{"label":["TaxPeriodEndDt"],"name":[3],"type":["date"],"align":["right"]},{"label":["ReturnTypeCd"],"name":[4],"type":["chr"],"align":["left"]},{"label":["TaxPeriodBeginDt"],"name":[5],"type":["date"],"align":["right"]},{"label":["AmendedReturnInd"],"name":[6],"type":["chr"],"align":["left"]},{"label":["BusinessName"],"name":[7],"type":["chr"],"align":["left"]},{"label":["fiscal_year"],"name":[8],"type":["fct"],"align":["left"]},{"label":["filename"],"name":[9],"type":["chr"],"align":["left"]},{"label":["ReturnDate"],"name":[10],"type":["date"],"align":["right"]},{"label":["amended_return_filled"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["EIN_year"],"name":[12],"type":["chr"],"align":["left"]}],"data":[],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
 <div id="detecting-groups-who-changed-fiscal-year" class="section level2">
 <h2>Detecting Groups who Changed Fiscal Year</h2>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Finding all companies with any short or abnormally long fiscal years  </span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Note that there were not any long ones</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>short_years_filings <span class="ot">&lt;-</span> filter_data_amended <span class="sc">%&gt;%</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(EIN, TaxPeriodBeginDt, TaxPeriodEndDt) <span class="sc">%&gt;%</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year_len =</span> <span class="fu">difftime</span>(TaxPeriodEndDt, TaxPeriodBeginDt, <span class="at">units =</span> <span class="st">&quot;days&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year_len <span class="sc">&lt;</span> <span class="dv">364</span> <span class="sc">|</span> year_len <span class="sc">&gt;</span> <span class="dv">365</span>)</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="do">##Tabling it for the HTML</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>short_years_filings <span class="sc">%&gt;%</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> <span class="st">&quot;Short fiscal years&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material</span>()</span></code></pre></div>
-<table class=" lightable-material" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; margin-left: auto; margin-right: auto;">
-<caption>
-Short fiscal years
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-fiscal_year
-</th>
-<th style="text-align:left;">
-EIN
-</th>
-<th style="text-align:left;">
-TaxPeriodBeginDt
-</th>
-<th style="text-align:left;">
-TaxPeriodEndDt
-</th>
-<th style="text-align:left;">
-year_len
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-2021
-</td>
-<td style="text-align:left;">
-061537525
-</td>
-<td style="text-align:left;">
-2021-01-01
-</td>
-<td style="text-align:left;">
-2021-08-31
-</td>
-<td style="text-align:left;">
-242 days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-222587551
-</td>
-<td style="text-align:left;">
-2022-01-01
-</td>
-<td style="text-align:left;">
-2022-08-31
-</td>
-<td style="text-align:left;">
-242 days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2019
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-2018-09-01
-</td>
-<td style="text-align:left;">
-2019-06-30
-</td>
-<td style="text-align:left;">
-302 days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2021
-</td>
-<td style="text-align:left;">
-862924498
-</td>
-<td style="text-align:left;">
-2021-03-27
-</td>
-<td style="text-align:left;">
-2021-12-31
-</td>
-<td style="text-align:left;">
-279 days
-</td>
-</tr>
-</tbody>
-</table>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co">#Finding all companies with any short or abnormally long fiscal years  </span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#Note that there were not any long ones</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>short_years_filings <span class="ot">&lt;-</span> filter_data_amended <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="fu">select</span>(EIN, TaxPeriodBeginDt, TaxPeriodEndDt) <span class="sc">%&gt;%</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year_len =</span> <span class="fu">difftime</span>(TaxPeriodEndDt, TaxPeriodBeginDt, <span class="at">units =</span> <span class="st">&quot;days&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="fu">filter</span>(year_len <span class="sc">&lt;</span> <span class="dv">364</span> <span class="sc">|</span> year_len <span class="sc">&gt;</span> <span class="dv">365</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="do">##Tabling it for the HTML</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co"># short_years_filings %&gt;%</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#   kbl(caption = &quot;Short fiscal years&quot;) %&gt;%</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#   kable_material()</span></span></code></pre></div>
 <p>There is only one company which has a short fiscal year:
 742371103</p>
 </div>
 <div id="investigating-single-short-fiscal-year" class="section level2">
 <h2>Investigating single short fiscal year</h2>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Filtering to 742371103, utilizing some of Quinn&#39;s code to graph gaps</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>filter_data_amended <span class="sc">%&gt;%</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(EIN <span class="sc">==</span> <span class="st">&quot;742371103&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(EIN, </span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>         BusinessName,</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>       TaxPeriodBeginDt, </span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>       TaxPeriodEndDt) <span class="sc">%&gt;%</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(TaxPeriodBeginDt) <span class="sc">%&gt;%</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year_len =</span> <span class="fu">difftime</span>(TaxPeriodEndDt, TaxPeriodBeginDt, <span class="at">units =</span> <span class="st">&quot;days&quot;</span>),</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">before =</span>  <span class="fu">lag</span>(TaxPeriodEndDt, <span class="at">n =</span><span class="dv">1</span>),</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">gap =</span> <span class="fu">difftime</span>(before, TaxPeriodBeginDt, <span class="at">units =</span> <span class="st">&quot;days&quot;</span>))<span class="sc">%&gt;%</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(EIN, BusinessName, TaxPeriodBeginDt,TaxPeriodEndDt, year_len, gap) <span class="sc">%&gt;%</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> <span class="st">&quot;Fiscal year length and fiscal gaps for EIN 742371103&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_spec</span>(<span class="at">row =</span> <span class="dv">5</span>, <span class="at">background =</span> <span class="st">&quot;red&quot;</span>, <span class="at">color =</span> <span class="st">&quot;white&quot;</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
-<table class=" lightable-material" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; margin-left: auto; margin-right: auto;">
-<caption>
-Fiscal year length and fiscal gaps for EIN 742371103
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-fiscal_year
-</th>
-<th style="text-align:left;">
-EIN
-</th>
-<th style="text-align:left;">
-BusinessName
-</th>
-<th style="text-align:left;">
-TaxPeriodBeginDt
-</th>
-<th style="text-align:left;">
-TaxPeriodEndDt
-</th>
-<th style="text-align:left;">
-year_len
-</th>
-<th style="text-align:left;">
-gap
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-2016
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-BALLET SAN ANTONIO
-</td>
-<td style="text-align:left;">
-2015-09-01
-</td>
-<td style="text-align:left;">
-2016-08-31
-</td>
-<td style="text-align:left;">
-365 days
-</td>
-<td style="text-align:left;">
-NA days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2017
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-BALLET SAN ANTONIO
-</td>
-<td style="text-align:left;">
-2016-09-01
-</td>
-<td style="text-align:left;">
-2017-08-31
-</td>
-<td style="text-align:left;">
-364 days
-</td>
-<td style="text-align:left;">
-NA days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2018
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-BALLET SAN ANTONIO
-</td>
-<td style="text-align:left;">
-2017-09-01
-</td>
-<td style="text-align:left;">
-2018-08-31
-</td>
-<td style="text-align:left;">
-364 days
-</td>
-<td style="text-align:left;">
-NA days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2019
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-BALLET SAN ANTONIO
-</td>
-<td style="text-align:left;">
-2018-09-01
-</td>
-<td style="text-align:left;">
-2019-06-30
-</td>
-<td style="text-align:left;">
-302 days
-</td>
-<td style="text-align:left;">
-NA days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;font-weight: bold;color: white !important;background-color: red !important;">
-2020
-</td>
-<td style="text-align:left;font-weight: bold;color: white !important;background-color: red !important;">
-742371103
-</td>
-<td style="text-align:left;font-weight: bold;color: white !important;background-color: red !important;">
-BALLET SAN ANTONIO
-</td>
-<td style="text-align:left;font-weight: bold;color: white !important;background-color: red !important;">
-2019-07-01
-</td>
-<td style="text-align:left;font-weight: bold;color: white !important;background-color: red !important;">
-2020-06-30
-</td>
-<td style="text-align:left;font-weight: bold;color: white !important;background-color: red !important;">
-365 days
-</td>
-<td style="text-align:left;font-weight: bold;color: white !important;background-color: red !important;">
-NA days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2021
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-BALLET SAN ANTONIO
-</td>
-<td style="text-align:left;">
-2020-07-01
-</td>
-<td style="text-align:left;">
-2021-06-30
-</td>
-<td style="text-align:left;">
-364 days
-</td>
-<td style="text-align:left;">
-NA days
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-2022
-</td>
-<td style="text-align:left;">
-742371103
-</td>
-<td style="text-align:left;">
-BALLET SAN ANTONIO
-</td>
-<td style="text-align:left;">
-2021-07-01
-</td>
-<td style="text-align:left;">
-2022-06-30
-</td>
-<td style="text-align:left;">
-364 days
-</td>
-<td style="text-align:left;">
-NA days
-</td>
-</tr>
-</tbody>
-</table>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co">#Filtering to 742371103, utilizing some of Quinn&#39;s code to graph gaps</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co"># filter_data_amended %&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#   filter(EIN == &quot;742371103&quot;) %&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#   select(EIN, </span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co">#          BusinessName,</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#        TaxPeriodBeginDt, </span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#        TaxPeriodEndDt) %&gt;%</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#   arrange(TaxPeriodBeginDt) %&gt;%</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#   mutate(year_len = difftime(TaxPeriodEndDt, TaxPeriodBeginDt, units = &quot;days&quot;),</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#     before =  lag(TaxPeriodEndDt, n =1),</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#         gap = difftime(before, TaxPeriodBeginDt, units = &quot;days&quot;))%&gt;%</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#   select(EIN, BusinessName, TaxPeriodBeginDt,TaxPeriodEndDt, year_len, gap) %&gt;%</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#   kbl(caption = &quot;Fiscal year length and fiscal gaps for EIN 742371103&quot;) %&gt;%</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#   kable_material() %&gt;%</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#   row_spec(row = 5, background = &quot;red&quot;, color = &quot;white&quot;, bold = TRUE)</span></span></code></pre></div>
 <p>As the shorter fiscal year is still a significant portion of the
 year, 302 days, I feel it should not be filtered.</p>
 </div>

@@ -29,8 +29,9 @@ library(here)
 endowment_data <- read_rds(here("data", "endowment_filter_data_990.RDS")) 
 
 companies_to_ein <- read_csv(here("data", "companies.csv")) %>%
-  mutate(ein = as.character("EIN")) %>%
-  select(-ein)
+  rename(EIN = ein) %>%
+  mutate(EIN = as.character(EIN))
+  #select(-ein)
 
 ```
 
@@ -242,14 +243,14 @@ check_variable <- function(variable_name,
     # vars contains the CM* variables that represent reporting for years back
     # compare these CM* variables to the lagged current year (CY) variables
     mutate(
-      difference_in_reported_year1 =  !!sym(vars[1]) - 
-        lag(!!sym(var), n =1),
-      difference_in_reported_year2 =  !!sym(vars[2]) - 
-        lag(!!sym(var), n =2),
-      difference_in_reported_year3 =  !!sym(vars[3]) - 
-        lag(!!sym(var), n =3),
-       difference_in_reported_year4 =  !!sym(vars[4]) - 
-        lag(!!sym(var), n =4)
+      difference_in_reported_year1 =  as.numeric(as.character(!!sym(vars[1]))) - 
+        as.numeric(as.character(lag(!!sym(var), n =1))),
+      difference_in_reported_year2 =  as.numeric(as.character(!!sym(vars[2]))) - 
+        as.numeric(as.character(lag(!!sym(var), n =2))),
+      difference_in_reported_year3 =  as.numeric(as.character(!!sym(vars[3]))) - 
+        as.numeric(as.character(lag(!!sym(var), n =3))),
+      difference_in_reported_year4 =  as.numeric(as.character(!!sym(vars[4]))) - 
+        as.numeric(as.character(lag(!!sym(var), n =4)))
       )  %>%
     ungroup()
 
@@ -267,6 +268,7 @@ As we might expect, we see that a higher proportion had a nonzero difference bet
 
 
 ```{r}
+
 
 crossref <- check_variable("BeginningYearBalanceAmt", data = endowment_data)
 plot_missing("CYBeginningYearBalanceAmt")
@@ -449,7 +451,7 @@ crossref %>%
   mutate(year = substr(name, nchar(name), nchar(name)),
          year = paste0("Comparing Current Year Minus ",
                        year)) %>%
-  arrange(Company) %>% View()
+  arrange(Company) #%>% View()
 
 ```
 

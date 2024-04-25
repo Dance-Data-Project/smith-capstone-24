@@ -171,9 +171,9 @@ short_years_filings <- filter_data_amended %>%
   filter(year_len < 364 | year_len > 365)
 
 ##Tabling it for the HTML
-short_years_filings %>%
-  kbl(caption = "Short fiscal years") %>%
-  kable_material()
+# short_years_filings %>%
+#   kbl(caption = "Short fiscal years") %>%
+#   kable_material()
 ```
 
 ```{r,include=FALSE}
@@ -196,20 +196,20 @@ There is only one company which has a short fiscal year: 742371103
 
 ```{r}
 #Filtering to 742371103, utilizing some of Quinn's code to graph gaps
-filter_data_amended %>%
-  filter(EIN == "742371103") %>%
-  select(EIN, 
-         BusinessName,
-       TaxPeriodBeginDt, 
-       TaxPeriodEndDt) %>%
-  arrange(TaxPeriodBeginDt) %>%
-  mutate(year_len = difftime(TaxPeriodEndDt, TaxPeriodBeginDt, units = "days"),
-    before =  lag(TaxPeriodEndDt, n =1),
-        gap = difftime(before, TaxPeriodBeginDt, units = "days"))%>%
-  select(EIN, BusinessName, TaxPeriodBeginDt,TaxPeriodEndDt, year_len, gap) %>%
-  kbl(caption = "Fiscal year length and fiscal gaps for EIN 742371103") %>%
-  kable_material() %>%
-  row_spec(row = 5, background = "red", color = "white", bold = TRUE)
+# filter_data_amended %>%
+#   filter(EIN == "742371103") %>%
+#   select(EIN, 
+#          BusinessName,
+#        TaxPeriodBeginDt, 
+#        TaxPeriodEndDt) %>%
+#   arrange(TaxPeriodBeginDt) %>%
+#   mutate(year_len = difftime(TaxPeriodEndDt, TaxPeriodBeginDt, units = "days"),
+#     before =  lag(TaxPeriodEndDt, n =1),
+#         gap = difftime(before, TaxPeriodBeginDt, units = "days"))%>%
+#   select(EIN, BusinessName, TaxPeriodBeginDt,TaxPeriodEndDt, year_len, gap) %>%
+#   kbl(caption = "Fiscal year length and fiscal gaps for EIN 742371103") %>%
+#   kable_material() %>%
+#   row_spec(row = 5, background = "red", color = "white", bold = TRUE)
 ```
 
 As the shorter fiscal year is still a significant portion of the year, 302 days, I feel it should not be filtered.

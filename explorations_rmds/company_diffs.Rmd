@@ -1,0 +1,75 @@
+---
+title: "Company Type Difference Calculations"
+author: "Meaghan Brennan"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    df_print: paged
+    code_folding: hide
+    css: !expr here::here('css', 'template.css')
+    toc_depth: 4
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "output_html")})
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
+library(tidyverse)
+library(kableExtra)
+library(scales)
+library(here)
+```
+
+```{r}
+
+endowment_data <- read_rds(here("data", "endowment_filter_data_990.RDS")) 
+
+companies <- read_csv(here("data", "companies.csv")) %>%
+  rename(EIN = ein) %>%
+  mutate(EIN = as.character(EIN))
+
+```
+
+```{r}
+
+company_diffs <- companies %>% 
+  mutate(Comp_Type = case_when(
+    row_number() <= 10 ~ "Opera",
+    row_number() <= 20 ~ "Theatre",
+    row_number() <= 30 ~ "Symphony",
+    row_number() <= 40 ~ "Ballet")) %>% 
+  left_join(endowment_data, by = "EIN")
+
+
+```
+
+```{r}
+#calculating means the slow way
+
+mean_opera <- company_diffs %>%
+  filter(Comp_Type == "Opera") %>%
+  summarize(mean_begin = mean(CYBeginningYearBalanceAmt, na.rm = TRUE), mean_end = mean(CYEndYearBalanceAmt, na.rm = TRUE))
+
+mean_theatre <- company_diffs %>%
+  filter(Comp_Type == "Theatre") %>%
+  summarize(mean_begin = mean(CYBeginningYearBalanceAmt, na.rm = TRUE), mean_end = mean(CYEndYearBalanceAmt, na.rm = TRUE))
+
+mean_symph <- company_diffs %>%
+  filter(Comp_Type == "Symphony") %>%
+  summarize(mean_begin = mean(CYBeginningYearBalanceAmt, na.rm = TRUE), mean_end = mean(CYEndYearBalanceAmt, na.rm = TRUE))
+
+mean_ballet <- company_diffs %>%
+  filter(Comp_Type == "Ballet") %>%
+  summarize(mean_begin = mean(CYBeginningYearBalanceAmt, na.rm = TRUE), mean_end = mean(CYEndYearBalanceAmt, na.rm = TRUE))
+
+```
+
+
+
+
+
+

@@ -8,11 +8,7 @@ theme: cosmo
 number-sections: true
 ---
 
-This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V.
-
-By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
-
-For this exploratory analysis I have used the top5 largest and bottom5 smallest endowments from 2022 to produce visualizations, and snippets of the calculations of one of the smallest and largest endowments.
+This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V. By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
 
 ```{r, include=FALSE}
 ## Set default behavior for all code chunks here:
@@ -24,30 +20,34 @@ knitr::opts_chunk$set(
   fig.height = 9/2)
 ```
 
-```{r, data wrangling, include=FALSE}
+```{r, loading packages, include=FALSE}
 ## Load packages
 library(dplyr) # data manipulation
 library(readr) # scrapes web pages
 library(ggplot2) # data visualization
 library(janitor) # data manipulation
-library(stats) # stat fxns
-library(stargazer) # formatting
+library(plotly) # interactive visualizations
+library(DT) # interactive table
 
+set.seed(76)
+```
+
+```{r, include=FALSE}
 ## Set directort
 setwd("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation")
 
 ## Load data
 schedule_d <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/schedule_d_vals.csv")  
 companies <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/companies.csv") 
+```
 
+```{r, data wrangling, include=FALSE}
 ## Cleaning column names
-schedule_d <- schedule_d %>%
-  clean_names()
+schedule_d <- schedule_d %>% clean_names()
 
 schedule_d_cleaned <- 
   schedule_d %>% 
-  rename(
-    administrative_expenses = x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_administrative_expenses_amt, 
+  rename(administrative_expenses = x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_administrative_expenses_amt, 
     boy_balance = 
 x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_beginning_year_balance_amt,
     contributions = 
@@ -58,13 +58,13 @@ x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_end_year_balance_amt,
 x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_grants_or_scholarships_amt,
     investment_earnings_or_losses = x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_investment_earnings_or_losses_amt,
     other_expenditure = 
-x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_other_expenditures_amt)
+x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_other_expenditures_amt,
+    total_expenses =
+x_return_return_data_irs990schedule_d_total_expenses_per_form990amt)
 
-## Changing EIN to character - schedule_d
+## schedule_d_cleaned - change data type
 schedule_d_cleaned <- schedule_d_cleaned %>%
   mutate(fiscal_year = as.character(fiscal_year)) 
-
-## Changing EIN to character - schedule_d
 schedule_d_cleaned <- schedule_d_cleaned %>%
   mutate(ein = as.character(ein)) 
 
@@ -73,7 +73,7 @@ companies <- companies %>%
   mutate(ein = as.character(ein)) %>%
   select(ein, organization_name)
 
-## new df with focusedcolumns
+## new df with main columns
 schedule_d_cleaned <- schedule_d_cleaned %>% 
   select("ein", 
       "fiscal_year",
@@ -83,30 +83,44 @@ schedule_d_cleaned <- schedule_d_cleaned %>%
       "eoy_balance", 
       "grants_or_scholarships", 
       "investment_earnings_or_losses", 
-      "other_expenditure")
+      "other_expenditure",
+      "total_expenses")
 
 ## Joining datasets 
 schedule_d_cleaned <- schedule_d_cleaned %>%
   left_join(companies , by = 'ein', relationship = "many-to-many")
+```
 
-## Converting data from wide to long and selecting Part V columns from 990s
-# schedule_d_2017 <- subset(schedule_d_cleaned, fiscal_year == "2017")
-# schedule_d_2018 <- subset(schedule_d_cleaned, fiscal_year == "2018")
-# schedule_d_2019 <- subset(schedule_d_cleaned, fiscal_year == "2019")
-# schedule_d_2020 <- subset(schedule_d_cleaned, fiscal_year == "2020")
-# schedule_d_2021 <- subset(schedule_d_cleaned, fiscal_year == "2021")
-# schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
+```{r, validity check, include=FALSE}
+## ensuring NAs are consistent
+
+## schedule_d_checkvars - change data type
+# schedule_d_checkvars <- schedule_d %>%
+#   mutate(ein = as.character(ein))
+
+## Validity check
+# schedule_d_checkvars <- schedule_d_checkvars %>%
+#   select(ein,
+#          fiscal_year,
+#          x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_beginning_year_balance_amt,
+#          x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_end_year_balance_amt, 
+#          x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_contributions_amt) %>%
+#   left_join(companies , by = 'ein', relationship = "many-to-many") 
+# 
+# schedule_d_checkvars <- schedule_d_checkvars %>%
+#   select(ein,organization_name,fiscal_year,
+#          x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_beginning_year_balance_amt,
+#          x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_end_year_balance_amt, 
+#          x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_contributions_amt)
 ```
 
 `Metrics:`
 
--   Change over fiscal year
+-   EDA of changes in the endowment balances
 
--   Expense ratio
+-   EDA of contributions
 
--   Multiple regression - adjusted R\^2
-
--   Net contributions
+-   EDA of investment earnings or losses
 
 ```{r, include=FALSE}
 ## calculating the change in endowment balance, difference between eoy - boy
@@ -114,130 +128,229 @@ schedule_d_cleaned <- schedule_d_cleaned %>%
   mutate(difference = (eoy_balance - boy_balance))
 
 ## new df with diffs and vars of interest
-df_diffs <- schedule_d_cleaned %>%
-  select(organization_name, fiscal_year, boy_balance, eoy_balance, difference)
+# df_diffs <- schedule_d_cleaned %>%
+#   select(organization_name, fiscal_year, boy_balance, eoy_balance, difference)
 
-## total_expenses; sum of administrative_expenses, grants_or_scholarships, other_expenditure
-schedule_d_cleaned <- schedule_d_cleaned %>%
-  mutate(total_expenses = rowSums(
-    select(., administrative_expenses, grants_or_scholarships, other_expenditure)))
-
-## calculating expense ratio, total expenses relative to the endowment's total assets
-schedule_d_cleaned <- schedule_d_cleaned %>%
-  mutate(expense_ratio = (total_expenses / eoy_balance) * 100)
+# ## total_expenses; sum of administrative_expenses, grants_or_scholarships, other_expenditure
+# schedule_d_cleaned <- schedule_d_cleaned %>%
+#   mutate(total_expenses = rowSums(
+#     select(., administrative_expenses, grants_or_scholarships, other_expenditure)))
+#
+# ## calculating expense ratio, total expenses relative to the endowment's total assets
+# schedule_d_cleaned <- schedule_d_cleaned %>%
+#   mutate(expense_ratio = (total_expenses / eoy_balance) * 100)
 
 ## new df with expense ratios and vars of interests
-expense_ratio_df <- schedule_d_cleaned %>%
-  select(organization_name, fiscal_year, expense_ratio, eoy_balance, total_expenses)
+# expense_ratio_df <- schedule_d_cleaned %>%
+#   select(organization_name, fiscal_year, expense_ratio, eoy_balance, total_expenses)
 
 # net flows reflects net inflow/outflow of contributions to the fund
-schedule_d_cleaned <- schedule_d_cleaned %>%
-  mutate(net_flows = (contributions-grants_or_scholarships))
+# schedule_d_cleaned <- schedule_d_cleaned %>%
+#   mutate(net_flows = (contributions-grants_or_scholarships))
 
 ## set df order for vars
 schedule_d_cleaned <- schedule_d_cleaned %>% 
   select(ein, organization_name, fiscal_year, boy_balance, eoy_balance, 
          difference, contributions, investment_earnings_or_losses, 
-         grants_or_scholarships, other_expenditure, administrative_expenses, 
-         total_expenses, expense_ratio, net_flows)
+         grants_or_scholarships, other_expenditure, administrative_expenses, total_expenses)
 ```
 
-## Change Over Fiscal Year
-
-#### `Calculations`
-
-How does it evaluate the fund's [financial health]{.underline}: a healthy endowment may have consecutive positive changes in beginning of year balances from end of year balances; indicating a stronger endowment value attributed to larger contributions or investment earnings
-
-How does it evaluate the fund's [sustainability]{.underline} : trends of these endowment balances and their differences over multiple fiscal years can inform long-term planning and decision-making; perhaps making adjustments to total expenses or strategizing to increase investment earnings or contributions for the endowment's continued growth and perpetuity.
+## Endowment Balance Changes
 
 `difference = (eoy_balance - boy_balance)`
 
 ```{r, include=FALSE}
 ## example snapshot of changes in fiscal year balances
-diff_nyc <- df_diffs %>%
+balance_diff_nyc <- schedule_d_cleaned %>%
   filter(organization_name == "New York City Ballet")
-diff_sf <- df_diffs %>%
+balance_diff_sf <- schedule_d_cleaned %>%
   filter(organization_name == "San Francisco Ballet")
 ```
 
-```{r}
-## print the first few rows of New York City Ballet
-print(head(diff_nyc))
-```
-
-```{r}
-## print the first few rows of San Francisco Ballet
-print(head(diff_sf))
-```
-
-#### `Visualization`
+**Figure 12** demonstrates the changes between the end of year and start of year balance for the New York City ballet, one of the largest ballet dance companies. We witness an inconsistent fluctuation of these balances. The trends range from a positive difference, indicating a larger end of year balance compared to the start of year balance, and then negative balances demonstrating vice versa. Overall, the fiscal years from 2016 to 2022 have a mean difference of \$13,678,566.
 
 ```{r, include=FALSE}
-## Finding the top5 and bottom5 based on the eoy balance in 2022
-top5 <- schedule_d_cleaned %>% 
-  filter(organization_name %in% c("New York City Ballet", "San Francisco Ballet", 
-                                  "Houston Ballet", "Alvin Ailey American Dance Theater", 
-                                  "Boston Ballet"))
-bottom5 <- schedule_d_cleaned %>% 
-  filter(organization_name %in% c("Ballet North Texas", "Ballet Quad Cities", 
-                                  "First State Ballet Theatre", "The Tallahassee Ballet", 
-                                  "Canyon Concert Ballet"))
-
-# change_in_amt_df_2017 <- subset(change_in_amt_df, fiscal_year == "2017")
-# change_in_amt_df_2018 <- subset(change_in_amt_df, fiscal_year == "2018")
-# change_in_amt_df_2019 <- subset(change_in_amt_df, fiscal_year == "2019")
-# change_in_amt_df_2020 <- subset(change_in_amt_df, fiscal_year == "2020")
-# change_in_amt_df_2021 <- subset(change_in_amt_df, fiscal_year == "2021")
-# change_in_amt_df_2022 <- subset(change_in_amt_df, fiscal_year == "2022")
+## print the first few rows of New York City Ballet
+print(head(balance_diff_nyc))
 ```
 
-```{r, top5 boy, include=FALSE}
-# top5_boy <- 
-#   ggplot(data = top5, aes(x = fiscal_year, y = boy_balance, 
-#     group = organization_name, color = organization_name)) +
-#   geom_line() +
-#   labs(title = "Top 5 Ballet Funds: Beginning of the Year Balance",
-#        subtitle = "Fiscal Years 2016-2022",
-#        x = "Company",
-#        y = "Difference ($)") +
-#   scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+**Figure 13** illustrates the variations in balance between the end and beginning of the year for San Francisco, another significantly large ballet company. These balances show varying differences and interestingly the balance remains the same in 2016. In future analyses, we can observe a larger range of data to see what the balances were before 2016. Across the fiscal years spanning from 2016 to 2022, the average variance amounts to \$62,06,321.
 
-# top5_boy
+```{r, include=FALSE}
+## print the first few rows of San Francisco Ballet
+print(head(balance_diff_sf))
 ```
 
-```{r, top5 diff, include=FALSE}
-viz_top5_change <- 
-  ggplot(data = top5, aes(x = fiscal_year, y = difference, 
-    group = organization_name, color = organization_name)) +
-  geom_line() +
-  labs(title = "Top 5 Ballet Funds: Endowment Balance Changes",
-       subtitle = "Fiscal Years 2016-2022",
-       x = "Company",
-       y = "Difference ($)", 
-       caption="Source: Schedule D, Part V") +
-  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+**Table 14** prints the entire data frame's companies, beginning or year balances, end of year balances, and those differences between fiscal years 2016-2022. You will notice that many 501(c)s have NAs for their beginning of year balance and end of year balance according to their Form 990 Schedule D, Part V filings on Pro-Publica. Conversely their tax filings will demonstrate net income, revenue, expenses and net assets larger than NA; therefore indicating that the dance company is not entirely dependent of their endowment, or they have misreported their balances for the IRS. (**check with daisy**)
+
+-   sort by company name alphabetically
+
+```{r, include=FALSE}
+# df_diffs <- df_diffs[order(df_diffs$organization_name),]
+# df_diffs
+```
+
+-   sort by differences in descending order (largest to smallest)
+
+```{r, include=FALSE}
+# df_diffs <- df_diffs[order(df_diffs$difference),]
+# df_diffs
+```
+
+-   make positive and negatives tables
+
+```{r, include=FALSE}
+# 
+```
+
+```{r, interactive table, include=FALSE}
+# Sort organization_name alphabetically
+df_diffs <- schedule_d_cleaned %>%
+   select(organization_name, fiscal_year, boy_balance, eoy_balance, difference)
+
+diffs_table <- datatable(df_diffs, 
+          filter = "top", #where to toggle
+          options = list(pageLength = 10, # organization names per page
+                         lengthMenu = c(10, 25, 50))) # number of rows per page, three options
 ```
 
 ```{r}
-viz_top5_change
+diffs_table
 ```
+
+**Questions to consider after viewing Figure 12, 13 and Table 14:**
+
+How can observing the changes in the endowment balance help us evaluate the fund's financial health? *A healthy endowment may have consecutive positive rate of change (differences) indicating a stronger endowment value attributed to larger contributions or investment earnings. Larger in comparison to sources of expenses such as grants/scholarships, administrative expenses and other expenditures.*
+
+How can observing the changes in the endowment balance help us evaluate the fund's sustainability? *Measuring the trends of the endowment balances and their differences over multiple fiscal years can inform long-term planning and decision-making by allowing firms to make appropriate adjustments to total expenses. This can look like strategizing to increase investment earnings or contributions for the endowment's continued growth and perpetuity.*
+
+```{r, include=FALSE}
+## calculating smallest and largest by expenses in fiscal year 2018-2022
+scheduleD_groups <- schedule_d_cleaned %>%
+  select(ein, organization_name, fiscal_year, total_expenses) %>%
+  filter(fiscal_year %in% c("2018", "2019", "2020", "2021", "2022"))
+
+expense_summary_table <- scheduleD_groups %>%
+  group_by(organization_name) %>%
+  summarize(
+    group_n = n(), 
+    average = mean(total_expenses),
+    median = median(total_expenses),
+    max = max(total_expenses),
+    min = min(total_expenses))
+```
+
+```{r, include=FALSE}
+## largest endowments
+largest_5_expenses <- schedule_d_cleaned %>% 
+  filter(organization_name %in% c("New York City Ballet", 
+                                  "San Francisco Ballet", 
+                                  "Alvin Ailey American Dance Theater", 
+                                  "American Ballet Theatre", 
+                                  "Houston Ballet"))
+
+largest_10_expenses <- schedule_d_cleaned %>% 
+  filter(organization_name %in% c("New York City Ballet", 
+                                  "San Francisco Ballet", 
+                                  "Alvin Ailey American Dance Theater", 
+                                  "American Ballet Theatre", 
+                                  "Houston Ballet",
+                                  "Boston Ballet", 
+                                  "Pacific Northwest Ballet",
+                                  "Miami City Ballet",
+                                  "Joffrey Ballet",
+                                  "PHILADANCO!"))
+```
+
+```{r, include=FALSE}
+## smallest endowments
+smallest_5 <- schedule_d_cleaned %>% 
+  filter(organization_name %in% c("Ballet North Texas", 
+                                  "Ballet Quad Cities", 
+                                  "First State Ballet Theatre", 
+                                  "The Tallahassee Ballet", 
+                                  "Canyon Concert Ballet"))
+```
+
+```{r, color coding, include=FALSE}
+top5$company_color[top5$organization_name == "Alvin Ailey American Dance Theater"] <- 
+  '#30D5C8' # Turqoise
+top5$company_color[top5$organization_name  == "Boston Ballet"] <- 
+  "#FFA500" # Orange
+top5$company_color[top5$organization_name  == "Houston Ballet"] <- 
+  "#0000FF"   # Blue
+top5$company_color[top5$organization_name  == "New York City Ballet"] <- 
+  "#800080" # Purple
+top5$company_color[top5$organization_name  == "San Francisco Ballet"] <- 
+  "#00FF00" # Green 
+```
+
+```{r, interactive boy, include=FALSE}
+# Create ggplot visualization
+viz_top5_change <- 
+  ggplot(data = top5, aes(x = fiscal_year, y = difference, 
+        group = organization_name, color = organization_name)) +
+                    geom_line() +
+                    labs(title = "Top 5 Ballet Funds: Endowment Balance Changes",
+                         subtitle = "Fiscal Years 2016-2022",
+                         x = "Fiscal Year",
+                         y = "Difference ($)", 
+                         caption="Source: Schedule D, Part V") +
+                    scale_y_continuous(labels = function(x) format(x, scientific = FALSE))+
+                    scale_fill_manual(values = top5$company_color) 
+
+# Convert ggplot to Plotly object
+viz_top5_change_plotly <- ggplotly(viz_top5_change)
+
+# Create a Plotly plot with traces for each organization
+viz_top5_change2 <- plot_ly() %>%
+          add_trace(data = top5, x = ~fiscal_year, y = ~difference,
+                    group = ~organization_name, color = ~organization_name,
+                    type = "scatter", mode = "lines",
+                    name = ~organization_name) %>%  # Use org var for the trace name
+          layout(title = "Top 5 Ballet Companies: Endowment Balance Changes",
+            xaxis = list(title = "Fiscal Year"),
+            yaxis = list(title = "Balances Differences"),
+            updatemenus = list(list(
+                type = "buttons",
+                buttons = list(
+                  list(method = "restyle",
+                       args = list("visible", list(TRUE)),
+                       label = "Show All Companies")))))
+
+# # Add traces from ggplot to Plotly plot
+for (i in 1:length(viz_top5_change_plotly$x$data)) 
+  {viz_top5_change2 <- 
+    viz_top5_change2 %>% 
+    add_trace(viz_top5_change_plotly$x$data[[i]])}
+```
+
+**Figure 15a** depicts a line graph, emphasizing a visual representation of how the endowment balances fluctuate over time for each company. It highlights periods of growth, decline, or stability in each company's financial position across fiscal years. For example, the New York Ballet Company had a stark contrast in their end of year balance and start of year balance in 2021 and 2022. The difference was positive in 2021 and conversely negative in 2022.
+
+```{r}
+viz_top5_change2
+```
+
+In **Figure 15b**, we observe similar trends to the line graph, but with a focus on the distribution, central tendency and spread of the values against competitors, as opposed to specifically the change over time. The median points of the top five ballet companies are within the same range, and a summary table can particularly distinguish what these values are. This indicates for all companies, half of the data is above and below this line and has a similar spread. Contrastingly, the size of the interquartile ranges and boxes differ starkly. In order from largest to smallest it goes as: New York City Ballet, San Francisco Ballet, Houston Ballet, Alvin Ailey American Dance Theater and Boston Ballet. Additionally by interpreting the shape of the box in relation to the medians, we notice that four companies are skewed while only one company has a proper median that equally splits the quartile into halves.
 
 ```{r, top5 spread, include=FALSE}
 viz_top5_spread <- 
   ggplot(data = top5, aes(x = difference , y = fiscal_year, 
-    group = organization_name, color = organization_name)) +
+    group = organization_name, color= organization_name)) +
   geom_boxplot() +
   labs(title = "Top 5 Ballet Funds: Endowment Balance Changes",
        subtitle = "Fiscal Years 2016-2022",
        x = "Difference ($)",
-       y = "Company", 
+       y = "Fiscal Year", 
        caption="Source: Schedule D, Part V") +
   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
 ```
 
 ```{r}
-viz_top5_spread 
+viz_top5_spread
 ```
+
+**Figure 16a** presents the dynamic changes in the endowment balances across the bottom 5 ballet companies from our sample. We noticed that of the three companies, the trends of the Tallahassee Ballet and Ballet Quad Cities are closely alike through the fiscal years 2016- 2022, while the trends of the First State Ballet Theater experience a dip and spike from 2018- 2020. Moreover, the Canyon Concert Ballet data also starts in 2021 which can indicate there were no differences until this point, or the endowment started later than the others so it is missing data and has a different timeline from the 2016-2022 approximation. The y-axis range of dollars for the endowment balance differences is also 3x smaller for the smallest companies compared to the largest companies.
 
 ```{r, bottom5 diff, include=FALSE}
 viz_bottom5_change <- 
@@ -246,7 +359,7 @@ viz_bottom5_change <-
   geom_line() +
   labs(title = "Bottom 5 Ballet Funds: Endowment Balance Changes",
        subtitle = "Fiscal Years 2016-2022",
-       x = "Company",
+       x = "Fiscal Year",
        y = "Difference ($)", 
        caption="Source: Schedule D, Part V") +
   scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
@@ -255,6 +368,8 @@ viz_bottom5_change <-
 ```{r}
 viz_bottom5_change
 ```
+
+**Figure 16b** highlights periods of growth, decline, or stability in each company's financial position across fiscal years. For example, the sizes of the interquartile ranges of boxes for all four endowments are small in comparison to the larger endowments which indicates their end of year balances did not significantly differ from the start of year balances. Further investigations could reveal if this was attributed to contributions, investment earnings or losses and sources of expenditure such as administrative expenses or grants and scholarships.
 
 ```{r, bottom5 spread, include=FALSE}
 viz_bottom5_spread <- 
@@ -269,36 +384,52 @@ viz_bottom5_spread <-
   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
 ```
 
-```{r}
-viz_bottom5_spread 
+```{r, ggplot2 plot to interactive plotly plot}
+viz_bottom5_spread
 ```
 
-## Expense Ratio
+## EDA of Contributions
 
-#### `Calculations`
+**EDA of contributions and over the fiscal years**
+
+```{r, include=FALSE}
+# contributions <- 
+#   ggplot(data = schedule_d_cleaned, aes(x = organization_name , y = fiscal_year)) +
+#   geom_boxplot() +
+#   labs(title = "Bottom 5 Ballet Funds: Endowment Balance Changes",
+#        subtitle = "Fiscal Years 2016-2022",
+#        x = "Difference ($)",
+#        y = "Company", 
+#        caption="Source: Schedule D, Part V") +
+#   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+```
+
+## EDA of Investment Earnings or Losses
+
+**Adding bar chart for investment_earnings_or_loss**
+
+## \[N/A\] Expense Ratio
 
 How does it evaluate the fund's [financial health]{.underline}: a healthy endowment may have a decreasing expense ratio because the firm may become more efficient at allocating expenses while an increase may indicate a financial strain or higher expenses on the firm.
 
 How does it evaluate the fund's [sustainability:]{.underline} a consistent expense ratio may reveal a pattern into the endowment's operations and spending habits; maintaining a 'sustainable' ratio is crucial to maintaining the endowment's perpetuity and preserving their abilities to meet their objectives
 
-`expense_ratio = (total_expenses / eoy_balance) * 100`
+```{r, include=FALSE}
+# ## example snapshot of expense ratios for SF
+# nyc_er <- expense_ratio_df %>%
+#   filter(organization_name == "New York City Ballet")
+# sf_er <- expense_ratio_df %>%
+#   filter(organization_name == "San Francisco Ballet")
+```
 
 ```{r, include=FALSE}
-## example snapshot of expense ratios for SF
-nyc_er <- expense_ratio_df %>%
-  filter(organization_name == "New York City Ballet")
-sf_er <- expense_ratio_df %>%
-  filter(organization_name == "San Francisco Ballet")
+# ## print the first few rows of New York City Ballet 
+# print(head(nyc_er))
 ```
 
-```{r}
-## print the first few rows of New York City Ballet 
-print(head(nyc_er))
-```
-
-```{r}
-## print the first few rows of San Francisco Ballet
-print(head(sf_er))
+```{r, include=FALSE}
+# ## print the first few rows of San Francisco Ballet
+# print(head(sf_er))
 ```
 
 ```{r, include=FALSE}
@@ -311,41 +442,39 @@ print(head(sf_er))
 # expense_ratio_df_2022 <- subset(expense_ratio_df, fiscal_year == "2022")
 ```
 
-#### `Visualizations`
-
-```{r, top5 rates, include=FALSE}
-viz_top5_er <- 
-  ggplot(data = top5, aes(x = fiscal_year, y = expense_ratio, 
-                             col = organization_name)) + 
-  geom_point() + 
-  # geom_smooth(method = "loess", se = FALSE) + 
-  labs(title = "Top 5 Ballet Funds: Expense Ratios Over Time",
-       subtitle = "Fiscal Years 2016-2022",
-       x = "Fiscal Year",
-       y = "Expense Ratio", 
-       caption = "Source: Schedule D, Part V") +
-  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+```{r, Visualizations, top5 rates, include=FALSE}
+# viz_top5_er <- 
+#   ggplot(data = top5, aes(x = fiscal_year, y = expense_ratio, 
+#                              col = organization_name)) + 
+#   geom_point() + 
+#   # geom_smooth(method = "loess", se = FALSE) + 
+#   labs(title = "Top 5 Ballet Funds: Expense Ratios Over Time",
+#        subtitle = "Fiscal Years 2016-2022",
+#        x = "Fiscal Year",
+#        y = "Expense Ratio", 
+#        caption = "Source: Schedule D, Part V") +
+#   scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
 ```
 
-```{r}
-viz_top5_er
+```{r, include=FALSE}
+# viz_top5_er
 ```
 
-```{r}
-viz_top_er_spread <- 
-  ggplot(data = top5, aes(x = expense_ratio , y = fiscal_year, 
-    group = organization_name, color = organization_name)) +
-  geom_boxplot() +
-  labs(title = "Top 5 Ballet Funds: Spread of Expense Ratios",
-       subtitle = "Fiscal Years 2016-2022",
-       x = "Expense Ratio",
-       y = "Company", 
-       caption="Source: Schedule D, Part V") +
-  scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+```{r, include=FALSE}
+# viz_top_er_spread <- 
+#   ggplot(data = top5, aes(x = expense_ratio , y = fiscal_year, 
+#     group = organization_name, color = organization_name)) +
+#   geom_boxplot() +
+#   labs(title = "Top 5 Ballet Funds: Spread of Expense Ratios",
+#        subtitle = "Fiscal Years 2016-2022",
+#        x = "Expense Ratio",
+#        y = "Company", 
+#        caption="Source: Schedule D, Part V") +
+#   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
 ```
 
-```{r}
-viz_top_er_spread
+```{r, include=FALSE}
+#  viz_top_er_spread
 ```
 
 ```{r, include=FALSE}
@@ -358,82 +487,6 @@ viz_top_er_spread
 #     x = "Expense Ratio (%)",
 #     y = "Frequency") 
 ```
-
-## Multiple Regression - Adjusted R\^2
-
-The coefficients of the independent variables and the overall goodness-of-fit measures (e.g., R-squared) can indicate which variables contribute the most to explaining the variation in the dependent variable.
-
-`Including all variables`
-
-```{r, include=FALSE}
-# Fit multiple linear regression model
-lm_model_all <- 
-  lm(eoy_balance ~ administrative_expenses + contributions + 
-     grants_or_scholarships + investment_earnings_or_losses + 
-     other_expenditure, data = schedule_d_cleaned)
-
-# Summary of the model
-summary(lm_model_all)
-```
-
-```{r}
-# Extract coefficients
-stargazer(lm_model_all, type = "text")
-
-# Overall goodness-of-fit measures
-cat("Adjusted R-squared:", summary(lm_model_all)$adj.r.squared, "\n")
-```
-
-`Including only expenses`
-
-```{r, include=FALSE}
-# Fit multiple linear regression model
-lm_model_total_expenses <- 
-  lm(eoy_balance ~ administrative_expenses + 
-     grants_or_scholarships + other_expenditure, 
-     data = schedule_d_cleaned)
-
-# Summary of the model
-summary(lm_model_total_expenses)
-```
-
-```{r}
-# Extract coefficients
-stargazer(lm_model_total_expenses, type = "text")
-
-# Overall goodness-of-fit measures
-cat("Adjusted R-squared:", summary(lm_model_total_expenses)$adj.r.squared, "\n")
-```
-
-`Including only sources of revenue`
-
-```{r, include=FALSE}
-# Fit multiple linear regression model
-lm_model_revenue <- 
-  lm(eoy_balance ~ contributions + investment_earnings_or_losses,
-     data = schedule_d_cleaned)
-
-# Summary of the model
-summary(lm_model_revenue)
-```
-
-```{r}
-# Extract coefficients
-stargazer(lm_model_revenue, type = "text")
-
-# Overall goodness-of-fit measures
-cat("Adjusted R-squared:", summary(lm_model_revenue)$adj.r.squared, "\n")
-```
-
-## Net Contributions
-
-`Calculations`
-
-```{r}
-## Net Contributions = Contributions - Grants or Scholarships
-```
-
-`Visualizations`
 
 ## About the Data \[[source](https://www.irs.gov/pub/irs-pdf/i990sd.pdf)\]
 

@@ -9,13 +9,11 @@ number-sections: true
 ---
 
 This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities.
-This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities.
 
 This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
 
 How to interpret yearly endowment balance changes and what does it tell us about financial health?
 
--   A healthy endowment may have consecutive positive differences.
 -   A healthy endowment may have consecutive positive differences.
 
 -   Having a larger end of year balance than their beginning of year balance prompts further investigations about whether these trends are attributed to larger sources of revenue such as contributions or investment earnings. Secondly, it would mean these revenue streams are larger than their expenses such as grants/scholarships, administrative expenses and other expenditures.
@@ -23,15 +21,6 @@ How to interpret yearly endowment balance changes and what does it tell us about
 -   Measuring the endowment balances patterns over multiple fiscal years can inform long-term planning and decision-making. For example, the largest 10 endowment patterns can serve as an example for the smallest 10 endowments to make adjustments to their revenue and expense streams. For instance, this can appear as strategizing to increase investment earnings or contributions for the endowment's continued growth and perpetuity.
 
 This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V. By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
-
-
-### Endowment Management
-
-This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V.
-
-By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
-
-Examples of metrics
 
 
 ```{r, include=FALSE}
@@ -43,6 +32,7 @@ knitr::opts_chunk$set(
   fig.width = 16/2, 
   fig.height = 9/2)
 ```
+
 
 
 ```{r, loading packages, include=FALSE}
@@ -779,50 +769,3 @@ For example,
 # schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
 ```
 
-
-`Schedule_d_cleaned` contains 1061 observations and 10 variables. Three of the variables are characters: the organization name, fiscal year and EIN code; while seven of the variables are integers demonstrating different quantitative aspects of the endowment fund.
-
-![](/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/partV_ss.png){width="100%"}
-
-For example,
-
--   `organization_name` : Company names provided by DDP
-
--   `ein` : unique nine-digit number assigned by the IRS to identity a business entity, in this case 501(c) non-profits
-
--   `fiscal_year` : a 12-month period that a non-profit organization uses for financial reporting and budgeting purposes
-
--   `boy_balance` **\[1a\]**: beginning-of-year balances on the organization's endowment funds for the current year; includes cumulative total of funds and assets held in the endowment from previous periods
-
--   `contributions` **\[1b\]**: enter the amounts of contributions; includes donor gifts, grants, monetary donations and contributions in the form of assets or securities, as well as additional funds established by the organization's governing board to function like an endowment
-
--   `investment_earnings_or_losses` **\[1c\]**: represents income or losses generates from investing the endowments funds in financial markets (such as interest, dividends, capital gains or losses on investments), including both realized and unrealized amounts; for example reported net of transaction costs and earnings reported on a gross basis
-
--   `grants_or_scholarships` **\[1d\]**: enter the amounts distributed for grants and scholarships; scholarships represent direct aid to individuals, they are distinguished from general programmatic aid referenced; funds disbursed to support specific programs, projects or individuals
-
--   `other_expenditure` **\[1e\]**: encompasses any additional expenses incurred by the endowment fund during the fiscal year that are not classified as administrative expenses or grants/scholarships; may include fees for investment management, legal expenses, or other operational costs
-
--   `administrative_expenses` **\[1f\]**: expenses can arise from either internal or third-party sources; relate to general operation and management such as salaries of administrative staff, office rent, utilities, and other overhead expenses
-
--   `eoy_balance` **\[1g\]**: determined by adding investing earnings and subtracting investment losses to the beginning of year balance, after grants or scholarships have been awarded and other expenditures
-
-```{r, include=FALSE}
-## example snapshot of changes in fiscal year balances
-balance_diff_sf <- schedule_d_cleaned %>%
-  filter(organization_name == "San Francisco Ballet")
-## print the first few rows of San Francisco Ballet
-print(head(balance_diff_sf))
-# Figure 13 illustrates the variations in balance between the end and beginning of the year for San Francisco, another significantly large ballet company. These balances show varying differences and interestingly the balance remains the same in 2016. In future analyses, we can observe a larger range of data to see what the balances were before 2016. Across the fiscal years spanning from 2016 to 2022, the average variance amounts to $62,06,321.
-```
-
-```{r, include=FALSE}
-## example snapshot of changes in fiscal year balances
-balance_diff_nyc <- schedule_d_cleaned %>%
-  filter(organization_name == "New York City Ballet") %>%
-  select(organization_name, fiscal_year, difference)
-
-## print the first few rows of New York City Ballet
-print(head(balance_diff_nyc))
-
-# Figure 12 demonstrates the changes between the end of year and start of year balance for the New York City ballet, one of the largest ballet dance companies. We witness an inconsistent fluctuation of these balances. The trends range from a positive difference, indicating a larger end of year balance compared to the start of year balance, and then negative balances demonstrating vice versa. Overall, the fiscal years from 2016 to 2022 have a mean difference of $13,678,566.
-```

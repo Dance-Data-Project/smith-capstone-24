@@ -8,6 +8,7 @@ theme: cosmo
 number-sections: true
 ---
 
+<<<<<<< HEAD
 This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities.
 
 This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
@@ -22,6 +23,17 @@ How to interpret yearly endowment balance changes and what does it tell us about
 
 This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V. By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
 
+=======
+### Endowment Management
+
+This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V.
+
+By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
+
+Examples of metrics
+
+1.  
+>>>>>>> 3d8e853 (modify metrics and analysis objective)
 
 ```{r, include=FALSE}
 ## Set default behavior for all code chunks here:
@@ -33,6 +45,10 @@ knitr::opts_chunk$set(
   fig.height = 9/2)
 ```
 
+<<<<<<< HEAD
+=======
+```{r, data wrangling}
+>>>>>>> 3d8e853 (modify metrics and analysis objective)
 
 
 ```{r, loading packages, include=FALSE}
@@ -124,6 +140,7 @@ schedule_d_cleaned <- schedule_d_cleaned %>%
 ```{r, validity check, include=FALSE}
 ## ensuring NAs are consistent
 
+<<<<<<< HEAD
 ## schedule_d_checkvars - change data type
 # schedule_d_checkvars <- schedule_d %>%
 #   mutate(ein = as.character(ein))
@@ -769,3 +786,76 @@ For example,
 # schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
 ```
 
+=======
+`Schedule_d_cleaned` contains 1061 observations and 10 variables. Three of the variables are characters: the organization name, fiscal year and EIN code; while seven of the variables are integers demonstrating different quantitative aspects of the endowment fund.
+
+![](/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/partV_ss.png){width="100%"}
+
+For example,
+
+-   `organization_name` : Company names provided by DDP
+
+-   `ein` : unique nine-digit number assigned by the IRS to identity a business entity, in this case 501(c) non-profits
+
+-   `fiscal_year` : a 12-month period that a non-profit organization uses for financial reporting and budgeting purposes
+
+-   `boy_balance` **\[1a\]**: beginning-of-year balances on the organization's endowment funds for the current year; includes cumulative total of funds and assets held in the endowment from previous periods
+
+-   `contributions` **\[1b\]**: enter the amounts of contributions; includes donor gifts, grants, monetary donations and contributions in the form of assets or securities, as well as additional funds established by the organization's governing board to function like an endowment
+
+-   `investment_earnings_or_losses` **\[1c\]**: represents income or losses generates from investing the endowments funds in financial markets (such as interest, dividends, capital gains or losses on investments), including both realized and unrealized amounts; for example reported net of transaction costs and earnings reported on a gross basis
+
+-   `grants_or_scholarships` **\[1d\]**: enter the amounts distributed for grants and scholarships; scholarships represent direct aid to individuals, they are distinguished from general programmatic aid referenced; funds disbursed to support specific programs, projects or individuals
+
+-   `other_expenditure` **\[1e\]**: encompasses any additional expenses incurred by the endowment fund during the fiscal year that are not classified as administrative expenses or grants/scholarships; may include fees for investment management, legal expenses, or other operational costs
+
+-   `administrative_expenses` **\[1f\]**: expenses can arise from either internal or third-party sources; relate to general operation and management such as salaries of administrative staff, office rent, utilities, and other overhead expenses
+
+-   `eoy_balance` **\[1g\]**: determined by adding investing earnings and subtracting investment losses to the beginning of year balance, after grants or scholarships have been awarded and other expenditures
+
+### Exploratory Data Analysis
+
+```{r, include=FALSE}
+# investments17 <-
+#   ggplot (data=schedule_d_2017, aes(x= investment_earnings_or_losses)) +
+#   geom_histogram () +
+#   labs(title = "Distribution of 2017 Investment Earnings and Losses",
+#     subtitle = "Assessing Central Tendency and Data Spread",
+#     x = "Amount (USD)",
+#     y = "Count") +
+#   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+```
+
+```{r}
+# investments17
+```
+
+```{r, include=FALSE}
+# investments17_summary <- schedule_d_2017 |> 
+#   group_by(ein) |>
+#   summarize(
+#     group_n = n(), 
+#     mean = mean(investment_earnings_or_losses),
+#     median = median(investment_earnings_or_losses),
+#     max = max(investment_earnings_or_losses),
+#     min = min(investment_earnings_or_losses),
+#     sd = sd(investment_earnings_or_losses))
+```
+
+```{r}
+# investments17_summary
+```
+
+```{r, include=FALSE}
+# investments17 <-
+#   ggplot (data=schedule_d_2017, aes(x= grants_or_scholarships)) +
+#   geom_histogram () +
+#   labs(title = "Distribution of 2017 Grants",
+#     subtitle = "Assessing Central Tendency and Data Spread",
+#     x = "Amount (USD)",
+#     y = "Count") +
+#   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+```
+
+### 
+>>>>>>> 3d8e853 (modify metrics and analysis objective)

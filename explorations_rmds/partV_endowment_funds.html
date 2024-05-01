@@ -6,8 +6,13 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<<<<<<< HEAD
 <meta name="author" content="Ruiz-Fuentes, Michel">
 <meta name="dcterms.date" content="2024-05-01">
+=======
+<meta name="author" content="Ruiz-Fuentes">
+<meta name="dcterms.date" content="2024-04-15">
+>>>>>>> 3d8e853 (modify metrics and analysis objective)
 
 <title>Endowment Management</title>
 <style>
@@ -77,7 +82,11 @@ ul.task-list{list-style: none;}
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
+<<<<<<< HEAD
       <p class="date">May 1, 2024</p>
+=======
+      <p class="date">April 15, 2024</p>
+>>>>>>> 3d8e853 (modify metrics and analysis objective)
     </div>
   </div>
     
@@ -86,9 +95,133 @@ ul.task-list{list-style: none;}
 
 </header>
 
+<<<<<<< HEAD
 <p>This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the <strong>financial health</strong> and <strong>performance</strong> of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities.</p>
 <p>This will also produce insights on the endowment fund’s <strong>long-term sustainability</strong> and <strong>perpetuity</strong> which is especially meaningful for smaller endowment’s because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.</p>
 <p>How to interpret yearly endowment balance changes and what does it tell us about financial health?</p>
+=======
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Load packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr) <span class="co"># data manipulation</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr) <span class="co"># scrapes web pages</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2) <span class="co"># data visualization</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor) <span class="co"># data manipulation</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Set directort</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">"/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation"</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="do">## Load data</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>schedule_d <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/schedule_d_vals.csv"</span>)  </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>companies <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/companies.csv"</span>) </span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Cleaning column names</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>schedule_d <span class="ot">&lt;-</span> schedule_d <span class="sc">%&gt;%</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>schedule_d_cleaned <span class="ot">&lt;-</span> </span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  schedule_d <span class="sc">%&gt;%</span> </span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">administrative_expenses =</span> x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_administrative_expenses_amt, </span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">boy_balance =</span> </span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_beginning_year_balance_amt,</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">contributions =</span> </span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_contributions_amt,</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">eoy_balance=</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_end_year_balance_amt,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">grants_or_scholarships =</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_grants_or_scholarships_amt,</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">investment_earnings_or_losses =</span> x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_investment_earnings_or_losses_amt,</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">other_expenditure =</span> </span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_other_expenditures_amt)</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Changing EIN to character - schedule_d</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>schedule_d_cleaned <span class="ot">&lt;-</span> schedule_d_cleaned <span class="sc">%&gt;%</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">fiscal_year =</span> <span class="fu">as.character</span>(fiscal_year)) </span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Changing EIN to character - schedule_d</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>schedule_d_cleaned <span class="ot">&lt;-</span> schedule_d_cleaned <span class="sc">%&gt;%</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ein =</span> <span class="fu">as.character</span>(ein)) </span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Changing EIN to character - companies</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>companies <span class="ot">&lt;-</span> companies <span class="sc">%&gt;%</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ein =</span> <span class="fu">as.character</span>(ein)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ein, organization_name)</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="co"># new df with focusedcolumns</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>schedule_d_cleaned <span class="ot">&lt;-</span> schedule_d_cleaned <span class="sc">%&gt;%</span> </span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">"ein"</span>, </span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>      <span class="st">"fiscal_year"</span>,</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>      <span class="st">"administrative_expenses"</span>, </span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>      <span class="st">"boy_balance"</span>, </span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>      <span class="st">"contributions"</span>, </span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>      <span class="st">"eoy_balance"</span>, </span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>      <span class="st">"grants_or_scholarships"</span>, </span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>      <span class="st">"investment_earnings_or_losses"</span>, </span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>      <span class="st">"other_expenditure"</span>)</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Joining datasets </span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>schedule_d_cleaned <span class="ot">&lt;-</span> schedule_d_cleaned <span class="sc">%&gt;%</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(companies , <span class="at">by =</span> <span class="st">'ein'</span>, <span class="at">relationship =</span> <span class="st">"many-to-many"</span>)</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to filter out year</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>pick_vars <span class="ot">&lt;-</span> <span class="cf">function</span>(data, fiscal_year) {</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">"ein"</span>, </span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>      <span class="st">"administrative_expenses"</span>, </span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>      <span class="st">"boy_balance"</span>, </span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>      <span class="st">"contributions"</span>, </span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>      <span class="st">"eoy_balance"</span>, </span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>      <span class="st">"grants_or_scholarships"</span>, </span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>      <span class="st">"investment_earnings_or_losses"</span>, </span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>      <span class="st">"other_expenditure"</span>)}</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="co"># Converting data from wide to long and selecting Part V columns from 990s</span></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>schedule_d_2017 <span class="ot">&lt;-</span> <span class="fu">subset</span>(schedule_d_cleaned, fiscal_year <span class="sc">==</span> <span class="st">"2017"</span>)</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>schedule_d_2018 <span class="ot">&lt;-</span> <span class="fu">subset</span>(schedule_d_cleaned, fiscal_year <span class="sc">==</span> <span class="st">"2018"</span>)</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>schedule_d_2019 <span class="ot">&lt;-</span> <span class="fu">subset</span>(schedule_d_cleaned, fiscal_year <span class="sc">==</span> <span class="st">"2019"</span>)</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>schedule_d_2020 <span class="ot">&lt;-</span> <span class="fu">subset</span>(schedule_d_cleaned, fiscal_year <span class="sc">==</span> <span class="st">"2020"</span>)</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>schedule_d_2021 <span class="ot">&lt;-</span> <span class="fu">subset</span>(schedule_d_cleaned, fiscal_year <span class="sc">==</span> <span class="st">"2021"</span>)</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>schedule_d_2022 <span class="ot">&lt;-</span> <span class="fu">subset</span>(schedule_d_cleaned, fiscal_year <span class="sc">==</span> <span class="st">"2022"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="about-the-data-1" class="level3" data-number="0.1">
+<h3 data-number="0.1" class="anchored" data-anchor-id="about-the-data-1"><span class="header-section-number">0.1</span> About the Data [<a href="https://www.irs.gov/pub/irs-pdf/i990sd.pdf">1</a>]</h3>
+<p><code>Schedule_d_cleaned</code> contains 1061 observations and 10 variables. Three of the variables are characters: the organization name, fiscal year and EIN code; while seven of the variables are integers demonstrating different quantitative aspects of the endowment fund.</p>
+<p><img src="/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/partV_ss.png" class="img-fluid" style="width:100.0%"></p>
+<p>For example,</p>
+<ul>
+<li><p><code>organization_name</code> : Company names provided by DDP</p></li>
+<li><p><code>boy_balance</code> <strong>[1a]</strong>: beginning-of-year balances on the organization’s endowment funds for the current year; amounts should agree with the organization’s total permanent endowment, term endowment, and board or quasi-endowment funds at the beginning of the current year</p></li>
+<li><p><code>contributions</code> <strong>[1b]</strong>: enter the amounts of contributions; includes donor gifts, grants, as well as additional funds established by the organization’s governing board to function like an endowment</p></li>
+<li><p><code>investment_earnings_or_losses</code> <strong>[1c]</strong>: including both realized and unrealized amounts; for example reported net of transaction costs and earnings reported on a gross basis</p></li>
+<li><p><code>grants_or_scholarships</code> <strong>[1d]</strong>: enter the amounts distributed for grants and scholarships; scholarships represent direct aid to individuals, they are distinguished from general programmatic aid referenced</p></li>
+<li><p><code>other_expenditure</code> <strong>[1e]</strong>:</p></li>
+<li><p><code>administrative_expenses</code> <strong>[1f]</strong>: expenses can arise from either internal or third-party sources</p></li>
+<li><p><code>eoy_balance</code> <strong>[1g]</strong>: determined by adding investing earnings and subtracting investment losses to the beginning of year balance</p></li>
+</ul>
+</section>
+<section id="exploratory-data-analysis" class="level3" data-number="0.2">
+<h3 data-number="0.2" class="anchored" data-anchor-id="exploratory-data-analysis"><span class="header-section-number">0.2</span> Exploratory Data Analysis</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># investments17</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># investments17_summary</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="asset-allocation" class="level3" data-number="0.3">
+<h3 data-number="0.3" class="anchored" data-anchor-id="asset-allocation"><span class="header-section-number">0.3</span> Asset Allocation</h3>
+<p>The section on asset allocation will provide a more detailed analysis of endowments, by investigating how their assets are distributed and diversified, examining the breakdown of asset distribution via percentages, and assessing whether the endowment performance trends mimic or deviate the S&amp;P 500 overall performance. Our guiding questions include: a) How are assets allocated across different asset classes in the endowment (stocks, bonds, real estate etc.)? b) Adjustment of endowment in response to the pandemic: b1 How have the choices made within their asset allocation impacted their endowment performance? b2 What percentage of the total endowment S&amp;P 500?</p>
+</section>
+<section id="perpetuity" class="level3" data-number="0.4">
+<h3 data-number="0.4" class="anchored" data-anchor-id="perpetuity"><span class="header-section-number">0.4</span> Perpetuity:</h3>
+<p>When assessing perpetuity and long-term sustainability of the endowment funds, we will evaluate what investments and factors contributed to their resilience in the midst of economic downturns and market volatility that arose from the pandemic crisis.</p>
+</section>
+<section id="endowment-types" class="level3" data-number="0.5">
+<h3 data-number="0.5" class="anchored" data-anchor-id="endowment-types"><span class="header-section-number">0.5</span> Endowment Types:</h3>
+<p><strong>Endowment management and purpose:</strong> What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.</p>
+</section>
+<section id="capstone-2023-resources" class="level3" data-number="0.6">
+<h3 data-number="0.6" class="anchored" data-anchor-id="capstone-2023-resources"><span class="header-section-number">0.6</span> Capstone 2023 Resources:</h3>
+>>>>>>> 3d8e853 (modify metrics and analysis objective)
 <ul>
 <li><p>A healthy endowment may have consecutive positive differences.</p></li>
 <li><p>Having a larger end of year balance than their beginning of year balance prompts further investigations about whether these trends are attributed to larger sources of revenue such as contributions or investment earnings. Secondly, it would mean these revenue streams are larger than their expenses such as grants/scholarships, administrative expenses and other expenditures.</p></li>
@@ -234,6 +367,43 @@ ul.task-list{list-style: none;}
 <li><p><code>administrative_expenses</code> <strong>[1f]</strong>: expenses can arise from either internal or third-party sources; relate to general operation and management such as salaries of administrative staff, office rent, utilities, and other overhead expenses</p></li>
 <li><p><code>eoy_balance</code> <strong>[1g]</strong>: determined by adding investing earnings and subtracting investment losses to the beginning of year balance, after grants or scholarships have been awarded and other expenditures</p></li>
 </ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># schedule_d_2022 &lt;- </span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   subset(schedule_d_joined fiscal_year == "2022") %&gt;% </span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   select("ein",</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#       "administrative_expenses", </span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#       "boy_balance", </span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#       "contributions", </span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#       "eoy_balance", </span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#       "grants_or_scholarships", </span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#       "investment_earnings_or_losses", </span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#       "other_expenditure")</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="do">## Renaming Section D, Part V: Endowment Fund Group Variables</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co"># rename_cols &lt;- function(data, old_names, new_names) {</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   # data</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">#   # old_names: vector of old var names</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co">#   # new_names: a vector of new var names</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">#   for (i in seq_along(old_names)) {</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co">#     names(data)[names(data) == old_names[i]] &lt;- new_names[i]}</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co">#   return(data)} # sort(colnames(schedule_d))</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="co"># ## Cleaning variable names</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="co"># schedule_d &lt;- rename_cols(schedule_d,</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="co"># c("x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_administrative_expenses_amt",                            "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_beginning_year_balance_amt", "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_contributions_amt",        "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_end_year_balance_amt",     "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_grants_or_scholarships_amt",</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="co"># "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_investment_earnings_or_losses_amt",                              "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_other_expenditures_amt"),</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="co">#                               </span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a><span class="co">#     c("ein", </span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="co">#       "administrative_expenses", </span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="co">#       "boy_balance", </span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="co">#       "contributions", </span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="co">#       "eoy_balance", </span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="co">#       "grants_or_scholarships", </span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="co">#       "investment_earnings_or_losses", </span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="co">#       "other_expenditure"))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 
 </main>

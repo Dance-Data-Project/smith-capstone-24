@@ -8,13 +8,14 @@ theme: cosmo
 number-sections: true
 ---
 
-<<<<<<< HEAD
+This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities.
 This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities.
 
 This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
 
 How to interpret yearly endowment balance changes and what does it tell us about financial health?
 
+-   A healthy endowment may have consecutive positive differences.
 -   A healthy endowment may have consecutive positive differences.
 
 -   Having a larger end of year balance than their beginning of year balance prompts further investigations about whether these trends are attributed to larger sources of revenue such as contributions or investment earnings. Secondly, it would mean these revenue streams are larger than their expenses such as grants/scholarships, administrative expenses and other expenditures.
@@ -23,7 +24,7 @@ How to interpret yearly endowment balance changes and what does it tell us about
 
 This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V. By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
 
-=======
+
 ### Endowment Management
 
 This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V.
@@ -32,8 +33,6 @@ By investigating variables 1a-g we can learn about the **financial health** and 
 
 Examples of metrics
 
-1.  
->>>>>>> 3d8e853 (modify metrics and analysis objective)
 
 ```{r, include=FALSE}
 ## Set default behavior for all code chunks here:
@@ -44,11 +43,6 @@ knitr::opts_chunk$set(
   fig.width = 16/2, 
   fig.height = 9/2)
 ```
-
-<<<<<<< HEAD
-=======
-```{r, data wrangling}
->>>>>>> 3d8e853 (modify metrics and analysis objective)
 
 
 ```{r, loading packages, include=FALSE}
@@ -140,7 +134,6 @@ schedule_d_cleaned <- schedule_d_cleaned %>%
 ```{r, validity check, include=FALSE}
 ## ensuring NAs are consistent
 
-<<<<<<< HEAD
 ## schedule_d_checkvars - change data type
 # schedule_d_checkvars <- schedule_d %>%
 #   mutate(ein = as.character(ein))
@@ -786,7 +779,7 @@ For example,
 # schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
 ```
 
-=======
+
 `Schedule_d_cleaned` contains 1061 observations and 10 variables. Three of the variables are characters: the organization name, fiscal year and EIN code; while seven of the variables are integers demonstrating different quantitative aspects of the endowment fund.
 
 ![](/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/partV_ss.png){width="100%"}
@@ -813,49 +806,23 @@ For example,
 
 -   `eoy_balance` **\[1g\]**: determined by adding investing earnings and subtracting investment losses to the beginning of year balance, after grants or scholarships have been awarded and other expenditures
 
-### Exploratory Data Analysis
-
 ```{r, include=FALSE}
-# investments17 <-
-#   ggplot (data=schedule_d_2017, aes(x= investment_earnings_or_losses)) +
-#   geom_histogram () +
-#   labs(title = "Distribution of 2017 Investment Earnings and Losses",
-#     subtitle = "Assessing Central Tendency and Data Spread",
-#     x = "Amount (USD)",
-#     y = "Count") +
-#   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
-```
-
-```{r}
-# investments17
+## example snapshot of changes in fiscal year balances
+balance_diff_sf <- schedule_d_cleaned %>%
+  filter(organization_name == "San Francisco Ballet")
+## print the first few rows of San Francisco Ballet
+print(head(balance_diff_sf))
+# Figure 13 illustrates the variations in balance between the end and beginning of the year for San Francisco, another significantly large ballet company. These balances show varying differences and interestingly the balance remains the same in 2016. In future analyses, we can observe a larger range of data to see what the balances were before 2016. Across the fiscal years spanning from 2016 to 2022, the average variance amounts to $62,06,321.
 ```
 
 ```{r, include=FALSE}
-# investments17_summary <- schedule_d_2017 |> 
-#   group_by(ein) |>
-#   summarize(
-#     group_n = n(), 
-#     mean = mean(investment_earnings_or_losses),
-#     median = median(investment_earnings_or_losses),
-#     max = max(investment_earnings_or_losses),
-#     min = min(investment_earnings_or_losses),
-#     sd = sd(investment_earnings_or_losses))
-```
+## example snapshot of changes in fiscal year balances
+balance_diff_nyc <- schedule_d_cleaned %>%
+  filter(organization_name == "New York City Ballet") %>%
+  select(organization_name, fiscal_year, difference)
 
-```{r}
-# investments17_summary
-```
+## print the first few rows of New York City Ballet
+print(head(balance_diff_nyc))
 
-```{r, include=FALSE}
-# investments17 <-
-#   ggplot (data=schedule_d_2017, aes(x= grants_or_scholarships)) +
-#   geom_histogram () +
-#   labs(title = "Distribution of 2017 Grants",
-#     subtitle = "Assessing Central Tendency and Data Spread",
-#     x = "Amount (USD)",
-#     y = "Count") +
-#   scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+# Figure 12 demonstrates the changes between the end of year and start of year balance for the New York City ballet, one of the largest ballet dance companies. We witness an inconsistent fluctuation of these balances. The trends range from a positive difference, indicating a larger end of year balance compared to the start of year balance, and then negative balances demonstrating vice versa. Overall, the fiscal years from 2016 to 2022 have a mean difference of $13,678,566.
 ```
-
-### 
->>>>>>> 3d8e853 (modify metrics and analysis objective)

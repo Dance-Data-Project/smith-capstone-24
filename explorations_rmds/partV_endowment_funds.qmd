@@ -1,12 +1,24 @@
 ---
 title: "Endowment Management"
 date: "Last updated on `r Sys.Date()`"
-author: "Ruiz-Fuentes"
+author: "Ruiz-Fuentes, Michel"
 format: html
 editor: visual
 theme: cosmo
 number-sections: true
 ---
+
+This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. 
+
+This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
+
+How to interpret yearly endowment balance changes and what does it tell us about financial health?
+
+-   A healthy endowment may have consecutive positive differences. 
+
+-   Having a larger end of year balance than their beginning of year balance prompts further investigations about whether these trends are attributed to larger sources of revenue such as contributions or investment earnings. Secondly, it would mean these revenue streams are larger than their expenses such as grants/scholarships, administrative expenses and other expenditures.
+
+-   Measuring the endowment balances patterns over multiple fiscal years can inform long-term planning and decision-making. For example, the largest 10 endowment patterns can serve as an example for the smallest 10 endowments to make adjustments to their revenue and expense streams. For instance, this can appear as strategizing to increase investment earnings or contributions for the endowment's continued growth and perpetuity.
 
 This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V. By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
 
@@ -28,17 +40,18 @@ library(ggplot2) # data visualization
 library(janitor) # data manipulation
 library(plotly) # interactive visualizations
 library(DT) # interactive table
+library(stringr) # abbreviate val
 
 set.seed(76)
 ```
 
 ```{r, include=FALSE}
-## Set directort
+# ## Set directory
 setwd("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation")
 
 ## Load data
-schedule_d <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/schedule_d_vals.csv")  
-companies <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/companies.csv") 
+schedule_d <- read.csv("schedule_d_vals.csv")
+companies <- read.csv("companies.csv")
 ```
 
 ```{r, data wrangling, include=FALSE}
@@ -155,81 +168,44 @@ schedule_d_cleaned <- schedule_d_cleaned %>%
          grants_or_scholarships, other_expenditure, administrative_expenses, total_expenses)
 ```
 
-## Endowment Balance Changes
+## Endowment Balances from FY16-22
 
-`difference = (eoy_balance - boy_balance)`
+**Table X** prints a complete data frame for stakeholders to observe the beginning or year balances (`boy`), end of year balances (`eoy`), and change over fiscal years 2016-2022, (`differences`) for 173 companies. The differences were calculated by `eoy - boy`. There are a number of interactive features you can utilize to maximize your data exploration such as,
 
-```{r, include=FALSE}
-## example snapshot of changes in fiscal year balances
-balance_diff_nyc <- schedule_d_cleaned %>%
-  filter(organization_name == "New York City Ballet")
-balance_diff_sf <- schedule_d_cleaned %>%
-  filter(organization_name == "San Francisco Ballet")
-```
+-   By clicking the upward arrow for `differences` you can view the smallest balance changes, and conversely the downward arrow demonstrates the largest balance changes.
+-   Within the search bar for `differences` you can manipulate the spectrum of values and customize whether you want to view negative or positive differences.
 
-**Figure 12** demonstrates the changes between the end of year and start of year balance for the New York City ballet, one of the largest ballet dance companies. We witness an inconsistent fluctuation of these balances. The trends range from a positive difference, indicating a larger end of year balance compared to the start of year balance, and then negative balances demonstrating vice versa. Overall, the fiscal years from 2016 to 2022 have a mean difference of \$13,678,566.
+**How to interpret yearly endowment balance changes and what does it tell us about financial health?**
 
-```{r, include=FALSE}
-## print the first few rows of New York City Ballet
-print(head(balance_diff_nyc))
-```
+-   A healthy endowment may have consecutive positive differences. Having a larger end of year balance than their beginning of year balance prompts further investigations about whether these trends are attributed to larger sources of revenue such as contributions or investment earnings. Secondly, it would mean these revenue streams are larger than their expenses such as grants/scholarships, administrative expenses and other expenditures.
 
-**Figure 13** illustrates the variations in balance between the end and beginning of the year for San Francisco, another significantly large ballet company. These balances show varying differences and interestingly the balance remains the same in 2016. In future analyses, we can observe a larger range of data to see what the balances were before 2016. Across the fiscal years spanning from 2016 to 2022, the average variance amounts to \$62,06,321.
+-   Measuring the endowment balances patterns over multiple fiscal years can inform long-term planning and decision-making. For example, the largest 10 endowment patterns can serve as an example for the smallest 10 endowments to make adjustments to their revenue and expense streams. For instance, this can appear as strategizing to increase investment earnings or contributions for the endowment's continued growth and perpetuity.
 
-```{r, include=FALSE}
-## print the first few rows of San Francisco Ballet
-print(head(balance_diff_sf))
-```
-
-**Table 14** prints the entire data frame's companies, beginning or year balances, end of year balances, and those differences between fiscal years 2016-2022. You will notice that many 501(c)s have NAs for their beginning of year balance and end of year balance according to their Form 990 Schedule D, Part V filings on Pro-Publica. Conversely their tax filings will demonstrate net income, revenue, expenses and net assets larger than NA; therefore indicating that the dance company is not entirely dependent of their endowment, or they have misreported their balances for the IRS. (**check with daisy**)
-
--   sort by company name alphabetically
-
-```{r, include=FALSE}
-# df_diffs <- df_diffs[order(df_diffs$organization_name),]
-# df_diffs
-```
-
--   sort by differences in descending order (largest to smallest)
-
-```{r, include=FALSE}
-# df_diffs <- df_diffs[order(df_diffs$difference),]
-# df_diffs
-```
-
--   make positive and negatives tables
-
-```{r, include=FALSE}
-# 
-```
+### Dance Company's Endowment Balances and Differences
 
 ```{r, interactive table, include=FALSE}
 # Sort organization_name alphabetically
 df_diffs <- schedule_d_cleaned %>%
-   select(organization_name, fiscal_year, boy_balance, eoy_balance, difference)
+  select(organization_name, fiscal_year, boy_balance, eoy_balance, difference) %>%
+  arrange(organization_name, fiscal_year)
 
 diffs_table <- datatable(df_diffs, 
-          filter = "top", #where to toggle
-          options = list(pageLength = 10, # organization names per page
-                         lengthMenu = c(10, 25, 50))) # number of rows per page, three options
+                         filter = "top", # where to toggle
+                         options = list(pageLength = 10, # organization names per page
+                                      lengthMenu = c(10, 25, 50))) # number of rows per page
 ```
 
-```{r}
+```{r, echo = FALSE}
 diffs_table
 ```
 
-**Questions to consider after viewing Figure 12, 13 and Table 14:**
-
-How can observing the changes in the endowment balance help us evaluate the fund's financial health? *A healthy endowment may have consecutive positive rate of change (differences) indicating a stronger endowment value attributed to larger contributions or investment earnings. Larger in comparison to sources of expenses such as grants/scholarships, administrative expenses and other expenditures.*
-
-How can observing the changes in the endowment balance help us evaluate the fund's sustainability? *Measuring the trends of the endowment balances and their differences over multiple fiscal years can inform long-term planning and decision-making by allowing firms to make appropriate adjustments to total expenses. This can look like strategizing to increase investment earnings or contributions for the endowment's continued growth and perpetuity.*
-
 ```{r, include=FALSE}
-## calculating smallest and largest by expenses in fiscal year 2018-2022
+## calculating smallest and largest by expenses in FY2018-2022
 scheduleD_groups <- schedule_d_cleaned %>%
-  select(ein, organization_name, fiscal_year, total_expenses) %>%
-  filter(fiscal_year %in% c("2018", "2019", "2020", "2021", "2022"))
+  select(ein, organization_name, fiscal_year, total_expenses, difference) %>%
+  filter(fiscal_year %in% c("2018", "2019", "2020", "2021", "2022")) 
 
+# calculate the average of total_expenses and compare rankings 
 expense_summary_table <- scheduleD_groups %>%
   group_by(organization_name) %>%
   summarize(
@@ -240,77 +216,60 @@ expense_summary_table <- scheduleD_groups %>%
     min = min(total_expenses))
 ```
 
+### Largest 5, Endowment Balance Change Over Time
+
 ```{r, include=FALSE}
 ## largest endowments
-largest_5_expenses <- schedule_d_cleaned %>% 
+largest_5 <- schedule_d_cleaned %>% 
   filter(organization_name %in% c("New York City Ballet", 
-                                  "San Francisco Ballet", 
                                   "Alvin Ailey American Dance Theater", 
-                                  "American Ballet Theatre", 
-                                  "Houston Ballet"))
-
-largest_10_expenses <- schedule_d_cleaned %>% 
-  filter(organization_name %in% c("New York City Ballet", 
-                                  "San Francisco Ballet", 
-                                  "Alvin Ailey American Dance Theater", 
-                                  "American Ballet Theatre", 
-                                  "Houston Ballet",
                                   "Boston Ballet", 
-                                  "Pacific Northwest Ballet",
-                                  "Miami City Ballet",
-                                  "Joffrey Ballet",
-                                  "PHILADANCO!"))
+                                  "Houston Ballet", 
+                                  "Joffrey Ballet")) 
+
+largest_10 <- schedule_d_cleaned %>% 
+  filter(organization_name %in% c("New York City Ballet", # avg expense, 78250983.6
+                                  "Alvin Ailey American Dance Theater", # avg expense, 40508814.4
+                                  "Boston Ballet", # avg expense, 31447678.0
+                                  "Houston Ballet", # avg expense, 30798842.6
+                                  "Joffrey Ballet", # avg expense, 19179594.2
+                                  "Miami City Ballet", # avg expense, 18595308.4
+                                  "Pennsylvania Ballet", # avg expense, 13947001.0
+                                  "Ballet West", # avg expense, 12663388.2
+                                  "The Washington Ballet", # avg expense, 12203710.0
+                                  "Atlanta Ballet")) # avg expense, 11479259.0
 ```
 
-```{r, include=FALSE}
-## smallest endowments
-smallest_5 <- schedule_d_cleaned %>% 
-  filter(organization_name %in% c("Ballet North Texas", 
-                                  "Ballet Quad Cities", 
-                                  "First State Ballet Theatre", 
-                                  "The Tallahassee Ballet", 
-                                  "Canyon Concert Ballet"))
-```
+**Figure X** depicts a line graph, emphasizing a visual representation of how the endowment balances fluctuate over time for each company. It highlights periods of growth, decline, or stability in each company's financial position across fiscal years.
 
-```{r, color coding, include=FALSE}
-top5$company_color[top5$organization_name == "Alvin Ailey American Dance Theater"] <- 
-  '#30D5C8' # Turqoise
-top5$company_color[top5$organization_name  == "Boston Ballet"] <- 
-  "#FFA500" # Orange
-top5$company_color[top5$organization_name  == "Houston Ballet"] <- 
-  "#0000FF"   # Blue
-top5$company_color[top5$organization_name  == "New York City Ballet"] <- 
-  "#800080" # Purple
-top5$company_color[top5$organization_name  == "San Francisco Ballet"] <- 
-  "#00FF00" # Green 
-```
+**Key Findings:** In 2021, four of the five largest endowments experiences a sharp increase in their endowment balance differences where EOY is larger than BOY. These include New York City Ballet, Houston Ballet, Alvin Ailey American Dance Theater, and Boston Ballet. Similarly, in previous years, 2017, three of these companies also experienced a sharp increase in their differences. As of our latest fiscal year 2022, Boston Ballet is the only company to have a positive difference, prompting questions about whether their endowment management and revenue vs expense proportions varied from the other four endowments.
 
-```{r, interactive boy, include=FALSE}
+```{r, interactive largest 5, include=FALSE}
 # Create ggplot visualization
-viz_top5_change <- 
-  ggplot(data = top5, aes(x = fiscal_year, y = difference, 
-        group = organization_name, color = organization_name)) +
-                    geom_line() +
-                    labs(title = "Top 5 Ballet Funds: Endowment Balance Changes",
-                         subtitle = "Fiscal Years 2016-2022",
-                         x = "Fiscal Year",
-                         y = "Difference ($)", 
-                         caption="Source: Schedule D, Part V") +
-                    scale_y_continuous(labels = function(x) format(x, scientific = FALSE))+
-                    scale_fill_manual(values = top5$company_color) 
+largest_5_changeovertime <- 
+  ggplot(data = largest_5, 
+         aes(x = fiscal_year, y = difference, 
+         group = organization_name, color = organization_name)) +
+         geom_line(aes(color = organization_name)) +
+         labs(title = "Largest 5 Companies",
+               subtitle = "Comparing Balance Changes FY16-2022",
+               x = "Fiscal Year",
+               y = "Balance Differences ($)", 
+               caption = "Source: Schedule D, Part V") +
+         scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) 
 
 # Convert ggplot to Plotly object
-viz_top5_change_plotly <- ggplotly(viz_top5_change)
+viz_L5_plotly <- ggplotly(largest_5_changeovertime) #viz_top5_change_plotly <-
 
 # Create a Plotly plot with traces for each organization
-viz_top5_change2 <- plot_ly() %>%
-          add_trace(data = top5, x = ~fiscal_year, y = ~difference,
+L5_changes <- plot_ly() %>%
+          add_trace(data = largest_5, x = ~fiscal_year, y = ~difference,
                     group = ~organization_name, color = ~organization_name,
                     type = "scatter", mode = "lines",
                     name = ~organization_name) %>%  # Use org var for the trace name
-          layout(title = "Top 5 Ballet Companies: Endowment Balance Changes",
+          layout(title = "Largest 5: Comparing Balance Changes FY16-2022",
             xaxis = list(title = "Fiscal Year"),
-            yaxis = list(title = "Balances Differences"),
+            yaxis = list(title = "Balances Differences ($)"),
             updatemenus = list(list(
                 type = "buttons",
                 buttons = list(
@@ -319,73 +278,306 @@ viz_top5_change2 <- plot_ly() %>%
                        label = "Show All Companies")))))
 
 # # Add traces from ggplot to Plotly plot
-for (i in 1:length(viz_top5_change_plotly$x$data)) 
-  {viz_top5_change2 <- 
-    viz_top5_change2 %>% 
-    add_trace(viz_top5_change_plotly$x$data[[i]])}
+for (i in 1:length(viz_L5_plotly$x$data)) 
+  {L5_changes <- 
+    L5_changes %>% 
+    add_trace(viz_L5_plotly$x$data[[i]])}
 ```
 
-**Figure 15a** depicts a line graph, emphasizing a visual representation of how the endowment balances fluctuate over time for each company. It highlights periods of growth, decline, or stability in each company's financial position across fiscal years. For example, the New York Ballet Company had a stark contrast in their end of year balance and start of year balance in 2021 and 2022. The difference was positive in 2021 and conversely negative in 2022.
-
-```{r}
-viz_top5_change2
+```{r, echo = FALSE}
+L5_changes
 ```
 
-In **Figure 15b**, we observe similar trends to the line graph, but with a focus on the distribution, central tendency and spread of the values against competitors, as opposed to specifically the change over time. The median points of the top five ballet companies are within the same range, and a summary table can particularly distinguish what these values are. This indicates for all companies, half of the data is above and below this line and has a similar spread. Contrastingly, the size of the interquartile ranges and boxes differ starkly. In order from largest to smallest it goes as: New York City Ballet, San Francisco Ballet, Houston Ballet, Alvin Ailey American Dance Theater and Boston Ballet. Additionally by interpreting the shape of the box in relation to the medians, we notice that four companies are skewed while only one company has a proper median that equally splits the quartile into halves.
+### Largest 5, Distribution of Differences
 
-```{r, top5 spread, include=FALSE}
-viz_top5_spread <- 
-  ggplot(data = top5, aes(x = difference , y = fiscal_year, 
-    group = organization_name, color= organization_name)) +
-  geom_boxplot() +
-  labs(title = "Top 5 Ballet Funds: Endowment Balance Changes",
-       subtitle = "Fiscal Years 2016-2022",
-       x = "Difference ($)",
-       y = "Fiscal Year", 
-       caption="Source: Schedule D, Part V") +
-  scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+In **Figure X**, we observe similar trends to the line graph, but with a focus on the distribution, central tendency and spread of the values against competitors, as opposed to specifically the change over time. The median points of the top five ballet companies are within the same range, and a summary table can particularly distinguish what these values are. This indicates for all companies, half of the data is above and below this line and has a similar spread. Contrastingly, the size of the interquartile ranges and boxes differ starkly. In order from largest to smallest it goes as: New York City Ballet, San Francisco Ballet, Houston Ballet, Alvin Ailey American Dance Theater and Boston Ballet. Additionally by interpreting the shape of the box in relation to the medians, we notice that four companies are skewed while only one company has a proper median that equally splits the quartile into halves.
+
+```{r, largest5 spread, include=FALSE}
+largest_5$organization_name <- str_wrap(largest_5$organization_name, width = 12)
+
+L5_spread <- 
+  ggplot(data = largest_5, aes(x = organization_name, y = difference, group = organization_name, color = organization_name)) +
+  geom_boxplot(aes(color = organization_name)) +
+  labs(title = "Largest 5 Companies: Spread of Differences",
+       subtitle = "Comparing Balance Changes FY16-2022",
+       x = "Company Name",
+       y = "Balance Differences ($)", 
+       caption = "Source: Schedule D, Part V") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) 
+
+viz_L5_spread_plotly <- ggplotly(L5_spread)
 ```
 
-```{r}
-viz_top5_spread
+```{r, echo = FALSE}
+viz_L5_spread_plotly
 ```
 
-**Figure 16a** presents the dynamic changes in the endowment balances across the bottom 5 ballet companies from our sample. We noticed that of the three companies, the trends of the Tallahassee Ballet and Ballet Quad Cities are closely alike through the fiscal years 2016- 2022, while the trends of the First State Ballet Theater experience a dip and spike from 2018- 2020. Moreover, the Canyon Concert Ballet data also starts in 2021 which can indicate there were no differences until this point, or the endowment started later than the others so it is missing data and has a different timeline from the 2016-2022 approximation. The y-axis range of dollars for the endowment balance differences is also 3x smaller for the smallest companies compared to the largest companies.
+### Largest 10, Endowment Balance Change Over Time
 
-```{r, bottom5 diff, include=FALSE}
-viz_bottom5_change <- 
-  ggplot(data = bottom5, aes(x = fiscal_year, y = difference, 
-    group = organization_name, color = organization_name)) +
-  geom_line() +
-  labs(title = "Bottom 5 Ballet Funds: Endowment Balance Changes",
-       subtitle = "Fiscal Years 2016-2022",
-       x = "Fiscal Year",
-       y = "Difference ($)", 
-       caption="Source: Schedule D, Part V") +
-  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+**Figure X**
+
+```{r, interactive largest 10, include=FALSE}
+# Create ggplot visualization
+largest_10_changeovertime <- 
+  ggplot(data = largest_10, 
+         aes(x = fiscal_year, y = difference, 
+         group = organization_name, color = organization_name)) +
+         geom_line(aes(color = organization_name)) +
+         labs(title = "Largest 10 Companies",
+               subtitle = "Comparing Balance Changes FY16-2022",
+               x = "Fiscal Year",
+               y = "Balance Differences ($)", 
+               caption = "Source: Schedule D, Part V") +
+         scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) 
+
+# Convert ggplot to Plotly object
+viz_L10_plotly <- ggplotly(largest_10_changeovertime) #viz_top5_change_plotly <-
+
+# Create a Plotly plot with traces for each organization
+L10_changes <- plot_ly() %>%
+          add_trace(data = largest_10, x = ~fiscal_year, y = ~difference,
+                    group = ~organization_name, color = ~organization_name,
+                    type = "scatter", mode = "lines",
+                    name = ~organization_name) %>%  # Use org var for the trace name
+          layout(title = "Largest 10: Comparing Balance Changes FY16-2022",
+            xaxis = list(title = "Fiscal Year"),
+            yaxis = list(title = "Balances Differences ($)"),
+            updatemenus = list(list(
+                type = "buttons",
+                buttons = list(
+                  list(method = "restyle",
+                       args = list("visible", list(TRUE)),
+                       label = "Show All Companies")))))
+
+# # Add traces from ggplot to Plotly plot
+for (i in 1:length(viz_L10_plotly$x$data)) 
+  {L10_changes <- 
+    L10_changes %>% 
+    add_trace(viz_L10_plotly$x$data[[i]])}
 ```
 
-```{r}
-viz_bottom5_change
+```{r, echo = FALSE}
+L10_changes
 ```
 
-**Figure 16b** highlights periods of growth, decline, or stability in each company's financial position across fiscal years. For example, the sizes of the interquartile ranges of boxes for all four endowments are small in comparison to the larger endowments which indicates their end of year balances did not significantly differ from the start of year balances. Further investigations could reveal if this was attributed to contributions, investment earnings or losses and sources of expenditure such as administrative expenses or grants and scholarships.
+### Largest 10, Distribution of Differences
 
-```{r, bottom5 spread, include=FALSE}
-viz_bottom5_spread <- 
-  ggplot(data = bottom5, aes(x = difference , y = fiscal_year, 
-    group = organization_name, color = organization_name)) +
-  geom_boxplot() +
-  labs(title = "Bottom 5 Ballet Funds: Endowment Balance Changes",
-       subtitle = "Fiscal Years 2016-2022",
-       x = "Difference ($)",
-       y = "Company", 
-       caption="Source: Schedule D, Part V") +
-  scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+**Figure X**
+
+```{r, largest10 spread, include=FALSE}
+largest_10$organization_name <- str_wrap(largest_10$organization_name, width = 12)
+
+L10_spread <- 
+  ggplot(data = largest_10, aes(x = organization_name, y = difference, group = organization_name, color = organization_name)) +
+  geom_boxplot(aes(color = organization_name)) +
+  labs(title = "Largest 10 Companies: Spread of Differences",
+       subtitle = "Comparing Balance Changes FY16-2022",
+       x = "Company Name",
+       y = "Balance Differences ($)", 
+       caption = "Source: Schedule D, Part V") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) 
+
+viz_L10_spread_plotly <- ggplotly(L10_spread)
 ```
 
-```{r, ggplot2 plot to interactive plotly plot}
-viz_bottom5_spread
+```{r, echo = FALSE}
+viz_L10_spread_plotly
+```
+
+### Smallest 5, Endowment Balance Change Over Time
+
+```{r, include=FALSE}
+# new way to determine smallest 5 and 10 since the currents have NAs in differences
+scheduleD_diff_avg <- scheduleD_groups %>%
+  group_by(organization_name) %>%
+  mutate(average_diff = mean(difference)) %>%
+  select(organization_name, total_expenses, average_diff)
+```
+
+```{r, include=FALSE}
+## smallest endowments BASED ON EXPENSES
+smallest_5 <- schedule_d_cleaned %>% 
+  filter(organization_name %in% c("Ballet Frontier", 
+                                  "Ballet Quad Cities", 
+                                  "Moveius Contemporary Ballet", 
+                                  "Portland Ballet", 
+                                  "Chattanooga Ballet"))
+smallest_10 <- schedule_d_cleaned %>% 
+  filter(organization_name %in% c("Ballet Frontier", # avg expense, 250069.6
+                                  "Ballet Quad Cities", # avg expense, 372069.0
+                                  "Moveius Contemporary Ballet", # avg expense, 469734.8
+                                  "Portland Ballet", # avg expense, 495371.6
+                                  "Chattanooga Ballet", # avg expense, 534258.2
+                                  "First State Ballet Theatre", # avg expense, 593174.0
+                                  "Oakland Ballet Company", # avg expense, 751864.8
+                                  "Huntsville Ballet Company", # avg expense, 781799.3
+                                  "Rochester City Ballet", # avg expense, 841542.6
+                                  "Ballet Theatre of Maryland")) # avg expense, 844564.8
+
+# calculate the average of diff and compare rankings 
+smallest_5_a <- schedule_d_cleaned %>% 
+  filter(organization_name %in% c("Ballet Quad Cities", 
+                                  "New Mexico Ballet Company", 
+                                  "Fort Wayne Ballet", 
+                                  "Eugene Ballet", 
+                                  "Grand Rapids Ballet"))
+smallest_10_a <- schedule_d_cleaned %>% 
+  filter(organization_name %in% c("Ballet Quad Cities", 
+                                  "New Mexico Ballet Company", 
+                                  "Fort Wayne Ballet", 
+                                  "Eugene Ballet", 
+                                  "Grand Rapids Ballet",
+                                  "The Alabama Ballet",
+                                  "Nevada Ballet Theatre",
+                                  "Ballet Memphis",
+                                  "Oregon Ballet Theatre",
+                                  "BalletMet")) 
+```
+
+**Figure X** presents the dynamic changes in the endowment balances across the bottom 5 ballet companies from our sample. We noticed that of the three companies, the trends of the Tallahassee Ballet and Ballet Quad Cities are closely alike through the fiscal years 2016- 2022, while the trends of the First State Ballet Theater experience a dip and spike from 2018- 2020. Moreover, the Canyon Concert Ballet data also starts in 2021 which can indicate there were no differences until this point, or the endowment started later than the others so it is missing data and has a different timeline from the 2016-2022 approximation. The y-axis range of dollars for the endowment balance differences is also 3x smaller for the smallest companies compared to the largest companies.
+
+```{r, interactive smallest 5, include=FALSE}
+# Create ggplot visualization
+smallest_5_changeovertime <- 
+  ggplot(data = smallest_5_a, 
+         aes(x = fiscal_year, y = difference, 
+         group = organization_name, color = organization_name)) +
+         geom_line(aes(color = organization_name)) +
+         labs(title = "Smallest 5 Companies",
+               subtitle = "Comparing Balance Changes FY16-2022",
+               x = "Fiscal Year",
+               y = "Balance Differences ($)", 
+               caption = "Source: Schedule D, Part V") +
+         scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) 
+
+# Convert ggplot to Plotly object
+viz_S5_plotly <- ggplotly(smallest_5_changeovertime) #viz_top5_change_plotly <-
+
+# Create a Plotly plot with traces for each organization
+S5_changes <- plot_ly() %>%
+          add_trace(data = smallest_5_a, x = ~fiscal_year, y = ~difference,
+                    group = ~organization_name, color = ~organization_name,
+                    type = "scatter", mode = "lines",
+                    name = ~organization_name) %>%  # Use org var for the trace name
+          layout(title = "Smallest 5: Comparing Balance Changes FY16-2022",
+            xaxis = list(title = "Fiscal Year"),
+            yaxis = list(title = "Balances Differences ($)"),
+            updatemenus = list(list(
+                type = "buttons",
+                buttons = list(
+                  list(method = "restyle",
+                       args = list("visible", list(TRUE)),
+                       label = "Show All Companies")))))
+
+# # Add traces from ggplot to Plotly plot
+for (i in 1:length(viz_S5_plotly$x$data)) 
+  {S5_changes <- 
+    S5_changes %>% 
+    add_trace(viz_S5_plotly$x$data[[i]])}
+```
+
+```{r, echo = FALSE}
+S5_changes
+```
+
+### Smallest 5, Distribution of Differences
+
+**Figure X** highlights periods of growth, decline, or stability in each company's financial position across fiscal years. For example, the sizes of the interquartile ranges of boxes for all four endowments are small in comparison to the larger endowments which indicates their end of year balances did not significantly differ from the start of year balances. Further investigations could reveal if this was attributed to contributions, investment earnings or losses and sources of expenditure such as administrative expenses or grants and scholarships.
+
+```{r, smallest5 spread, include=FALSE}
+smallest_5_a$organization_name <- str_wrap(smallest_5_a$organization_name, width = 12)
+
+S5_spread <- 
+  ggplot(data = smallest_5_a, aes(x = organization_name, y = difference, group = organization_name, color = organization_name)) +
+  geom_boxplot(aes(color = organization_name)) +
+  labs(title = "Smallest 5 Companies: Spread of Differences",
+       subtitle = "Comparing Balance Changes FY16-2022",
+       x = "Company Name",
+       y = "Balance Differences ($)", 
+       caption = "Source: Schedule D, Part V") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) 
+
+viz_S5_spread_plotly <- ggplotly(S5_spread)
+```
+
+```{r, echo=FALSE}
+viz_S5_spread_plotly
+```
+
+### Smallest 10, Endowment Balance Change Over Time
+
+**Figure X**
+
+```{r, interactive smallest 10, include=FALSE}
+# Create ggplot visualization
+smallest_10_changeovertime <- 
+  ggplot(data = smallest_10_a, 
+         aes(x = fiscal_year, y = difference, 
+         group = organization_name, color = organization_name)) +
+         geom_line(aes(color = organization_name)) +
+         labs(title = "Smallest 10 Companies",
+               subtitle = "Comparing Balance Changes FY16-2022",
+               x = "Fiscal Year",
+               y = "Balance Differences ($)", 
+               caption = "Source: Schedule D, Part V") +
+         scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) 
+
+# Convert ggplot to Plotly object
+viz_S10_plotly <- ggplotly(smallest_10_changeovertime) #viz_top5_change_plotly <-
+
+# Create a Plotly plot with traces for each organization
+S10_changes <- plot_ly() %>%
+          add_trace(data = smallest_10_a, x = ~fiscal_year, y = ~difference,
+                    group = ~organization_name, color = ~organization_name,
+                    type = "scatter", mode = "lines",
+                    name = ~organization_name) %>%  # Use org var for the trace name
+          layout(title = "Smallest 10: Comparing Balance Changes FY16-2022",
+            xaxis = list(title = "Fiscal Year"),
+            yaxis = list(title = "Balances Differences ($)"),
+            updatemenus = list(list(
+                type = "buttons",
+                buttons = list(
+                  list(method = "restyle",
+                       args = list("visible", list(TRUE)),
+                       label = "Show All Companies")))))
+
+# # Add traces from ggplot to Plotly plot
+for (i in 1:length(viz_S10_plotly$x$data)) 
+  {S10_changes <- 
+    S10_changes %>% 
+    add_trace(viz_S10_plotly$x$data[[i]])}
+```
+
+```{r, echo = FALSE}
+S10_changes
+```
+
+### Smallest 10, Distribution of Differences
+
+**Figure X**
+
+```{r, smallest10 spread, include=FALSE}
+smallest_10_a$organization_name <- str_wrap(smallest_10_a$organization_name, width = 12)
+
+S10_spread <- 
+  ggplot(data = smallest_10_a, aes(x = organization_name, y = difference, group = organization_name, color = organization_name)) +
+  geom_boxplot(aes(color = organization_name)) +
+  labs(title = "Smallest 10 Companies: Spread of Differences",
+       subtitle = "Comparing Balance Changes FY16-2022",
+       x = "Company Name",
+       y = "Balance Differences ($)", 
+       caption = "Source: Schedule D, Part V") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) 
+
+viz_S10_spread_plotly <- ggplotly(S10_spread)
+```
+
+```{r, echo=FALSE}
+viz_S10_spread_plotly
 ```
 
 ## EDA of Contributions
@@ -513,3 +705,25 @@ For example,
 -   `administrative_expenses` **\[1f\]**: expenses can arise from either internal or third-party sources; relate to general operation and management such as salaries of administrative staff, office rent, utilities, and other overhead expenses
 
 -   `eoy_balance` **\[1g\]**: determined by adding investing earnings and subtracting investment losses to the beginning of year balance, after grants or scholarships have been awarded and other expenditures
+
+```{r, include=FALSE}
+## example snapshot of changes in fiscal year balances
+balance_diff_sf <- schedule_d_cleaned %>%
+  filter(organization_name == "San Francisco Ballet")
+## print the first few rows of San Francisco Ballet
+print(head(balance_diff_sf))
+
+# Figure 13 illustrates the variations in balance between the end and beginning of the year for San Francisco, another significantly large ballet company. These balances show varying differences and interestingly the balance remains the same in 2016. In future analyses, we can observe a larger range of data to see what the balances were before 2016. Across the fiscal years spanning from 2016 to 2022, the average variance amounts to $62,06,321.
+```
+
+```{r, include=FALSE}
+## example snapshot of changes in fiscal year balances
+balance_diff_nyc <- schedule_d_cleaned %>%
+  filter(organization_name == "New York City Ballet") %>%
+  select(organization_name, fiscal_year, difference)
+
+## print the first few rows of New York City Ballet
+print(head(balance_diff_nyc))
+
+# Figure 12 demonstrates the changes between the end of year and start of year balance for the New York City ballet, one of the largest ballet dance companies. We witness an inconsistent fluctuation of these balances. The trends range from a positive difference, indicating a larger end of year balance compared to the start of year balance, and then negative balances demonstrating vice versa. Overall, the fiscal years from 2016 to 2022 have a mean difference of $13,678,566.
+```

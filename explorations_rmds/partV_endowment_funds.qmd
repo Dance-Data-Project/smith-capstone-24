@@ -8,19 +8,20 @@ theme: cosmo
 number-sections: true
 ---
 
-This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. 
+This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities.
 
 This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
 
 How to interpret yearly endowment balance changes and what does it tell us about financial health?
 
--   A healthy endowment may have consecutive positive differences. 
+-   A healthy endowment may have consecutive positive differences.
 
 -   Having a larger end of year balance than their beginning of year balance prompts further investigations about whether these trends are attributed to larger sources of revenue such as contributions or investment earnings. Secondly, it would mean these revenue streams are larger than their expenses such as grants/scholarships, administrative expenses and other expenditures.
 
 -   Measuring the endowment balances patterns over multiple fiscal years can inform long-term planning and decision-making. For example, the largest 10 endowment patterns can serve as an example for the smallest 10 endowments to make adjustments to their revenue and expense streams. For instance, this can appear as strategizing to increase investment earnings or contributions for the endowment's continued growth and perpetuity.
 
 This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V. By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
+
 
 ```{r, include=FALSE}
 ## Set default behavior for all code chunks here:
@@ -31,6 +32,8 @@ knitr::opts_chunk$set(
   fig.width = 16/2, 
   fig.height = 9/2)
 ```
+
+
 
 ```{r, loading packages, include=FALSE}
 ## Load packages
@@ -55,12 +58,14 @@ companies <- read.csv("companies.csv")
 ```
 
 ```{r, data wrangling, include=FALSE}
-## Cleaning column names
-schedule_d <- schedule_d %>% clean_names()
+# Cleaning column names
+schedule_d <- schedule_d %>%
+  clean_names()
 
 schedule_d_cleaned <- 
   schedule_d %>% 
-  rename(administrative_expenses = x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_administrative_expenses_amt, 
+  rename(
+    administrative_expenses = x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_administrative_expenses_amt, 
     boy_balance = 
 x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_beginning_year_balance_amt,
     contributions = 
@@ -81,12 +86,24 @@ schedule_d_cleaned <- schedule_d_cleaned %>%
 schedule_d_cleaned <- schedule_d_cleaned %>%
   mutate(ein = as.character(ein)) 
 
-## Changing EIN to character - companies
+# ## Changing EIN to character - companies
+# x_return_return_data_irs990schedule_d_cy_endwmt_fund_grp_other_expenditures_amt)
+
+# Changing EIN to character - schedule_d
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(fiscal_year = as.character(fiscal_year)) 
+
+# Changing EIN to character - schedule_d
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(ein = as.character(ein)) 
+
+# Changing EIN to character - companies
 companies <- companies %>%
   mutate(ein = as.character(ein)) %>%
   select(ein, organization_name)
 
-## new df with main columns
+
+# new df with focusedcolumns
 schedule_d_cleaned <- schedule_d_cleaned %>% 
   select("ein", 
       "fiscal_year",
@@ -707,23 +724,48 @@ For example,
 -   `eoy_balance` **\[1g\]**: determined by adding investing earnings and subtracting investment losses to the beginning of year balance, after grants or scholarships have been awarded and other expenditures
 
 ```{r, include=FALSE}
-## example snapshot of changes in fiscal year balances
-balance_diff_sf <- schedule_d_cleaned %>%
-  filter(organization_name == "San Francisco Ballet")
-## print the first few rows of San Francisco Ballet
-print(head(balance_diff_sf))
-
-# Figure 13 illustrates the variations in balance between the end and beginning of the year for San Francisco, another significantly large ballet company. These balances show varying differences and interestingly the balance remains the same in 2016. In future analyses, we can observe a larger range of data to see what the balances were before 2016. Across the fiscal years spanning from 2016 to 2022, the average variance amounts to $62,06,321.
+# ## example snapshot of changes in fiscal year balances
+# balance_diff_sf <- schedule_d_cleaned %>%
+#   filter(organization_name == "San Francisco Ballet")
+# ## print the first few rows of San Francisco Ballet
+# print(head(balance_diff_sf))
+# 
+# # Figure 13 illustrates the variations in balance between the end and beginning of the year for San Francisco, another significantly large ballet company. These balances show varying differences and interestingly the balance remains the same in 2016. In future analyses, we can observe a larger range of data to see what the balances were before 2016. Across the fiscal years spanning from 2016 to 2022, the average variance amounts to $62,06,321.
 ```
 
 ```{r, include=FALSE}
-## example snapshot of changes in fiscal year balances
-balance_diff_nyc <- schedule_d_cleaned %>%
-  filter(organization_name == "New York City Ballet") %>%
-  select(organization_name, fiscal_year, difference)
+# ## example snapshot of changes in fiscal year balances
+# balance_diff_nyc <- schedule_d_cleaned %>%
+#   filter(organization_name == "New York City Ballet") %>%
+#   select(organization_name, fiscal_year, difference)
+# 
+# ## print the first few rows of New York City Ballet
+# print(head(balance_diff_nyc))
+# 
+# # # Figure 12 demonstrates the changes between the end of year and start of year balance for the New York City ballet, one of the largest ballet dance companies. We witness an inconsistent fluctuation of these balances. The trends range from a positive difference, indicating a larger end of year balance compared to the start of year balance, and then negative balances demonstrating vice versa. Overall, the fiscal years from 2016 to 2022 have a mean difference of $13,678,566.
+#       "other_expenditure")
 
-## print the first few rows of New York City Ballet
-print(head(balance_diff_nyc))
-
-# Figure 12 demonstrates the changes between the end of year and start of year balance for the New York City ballet, one of the largest ballet dance companies. We witness an inconsistent fluctuation of these balances. The trends range from a positive difference, indicating a larger end of year balance compared to the start of year balance, and then negative balances demonstrating vice versa. Overall, the fiscal years from 2016 to 2022 have a mean difference of $13,678,566.
+# # Joining datasets 
+# schedule_d_cleaned <- schedule_d_cleaned %>%
+#   left_join(companies , by = 'ein', relationship = "many-to-many")
+# 
+# # Function to filter out year
+# pick_vars <- function(data, fiscal_year) {
+#   select("ein", 
+#       "administrative_expenses", 
+#       "boy_balance", 
+#       "contributions", 
+#       "eoy_balance", 
+#       "grants_or_scholarships", 
+#       "investment_earnings_or_losses", 
+#       "other_expenditure")}
+# 
+# # Converting data from wide to long and selecting Part V columns from 990s
+# schedule_d_2017 <- subset(schedule_d_cleaned, fiscal_year == "2017")
+# schedule_d_2018 <- subset(schedule_d_cleaned, fiscal_year == "2018")
+# schedule_d_2019 <- subset(schedule_d_cleaned, fiscal_year == "2019")
+# schedule_d_2020 <- subset(schedule_d_cleaned, fiscal_year == "2020")
+# schedule_d_2021 <- subset(schedule_d_cleaned, fiscal_year == "2021")
+# schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
 ```
+

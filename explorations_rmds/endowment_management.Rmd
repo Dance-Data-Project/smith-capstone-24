@@ -1,0 +1,173 @@
+---
+title: "Sprint 2 Endowment Funds"
+author: "Ruiz-Fuentes"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+### Asset Allocation:
+
+The section on asset allocation will provide a more detailed analysis of endowments, by investigating how their assets are distributed and diversified, examining the breakdown of asset distribution via percentages, and assessing whether the endowment performance trends mimic or deviate the S&P 500 overall performance. Our guiding questions include: `a)` How are assets allocated across different asset classes in the endowment (stocks, bonds, real estate etc.)? `b)` Adjustment of endowment in response to the pandemic: `b1` How have the choices made within their asset allocation impacted their endowment performance? `b2` What percentage of the total endowment S&P 500?
+
+```{r, libraries & data, include=FALSE}
+# Load packages
+library(dplyr) # data manipulation
+library(readr) # scrapes web pages
+library(ggplot2) # data visualization
+library(janitor) # data manipulation
+
+# Load data
+setwd("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation")
+schedule_d <- read.csv("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation/schedule_d_vals.csv")  
+```
+
+```{r, creating functions, include=FALSE}
+# Cleaning column names
+schedule_d <- schedule_d %>% 
+  clean_names()
+
+# Renaming Section D, Part V: Endowment Fund Group Variables
+# sort(colnames(schedule_d))
+
+rename_cols <- function(data, old_names, new_names) {
+  # data
+  # old_names: vector of old var names
+  # new_names: a vector of new var names
+  for (i in seq_along(old_names)) {
+    names(data)[names(data) == old_names[i]] <- new_names[i]}
+  return(data)}
+```
+
+```{r, data wrangling, include=FALSE}
+  
+# Cleaning variable names
+schedule_d <- rename_cols(schedule_d,
+c("x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_administrative_expenses_amt",                            "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_beginning_year_balance_amt", "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_contributions_amt",        "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_end_year_balance_amt",     "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_grants_or_scholarships_amt",
+"x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_investment_earnings_or_losses_amt",                              "x_return_return_data_irs990schedule_d_cy_minus3yr_endwmt_fund_grp_other_expenditures_amt"),
+                              
+    c("administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure"))
+
+# Converting data from wide to long and selecting Part V columns from 990s
+schedule_d_2017 <- subset(schedule_d, fiscal_year == "2017") %>% 
+  select("ein", 
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure")
+schedule_d_2018 <- subset(schedule_d, fiscal_year == "2018") %>% 
+  select("ein",
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure")
+schedule_d_2019 <- subset(schedule_d, fiscal_year == "2019") %>% 
+  select("ein",
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure")
+schedule_d_2020 <- subset(schedule_d, fiscal_year == "2020") %>% 
+  select("ein",
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure")
+schedule_d_2021 <- subset(schedule_d, fiscal_year == "2021") %>% 
+  select("ein",
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure")
+schedule_d_2022 <- subset(schedule_d, fiscal_year == "2022") %>% 
+  select("ein",
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure")
+```
+
+```{r}
+
+```
+
+```{r, EDA of outcome variable, include=FALSE}
+
+# investments_bar <- 
+#   ggplot (data=schedule_d, aes(x= investment_earnings_or_losses)) +
+#   geom_bar () + 
+#   labs(title = "Distribution of Financial Distress",
+#     subtitle = "Assessing Central Tendency and Data Spread",
+#     x = "In Financial Distress",
+#     y = "Count") + 
+#   scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+```
+
+### Perpetuity:
+
+When assessing perpetuity and long-term sustainability of the endowment funds, we will evaluate what investments and factors contributed to their resilience in the midst of economic downturns and market volatility that arose from the pandemic crisis.
+
+```{r, include=FALSE}
+
+```
+
+### Endowment Types:
+
+**Endowment management and purpose:** What are the proportion of term endowments, permanent endowments, and board-designated or quasi-endowments? What are the distinctions between the variety of endowment types.
+
+```{r, include=FALSE}
+# prmnnt_pre <- 
+#   ggplot (data= endowment_data_wide, aes(x= serious_dlqin2yrs, y= monthly_income)) +
+#   geom_point () + 
+#   labs(title = "Permanent endowments: post-pandemic",
+#     subtitle = "Distribution Held By Fiscal Years (xxxx-xxxx)",
+#     x = "Dance Company Type",
+#     y = "Endowment Amount (USD)") +
+#   scale_y_continuous(labels = scales::dollar)
+```
+
+```{r, include=FALSE}
+# prmnnt_post <- 
+#   ggplot (data= endowment_data_wide, aes(x= serious_dlqin2yrs, y= monthly_income)) +
+#   geom_point () + 
+#   labs(title = "Permanent endowments: pre-pandemic",
+#     subtitle = "Distribution Held By Fiscal Years (xxxx-xxxx)",
+#     x = "Dance Company Type",
+#     y = "Endowment Amount (USD)") +
+#   scale_y_continuous(labels = scales::dollar)
+```
+
+### Capstone 2023 Resources:
+
+-   `endowment_spenddown` → how the endowment is composed
+
+-   `endowment_timeseries` → how the endowment has changed - this can be related to the stock market's changes, S&P 500 trends
+
+### Sources:
+
+Exempt Organizations Business Master File Extract (EOBMF) [source](https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf):
+
+*Variables of interest* [a](https://www.irs.gov/pub/irs-soi/eo-info.pdf) : `EIN` (employer identification number), `ASSET_CD` (asset code), `INCOME_CD` (income code), `ASSET_AMT` (asset amount), `INCOME_AMT` (income amount), `REVENUE_AMT` (form 990 revenue amount)

@@ -21,7 +21,6 @@ How to interpret yearly endowment balance changes and what does it tell us about
 
 This section will demonstrate calculations and exploratory data visualizations on the endowment management and governance using Form 990, Section D, Part V. By investigating variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities. This will also produce insights on the endowment fund's **long-term sustainability** and **perpetuity** which is especially meaningful for smaller endowment's because they can learn from the successes of a larger endowment. It may also help them reevaluate their endowment management and how governance alters in the face economic downturns and market volatility.
 
-
 ```{r, include=FALSE}
 ## Set default behavior for all code chunks here:
 knitr::opts_chunk$set(
@@ -31,8 +30,6 @@ knitr::opts_chunk$set(
   fig.width = 16/2, 
   fig.height = 9/2)
 ```
-
-
 
 ```{r, loading packages, include=FALSE}
 ## Load packages
@@ -49,7 +46,7 @@ set.seed(76)
 
 ```{r, include=FALSE}
 # ## Set directory
-setwd("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/990s_assetallocation")
+setwd("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/data")
 
 ## Load data
 schedule_d <- read.csv("schedule_d_vals.csv")
@@ -767,4 +764,3 @@ For example,
 # schedule_d_2021 <- subset(schedule_d_cleaned, fiscal_year == "2021")
 # schedule_d_2022 <- subset(schedule_d_cleaned, fiscal_year == "2022")
 ```
-

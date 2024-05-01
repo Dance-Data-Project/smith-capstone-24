@@ -5,7 +5,6 @@ author: "Ruiz-Fuentes, Michel"
 format: html
 editor: visual
 theme: cosmo
-number-sections: true
 ---
 
 This section demonstrates calculations and exploratory data visualizations on the balances and help us inquire about how endowment management affects these numbers. By investigating Section D, Part V of the 990 forms on Endowment funds. and variables 1a-g we can learn about the **financial health** and **performance** of the endowment fund including some of its sources of revenue, expense and impacts of the investment activities.

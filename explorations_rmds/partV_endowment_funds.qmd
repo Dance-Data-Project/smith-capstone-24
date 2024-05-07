@@ -236,22 +236,22 @@ expense_summary_table <- scheduleD_groups %>%
 ## largest endowments
 largest_5 <- schedule_d_cleaned %>% 
   filter(organization_name %in% c("New York City Ballet", 
+                                  "San Francisco Ballet", 
                                   "Alvin Ailey American Dance Theater", 
-                                  "Boston Ballet", 
-                                  "Houston Ballet", 
-                                  "Joffrey Ballet")) 
+                                  "American Ballet Theatre", 
+                                  "Houston Ballet")) 
 
 largest_10 <- schedule_d_cleaned %>% 
-  filter(organization_name %in% c("New York City Ballet", # avg expense, 78250983.6
-                                  "Alvin Ailey American Dance Theater", # avg expense, 40508814.4
-                                  "Boston Ballet", # avg expense, 31447678.0
-                                  "Houston Ballet", # avg expense, 30798842.6
-                                  "Joffrey Ballet", # avg expense, 19179594.2
-                                  "Miami City Ballet", # avg expense, 18595308.4
-                                  "Pennsylvania Ballet", # avg expense, 13947001.0
-                                  "Ballet West", # avg expense, 12663388.2
-                                  "The Washington Ballet", # avg expense, 12203710.0
-                                  "Atlanta Ballet")) # avg expense, 11479259.0
+  filter(organization_name %in% c("New York City Ballet", 
+                                  "San Francisco Ballet", 
+                                  "Alvin Ailey American Dance Theater", 
+                                  "American Ballet Theatre", 
+                                  "Houston Ballet",
+                                  "Boston Ballet",
+                                  "Pacific Northwest Ballet",
+                                  "Miami City Ballet",
+                                  "Joffrey Ballet",
+                                  "Pennsylvania Ballet")) 
 ```
 
 **Figure X** depicts a line graph, emphasizing a visual representation of how the endowment balances fluctuate over time for each company. It highlights periods of growth, decline, or stability in each company's financial position across fiscal years.

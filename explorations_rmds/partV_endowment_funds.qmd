@@ -45,7 +45,7 @@ set.seed(76)
 ```
 
 ```{r, include=FALSE}
-# ## Set directory
+# ## Set directory -- YOU WILL CUSTOMIZE THIS TO INSTEAD INCLUDE YOUR FILEPATH
 setwd("/Users/michelruiz-fuentes/Desktop/smith-capstone-24/data")
 
 ## Load data
@@ -200,6 +200,7 @@ schedule_d_cleaned <- schedule_d_cleaned %>%
 # Sort organization_name alphabetically
 df_diffs <- schedule_d_cleaned %>%
   select(organization_name, fiscal_year, boy_balance, eoy_balance, difference) %>%
+  filter(fiscal_year %in% c(2016, 2017, 2018, 2019, 2020, 2021, 2022)) %>%
   arrange(organization_name, fiscal_year)
 
 diffs_table <- datatable(df_diffs, 
@@ -256,6 +257,16 @@ largest_10 <- schedule_d_cleaned %>%
 **Figure X** depicts a line graph, emphasizing a visual representation of how the endowment balances fluctuate over time for each company. It highlights periods of growth, decline, or stability in each company's financial position across fiscal years.
 
 **Key Findings:** In 2021, four of the five largest endowments experiences a sharp increase in their endowment balance differences where EOY is larger than BOY. These include New York City Ballet, Houston Ballet, Alvin Ailey American Dance Theater, and Boston Ballet. Similarly, in previous years, 2017, three of these companies also experienced a sharp increase in their differences. As of our latest fiscal year 2022, Boston Ballet is the only company to have a positive difference, prompting questions about whether their endowment management and revenue vs expense proportions varied from the other four endowments.
+
+-   In 2021, four out of the five largest endowments saw significant increases in their endowment balances, with end-of-year (EOY) balances surpassing beginning-of-year (BOY) balances.
+
+-   These include: New York City Ballet, Houston Ballet, Alvin Ailey American Dance Theater, and Boston Ballet.
+
+-   A similar pattern was observed in 2017, where three of these companies also encountered notable increases in their balances.
+
+-   These include: New York City Ballet, Houston Ballet, and Alvin Ailey American Dance Theater.
+
+-   As of the latest fiscal year, 2023, Boston Ballet stands alone with a positive balance difference, raising questions about potential differences in their endowment management and revenue vs expenses.
 
 ```{r, interactive largest 5, include=FALSE}
 # Create ggplot visualization
@@ -450,6 +461,16 @@ smallest_10_a <- schedule_d_cleaned %>%
 ```
 
 **Figure X** presents the dynamic changes in the endowment balances across the bottom 5 ballet companies from our sample. We noticed that of the three companies, the trends of the Tallahassee Ballet and Ballet Quad Cities are closely alike through the fiscal years 2016- 2022, while the trends of the First State Ballet Theater experience a dip and spike from 2018- 2020. Moreover, the Canyon Concert Ballet data also starts in 2021 which can indicate there were no differences until this point, or the endowment started later than the others so it is missing data and has a different timeline from the 2016-2022 approximation. The y-axis range of dollars for the endowment balance differences is also 3x smaller for the smallest companies compared to the largest companies.
+
+**Key Findings:**
+
+-   Fort Wayne Ballet and Grand Rapids Ballet experienced the most prominent activity in the endowment balance differences across the FY16-22. 
+
+    -   In particular, of the six years,  they both experienced only two years of increasing differences and the other four years are characterized by declining differences. Indicating a long-term trend of a larger start of year balance than end of year balance.
+
+-   Like the patterns observed with the Largest 5 in 2017,  three of the smallest 5  companies also encountered notable increases in their balances.
+
+    -   These include: Ballet Quad Cities, Eugene Ballet and New Mexico Ballet Company.
 
 ```{r, interactive smallest 5, include=FALSE}
 # Create ggplot visualization

@@ -83,7 +83,7 @@ test_state<-buildings %>%
   )
 
 test_state <- unique(test_state) %>% 
-  mutate(name = tolower(name))
+  mutate(name = organization_name)
 test_state <- unique(test_state)
 ```
 
@@ -94,14 +94,13 @@ Term explained:
 ```{r}
 # filter out all data each year
 data_each_year<-list(
-  data_2015 <- filter(buildings, grepl("2015", ReturnTs)),
-  data_2016 <- filter(buildings, grepl("2016", ReturnTs)),
   data_2017 <- filter(buildings, grepl("2017", ReturnTs)),
   data_2018 <- filter(buildings, grepl("2018", ReturnTs)),
   data_2019 <- filter(buildings, grepl("2019", ReturnTs)),
   data_2020 <- filter(buildings, grepl("2020", ReturnTs)),
   data_2021 <- filter(buildings, grepl("2021", ReturnTs)),
-  data_2022 <- filter(buildings, grepl("2022", ReturnTs))
+  data_2022 <- filter(buildings, grepl("2022", ReturnTs)),
+  data_2023 <- filter(buildings, grepl("2023", ReturnTs))
 )
 
 ```
@@ -112,7 +111,7 @@ data_each_year<-list(
 BookValueSum <- list()
 
 # restore each year's sum for each EIN's buildings bookvalue 
-for(i in c(1:8)){
+for(i in c(1:7)){
   data = data_each_year[[i]]
   df <- data.frame(data %>% 
     filter(!is.na(TotalBookValueLandBuildingsAmt)) %>% 
@@ -121,7 +120,7 @@ for(i in c(1:8)){
     summarise(
       BookValueSum = sum(TotalBookValueLandBuildingsAmt)
     ) %>% 
-    mutate(year = 2014+i,
+    mutate(year = 2016+i,
            EIN = as.numeric(EIN)))
            
   #print(df)
@@ -134,12 +133,31 @@ bookvalues <- do.call(rbind, BookValueSum)
 
 ```{r mutate bookvalue dataframe with quantile and business name}
 # rank book value based on quantile
+
 bookvalues<-bookvalues %>%
-  mutate(quantile = ntile(BookValueSum, 10),
-         EIN = as.character(EIN)) %>% 
-  arrange(desc(EIN)) %>% 
-  left_join(y = companies, by = "EIN") %>% 
-  left_join(y = ein_to_state, by = "EIN")
+   mutate(quantile = ntile(BookValueSum, 10),
+          EIN = as.character(EIN)) %>% 
+   arrange(desc(EIN)) %>% 
+   left_join(y = companies, by = "EIN") %>% 
+   left_join(y = ein_to_state, by = "EIN") %>% 
+   distinct()
+
+bookvalues[267, "organization_name"] = "Mystic Ballet INC"
+bookvalues[268, "organization_name"] = "Mystic Ballet INC"
+bookvalues[269, "organization_name"] = "Mystic Ballet INC"
+bookvalues[270, "organization_name"] = "Mystic Ballet INC"
+bookvalues[271, "organization_name"] = "Mystic Ballet INC"
+bookvalues[272, "organization_name"] = "Mystic Ballet INC"
+bookvalues[273, "organization_name"] = "Mystic Ballet INC"
+
+#rank of BVS 
+ranking_BVS<-bookvalues %>%
+  arrange(desc(BookValueSum)) %>%  
+  select(EIN, organization_name, year, BookValueSum) %>% 
+  kbl(caption = "Ranking of Building Book Values ") %>%
+  kable_material() %>%
+  row_spec(row = 0, background = "red", color = "white", bold = TRUE)
+ranking_BVS
 
 bookvalues<- unique(bookvalues)
 saveRDS(bookvalues,here('data','bookvalues.RDS'))
@@ -168,15 +186,42 @@ low <- bookvalues %>%
   select(EIN) %>% 
   inner_join(bookvalues, by = "EIN") %>% 
    select(EIN, BookValueSum, year, quantile, organization_name)
+
 ```
  
+```{r}
+# visualization of largest 10 book values
+#Largest_10 <- bookvalues
+ranking_10<-bookvalues %>%
+  arrange(desc(BookValueSum)) %>%  
+  select(EIN, organization_name, year, BookValueSum) %>% 
+  head(10) 
+
+ranking_10_vis <- ggplot(ranking_10, aes(x = as.factor(organization_name), y = BookValueSum, color = as.factor(year), fill = as.factor(year))) +
+  geom_bar(binwidth = 0.15, position="dodge", stat='identity', alpha=0.3) +
+  geom_text(aes(label = year), fontface = "bold", vjust = 1.5,
+             position = position_dodge(0.9), size = 4) +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 12, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 5),
+        legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7)) +
+  labs(y = "Schedule D Sum of Buildings Book Value ($)",
+       x = "Year",
+       title = "Largest 10 Schedule D Sum of Buildings Book Values",
+       subtitle = "By Fiscal Year")
+ggplotly(ranking_10_vis)
+```
 
 ```{r visualizatoins of the change in buildings book value}
 # visualization of overall book value
-total <- ggplot(bookvalues, aes(x = year, y = BookValueSum, color = as.factor(name))) +
-  geom_line()+
+total <- ggplot(bookvalues, aes(x = year, y = BookValueSum, color = as.factor(organization_name), fill = as.factor(organization_name))) +
+  geom_bar(binwidth = 0.15, position="dodge", stat='identity', alpha=0.3) +
+  #theme_minimal() + 
   #scale_color_brewer(palette="BrBG")+
-  theme_bw()+
+  #theme_bw()+
   theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
         axis.title = element_text(size = 12, face = "bold"),
         plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
@@ -190,16 +235,18 @@ total <- ggplot(bookvalues, aes(x = year, y = BookValueSum, color = as.factor(na
        subtitle = "By Fiscal Year")
 ggplotly(total)
 ```
+
+
 ```{r}
 # separate EIN with medium and low building book value according to previous graph
 # high
-  high<-ggplot(high, aes(x = year, y = BookValueSum, color = as.factor(organization_name))) +
-  geom_line() +
+high <- ggplot(high, aes(x = year, y = BookValueSum, color = as.factor(organization_name))) +
+  geom_line()+
   theme_bw() +
   theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
-        axis.title = element_text(size = 10, face = "bold"),
+        axis.title = element_text(size = 8, face = "bold"),
         plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
-        axis.text.x = element_text(size = 10),
+        axis.text.x = element_text(size = 7),
         strip.text = element_text(face="bold",size = 5)) +
   labs(y = "Schedule D Sum of Buildings Book Value",
        x = "Year",
@@ -207,6 +254,8 @@ ggplotly(total)
        subtitle = "By Fiscal Year")
 
 ggplotly(high)
+
+
 ```
 
 
@@ -272,8 +321,29 @@ EIN_appearl_less_than_3
 changes <- bookvalues %>% 
   group_by(EIN) %>% 
   mutate(change = (BookValueSum - lag(BookValueSum)) / lag(BookValueSum) * 100) %>%
-  select(EIN, organization_name, year, BookValueSum, change) %>% 
+  select(EIN, organization_name, year, BookValueSum, change, quantile) %>% 
   mutate(change_abs = abs(change)) 
+
+high_changes <- changes %>% 
+  filter(year == 2020) %>% 
+  filter(quantile >= 8) %>% 
+  select(EIN) %>% 
+  inner_join(changes, by = "EIN") %>% 
+   select(EIN, BookValueSum, year, quantile, change, organization_name) #organization_name.x
+
+medium_changes <- changes %>% 
+  filter(year == 2020) %>% 
+  filter(quantile > 3 & quantile < 7) %>% 
+  select(EIN) %>% 
+  inner_join(changes, by = "EIN") %>% 
+   select(EIN, BookValueSum, year, quantile, change, organization_name)
+  
+low_changes <- changes %>% 
+  filter(year == 2020) %>% 
+  filter(quantile <= 3) %>% 
+  select(EIN) %>% 
+  inner_join(changes, by = "EIN") %>% 
+   select(EIN, BookValueSum, year, quantile, change, organization_name)
 
 #Making an infinite value NA
 changes[145, ]$change = NA
@@ -281,26 +351,50 @@ changes[145, ]$change = NA
 ```
 
 ```{r}
-# line graph of all percentage change from 2015-2022
-all_changes_pct <- ggplot(changes, aes(x = year, y = changes$change, color =  as.factor(organization_name))) +
-  geom_line(na.rm = FALSE, size = 0.2) +
-  ylim(-200, 800)+
-  theme_bw() +
+# line graph of all percentage change from 2017-2022
+all_changes_pct <- ggplot(changes, aes(x = year, y = changes$change, color =as.factor(organization_name), fill =  as.factor(organization_name))) +
+  geom_bar(position="dodge", stat='identity', alpha=0.3) +
+  #theme_bw() +
   theme(legend.key.size = unit(1, 'mm'),
         legend.text = element_text(size=7))+
-  theme(plot.title = element_text(size = 6, face = "bold", hjust = .5),
-        axis.title = element_text(size = 4, face = "bold"),
-        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
-        axis.text.x = element_text(size = 4),
-        axis.text.y = element_text(size = 4),
-        strip.text = element_text(face="bold",size = 5)) +
+  theme(plot.title = element_text(size = 13, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 10, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 10)) +
   labs(y = "Change in Buildings Book Value Each Year (%)",
        x = "Year",
        title = "% Change in Bookvalues of Building Endowment each Fiscal Year",
-       color = "EIN")
+       color = "EIN") 
 
 ggplotly(all_changes_pct)
 ```
+
+
+```{r}
+# all_changes_pct <- ggplot(changes, aes(x = year, y = changes$change, color =  as.factor(organization_name), fill = as.factor(organization_name))) +
+#   geom_bar(position="dodge", stat='identity', alpha=0.3) +
+#   theme_bw() +
+#   theme(legend.key.size = unit(1, 'mm'),
+#         legend.text = element_text(size=7))+
+#   theme(plot.title = element_text(size = 6, face = "bold", hjust = .5),
+#         axis.title = element_text(size = 4, face = "bold"),
+#         plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+#         axis.text.x = element_text(size = 4),
+#         axis.text.y = element_text(size = 4),
+#          strip.text = element_text(face="bold",size = 5)) +
+#    labs(y = "Change in Buildings Book Value Each Year (%)",
+#         x = "Year",
+#         title = "% Change in Bookvalues of Building Endowment each Fiscal Year",
+#         color = "EIN") + 
+#     facet_wrap(~quantile_exp)
+#  
+# ggplotly(all_changes_pct)
+
+
+```
+
 
 ```{r}
 # filter out EIN with normal depreciation change
@@ -348,13 +442,14 @@ summary(changes$change)
 ```{r}
 #ranking of all change in book values
 ranking<-changes %>%
-  arrange(desc(change_abs)) %>%  # percent_change ????
+  arrange(desc(change_abs)) %>% 
   select(EIN, organization_name, year, change, BookValueSum) %>% 
   kbl(caption = "Ranking of Change in Book Value Per Year  (%)") %>%
   kable_material() %>%
   row_spec(row = 0, background = "red", color = "white", bold = TRUE)
 ranking
 ```
+
 
 ```{r}
 #filter out small changes 
@@ -387,7 +482,6 @@ ggplotly(
 
 ```{r}
 # All summary statistics 
-# 2023 data???
 changes %>% 
   drop_na() %>% 
   group_by(year) %>% 
@@ -399,13 +493,56 @@ changes %>%
   kable_material() %>%
   row_spec(row = 0, background = "red", color = "white", bold = TRUE)
 ```
+##Avergae building book values 
+```{r}
+endowment_data <- read_rds(here("data", "endowment_filter_data_990.RDS"))
+filed_schd_d <- endowment_data %>%
+ mutate(Filled_Sch_D = ifelse(rowSums(across(CYBeginningYearBalanceAmt:TermEndowmentBalanceEOYPct), na.rm = TRUE) != 0, "Yes", "No")) %>% 
+  select(EIN, Filled_Sch_D)
+
+bookvalues_join <- bookvalues %>% 
+  select(organization_name, EIN) %>%
+  unique()
+
+bookvalues_new <- bookvalues %>% 
+  group_by(EIN) %>%
+  summarise(mean = mean(BookValueSum)) %>% 
+  left_join(bookvalues_join, by = "EIN") %>% 
+  left_join(filed_schd_d, by = "EIN") %>% 
+  filter(!is.na(Filled_Sch_D)) %>% 
+  unique()
+
+vis_averagebbv <- ggplot(bookvalues_new, aes(x = Filled_Sch_D, y = mean, color =as.factor(organization_name), fill =  as.factor(organization_name))) +
+  geom_bar(position="dodge", stat='identity', alpha=0.3) +
+  #theme_bw() +
+  theme(legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7))+
+  theme(plot.title = element_text(size = 13, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 10, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        strip.text = element_text(face="bold",size = 10)) +
+  labs(y = "Average Schedule D Sum of Building Book Value",
+       x = "With Or Without Enodowment",
+       title = "Average Schedule D Sum of Building Book Value Change",
+       color = "EIN") 
+
+ggplotly(vis_averagebbv)
+
+#Table 
+bookvalues %>% 
+  group_by(EIN) %>%
+  summarise(mean = mean(BookValueSum)) %>% 
+  left_join(bookvalues_join, by = "EIN") %>% 
+  select(EIN, organization_name, mean) %>%
+  arrange(desc(mean)) %>%
+  kbl(caption = "Ranking of Average Building Book Values") %>%
+  kable_material() %>%
+  row_spec(row = 0, background = "red", color = "white", bold = TRUE)
+```
 
 ## Regional Analysis
-
-```{r}
-bookvalues %>% 
-  left_join(y = ein_to_state, by = "EIN")
-```
 ```{r}
 test_state <- test_state %>% 
   filter(fiscal_year != "2023") %>%
@@ -416,7 +553,7 @@ test_state <- test_state %>%
 ```
 
 ```{r}
-state_bookvalues <- ggplot(test_state, aes(x = factor(fiscal_year, level = c('2014','2015','2016','2017','2018','2019','2020','2021','2022')), y = as.numeric(test_state$TotalBookValueLandBuildingsAmt), color=as.factor(state)))+
+state_bookvalues <- ggplot(test_state, aes(x = factor(fiscal_year, level = c('2016','2017','2018','2019','2020','2021','2022')), y = as.numeric(test_state$TotalBookValueLandBuildingsAmt), color=as.factor(state)) )+
   geom_line(aes(group=1))+
   theme_bw() +
   theme(legend.key.size = unit(1, 'mm'),
@@ -428,12 +565,38 @@ state_bookvalues <- ggplot(test_state, aes(x = factor(fiscal_year, level = c('20
         axis.text.y = element_text(size = 6),
         strip.text = element_text(face="bold",size = 5)) +
   labs(y = "Bookvalues of buildings and other lands",
-       x = "Fiscal year")
-
+       x = "Fiscal year") 
   
 ggplotly(state_bookvalues)
-  
 ```
+```{r}
+region_state <- read_csv(here("data", "region_state.csv")) %>% 
+  select(state = "State Code", region = Region)
+test_state_new<-test_state %>% 
+  left_join(y = region_state, by = "state")
+```
+
+```{r}
+
+state_bookvalues_new <- ggplot(test_state_new, aes(x = factor(fiscal_year, level = c('2016','2017','2018','2019','2020','2021','2022')), y = as.numeric(test_state$TotalBookValueLandBuildingsAmt),color=as.factor(state), fill=as.factor(state)))+
+  geom_bar(position="dodge", stat='identity', alpha=0.3) +
+  theme_bw() +
+  theme(legend.key.size = unit(1, 'mm'),
+        legend.text = element_text(size=7))+
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = .5),
+        axis.title = element_text(size = 10, face = "bold"),
+        plot.subtitle = element_text(size = 5, face = "italic", hjust = .5),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 6),
+        strip.text = element_text(face="bold",size = 5)) +
+  labs(y = "Bookvalues of buildings and other lands",
+       x = "Fiscal year") + 
+   facet_wrap(~region, scale="fixed") + 
+  scale_x_discrete(breaks = c('2016','2017','2018','2019','2020','2021','2022'),labels=as.character(c("2016", "", "2018", "", "2020", "", "2022")))
+  
+ggplotly(state_bookvalues_new)
+```
+
 
 ```{r}
 # faceted graphs 
@@ -489,5 +652,3 @@ test_state %>%
   ) %>% 
   arrange(desc(sum))
 ```
-
-

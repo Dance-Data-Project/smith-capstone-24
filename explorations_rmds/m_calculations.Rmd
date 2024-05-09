@@ -47,3 +47,29 @@ total_expense_data <- total_expense_data %>%
 write.csv(total_expense_data, "expenses_data.csv")
 
 ```
+
+
+
+```{r}
+
+sched_d_expenses <- schedule_d %>% 
+ select(EIN, fiscal_year, `/Return/ReturnData/IRS990ScheduleD/TotalExpensesPerForm990Amt`) %>% 
+  rename(TotalExpenses = `/Return/ReturnData/IRS990ScheduleD/TotalExpensesPerForm990Amt`)
+sched_d_expenses$fiscal_year = as.numeric(as.character(sched_d_expenses$fiscal_year))
+sched_d_expenses$TotalExpenses = as.numeric(as.character(sched_d_expenses$TotalExpenses))
+
+company_names <- read_csv(here("data", "companies.csv")) %>%
+  mutate(EIN = as.character(ein), organization_name = as.character(Company)) %>%
+  select(EIN, organization_name)
+
+sched_d_expenses <- sched_d_expenses %>% 
+  left_join(company_names, by = 'EIN') %>% 
+  filter(fiscal_year >= 2018)
+
+fy23_data <- sched_d_expenses %>% 
+  filter(fiscal_year == 2023)
+
+```
+
+
+

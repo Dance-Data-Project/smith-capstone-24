@@ -1,0 +1,42 @@
+---
+title: "additional_buildingvals"
+author: "Meaghan Brennan"
+date: "2024-05-07"
+output: html_document
+---
+
+```{r}
+
+files<- dir(here("990archivesfeb2024"),
+              full.names = TRUE)
+source(here::here("GET_VARS.R"))
+suppressMessages(buildings <- map_df(files, ~get_df(filename = .x ,
+                              schedule = 'd')) %>%
+  filter_ein())
+for (i in colnames(buildings)) {
+  if (i != "ReturnTs" & i != "EIN" & i!= "filename") {
+    New_name = gsub('/Return/ReturnData/IRS990ScheduleD/', '', i)
+    buildings = plyr::rename(buildings, setNames(New_name, i))
+  }}
+select(buildings, ReturnTs, EIN,OtherLandBuildingsGrp,TotalBookValueLandBuildingsAmt,BuildingsGrp,fiscal_year)
+
+filtered_buildings <- buildings %>% 
+  select(EIN,OtherLandBuildingsGrp,TotalBookValueLandBuildingsAmt,BuildingsGrp,fiscal_year)
+
+companies <- read_rds(here("data", "companies.RDS"))
+
+building_info <- companies %>% 
+  mutate(Type = case_when(
+    row_number() <= 10 ~ "Opera",
+    row_number() <= 20 ~ "Theatre",
+    row_number() <= 30 ~ "Symphony",
+    row_number() <= 40 ~ "Ballet")) %>% 
+  left_join(filtered_buildings, by = "EIN")
+
+total_buildingvals <- building_info %>% 
+  select(Company, EIN, Type, TotalBookValueLandBuildingsAmt) %>% 
+  mutate(TotalBookValueLandBuildingsAmt = as.numeric(as.character(TotalBookValueLandBuildingsAmt))) %>% 
+  group_by(Type) %>% 
+  summarise(mean_type = mean(TotalBookValueLandBuildingsAmt, na.rm = TRUE))
+
+```

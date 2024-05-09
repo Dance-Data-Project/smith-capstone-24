@@ -1,0 +1,58 @@
+---
+title: "mapping_data"
+author: "Meaghan Brennan"
+date: "2024-04-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(leaflet)
+library(sp)
+```
+
+
+```{r}
+
+company_sample <- read_csv(here("data","top_companies.csv"))
+endowment_data <- read_rds(here("data", "endowments_by_most_recent_filings.RDS"))
+companies_to_ein <- read_rds(here("data", "companies.RDS"))
+
+endowment_data <- endowment_data %>% 
+  mutate(BeginningYearBalanceAmt = as.numeric(as.character(BeginningYearBalanceAmt)),
+  ContributionsAmt = as.numeric(as.character(ContributionsAmt)),
+  OtherExpendituresAmt = as.numeric(as.character(OtherExpendituresAmt)),
+  AdministrativeExpensesAmt = as.numeric(as.character(AdministrativeExpensesAmt)),
+  GrantsOrScholarshipsAmt = as.numeric(as.character(GrantsOrScholarshipsAmt)),
+  InvestmentEarningsOrLossesAmt = as.numeric(as.character(InvestmentEarningsOrLossesAmt)),
+  EndYearBalanceAmt = as.numeric(as.character(EndYearBalanceAmt)),
+  EndingBalanceAmt = as.numeric(as.character(EndingBalanceAmt))
+  )
+
+companies_joined <- companies_to_ein %>% 
+  left_join(endowment_data, by = "EIN") # %>% 
+  # filter(fiscal_year == 2023 | fiscal_year == 2022 | fiscal_year == 2021 | fiscal_year == 2020 | fiscal_year == 2019 | fiscal_year == 2018)
+
+company_balances <- companies_joined %>% 
+  group_by(Company) %>%
+  summarise(mean_begin = mean(BeginningYearBalanceAmt, na.rm = TRUE), mean_end = mean(EndYearBalanceAmt, na.rm = TRUE)) %>% 
+  filter(Company %in% company_sample$Company) %>% 
+  mutate(mean_begin = as.numeric(as.character(mean_begin), mean_end = as.numeric(as.character(mean_end))))
+
+mappable_data <- company_sample %>% 
+  left_join(company_balances, by = "Company") %>% 
+  mutate(mean_begin = round(mean_begin, digits = 0), mean_end = round(mean_end, digits = 0)) %>% 
+  rename("Average Start of Year Balance" = mean_begin, "Average End of Year Balance" = mean_end)
+
+write_csv(mappable_data, here("data", "top10s_data.csv"))
+
+```
+
+
+```{r}
+
+
+
+```
+

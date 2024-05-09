@@ -1,17 +1,8 @@
 ---
 title: "Company Type Difference Calculations"
 author: "Meaghan Brennan"
-date: "`r Sys.Date()`"
-output:
-  rmdformats::readthedown:
-    df_print: paged
-    code_folding: hide
-    css: !expr here::here('css', 'template.css')
-    toc_depth: 4
-knit: (function(input, ...) {
-    rmarkdown::render(
-      input,
-      output_dir = "output_html")})
+date: "2024-04-25"
+output: html_document
 ---
 
 
@@ -22,6 +13,9 @@ library(tidyverse)
 library(kableExtra)
 library(scales)
 library(here)
+library(patchwork)
+library(RColorBrewer)
+
 ```
 
 ```{r}
@@ -69,7 +63,76 @@ mean_ballet <- company_diffs %>%
 ```
 
 
+```{r}
 
+means <- read_csv(here("data", "means_types.csv"))
+options(scipen = 999)
+
+beginmeans_plot <- ggplot(means, aes(x = Type, y = Mean_Begin, fill = Type)) + geom_histogram(stat = "identity", position = "dodge") + ylim(0, 140000000)
+
+endmeans_plot <- ggplot(means, aes(x = Type, y = Mean_End, fill = Type)) + geom_histogram(stat = "identity", position = "dodge") + ylim(0, 140000000)
+
+beginmeans_plot / endmeans_plot
+
+```
+
+
+```{r}
+
+means_wide <- read_csv(here("data", "means_wide.csv"))
+
+means_wide <- means_wide %>% 
+  rename("Legend" = when)
+
+means_plot <- ggplot(means_wide, aes(x = Type, y = mean, fill = Legend)) + geom_histogram(stat = "identity", position = "stack") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Average Endowment Size at Beginning and End of Fiscal Years") + xlab("Type Of Company") + ylab("Endowment Balance ($)")
+means_plot
+
+ggsave(here('final_report/images/endowment_size_bars.png'))
+
+```
+
+
+```{r}
+
+endowment_types <- schedule_d %>% 
+  rename(BoardDesignated = `/Return/ReturnData/IRS990ScheduleD/BoardDesignatedBalanceEOYPct`, Permanent = `/Return/ReturnData/IRS990ScheduleD/PrmnntEndowmentBalanceEOYPct`, Term = `/Return/ReturnData/IRS990ScheduleD/TermEndowmentBalanceEOYPct`) %>% 
+  select(EIN, BoardDesignated, Permanent, Term)
+
+companies_to_ein <- companies_to_ein %>% 
+  mutate(Type = case_when(
+    row_number() <= 10 ~ "Opera",
+    row_number() <= 20 ~ "Theatre",
+    row_number() <= 30 ~ "Symphony",
+    row_number() <= 40 ~ "Ballet"))
+
+endowment_types_names <- companies_to_ein %>% 
+  left_join(endowment_types, by = "EIN")
+
+endowment_types_names$BoardDesignated = as.numeric(as.character(endowment_types_names$BoardDesignated))
+endowment_types_names$Permanent = as.numeric(as.character(endowment_types_names$Permanent))
+endowment_types_names$Term = as.numeric(as.character(endowment_types_names$Term))
+
+mean_by_endowment_type <- endowment_types_names %>% 
+  mutate(BoardDesignated = replace_na(BoardDesignated, 0), 
+         Permanent = replace_na(Permanent, 0), 
+         Term = replace_na(Term, 0)) %>% 
+  group_by(Type) %>% 
+  summarize(mean_board = mean(BoardDesignated, na.rm = TRUE), mean_perm = mean(Permanent, na.rm = TRUE), mean_term = mean(Term, na.rm = TRUE)) %>% 
+  mutate(mean_board = round((100 * mean_board), digits = 2), mean_perm = round((100 * mean_perm), digits = 2), mean_term = round((100 * mean_term), digits = 2)) %>% 
+  mutate(mean_board = paste0(mean_board, "%"), mean_perm = paste0(mean_perm, "%"), mean_term = paste0(mean_term, "%"))
+
+```
+
+
+```{r}
+
+endowment_lengths <- read_csv(here("data", "endowmentlengths.csv"))
+
+endowment_lengths <- endowment_lengths %>% 
+  group_by(Type) %>%
+  summarize(Mean_Length = mean(Length, na.rm = TRUE))
+
+```
 
 
 

@@ -662,7 +662,7 @@ plot_ranks <- function(var1, var2, data) {
 plot_ranks_by_consistency <- function(var1, var2, data) {
 
    plt <- data %>%
-     filter(fiscal_year > 2010 & fiscal_year < 2021) %>%
+     filter(fiscal_year > 2010 & fiscal_year < 2023) %>%
     group_by(fiscal_year) %>%
     mutate("{var1}_rank" := rank(-!!sym(var1)), na.last = "keep") %>%
     mutate("{var2}_rank"  := rank(-!!sym(var2)),  na.last = "keep")  %>%
@@ -685,7 +685,7 @@ plot_ranks_by_consistency <- function(var1, var2, data) {
          color = glue("Proportion of Years Where\n{var1}\nRanked Higher than\n{var2}")) +
     theme_c(legend.text=element_text(size =8)) +
     scale_color_gradient2(high="#5935CF", low="#D18E01", mid="#E2E2E2", limits=c(0,1), midpoint=.5) +
-     facet_wrap(~fiscal_year, ncol=5)+
+     facet_wrap(~fiscal_year, ncol=3)+
       theme(plot.title = element_text(size = 12, 
                                       hjust = .5, face="bold",),
             plot.subtitle = element_text(hjust = .5, 
@@ -1277,12 +1277,18 @@ pal <- pal[indexes]
 
 ```{r, fig.cap = "\\label{fig:balancecont} Comparing the rankings of beginning of year balance of the endowment to the ranking of contributions recieved."}
 
-
-
-
 ######################################
 # PLOTTING RANKS AGAINST EACH OTHER
 ######################################
+
+endowment_data_wide$BeginningYearBalanceAmt <- as.numeric(as.character(endowment_data_wide$BeginningYearBalanceAmt))
+endowment_data_wide$ContributionsAmt <- as.numeric(as.character(endowment_data_wide$ContributionsAmt))
+endowment_data_wide$OtherExpendituresAmt <- as.numeric(as.character(endowment_data_wide$OtherExpendituresAmt))
+endowment_data_wide$AdministrativeExpensesAmt <- as.numeric(as.character(endowment_data_wide$AdministrativeExpensesAmt))
+endowment_data_wide$GrantsOrScholarshipsAmt <- as.numeric(as.character(endowment_data_wide$GrantsOrScholarshipsAmt))
+endowment_data_wide$InvestmentEarningsOrLossesAmt <- as.numeric(as.character(endowment_data_wide$InvestmentEarningsOrLossesAmt))
+endowment_data_wide$EndYearBalanceAmt <- as.numeric(as.character(endowment_data_wide$EndYearBalanceAmt))
+
 
 plot_ranks_by_consistency("BeginningYearBalanceAmt",
                           "ContributionsAmt",
@@ -1297,7 +1303,7 @@ plot_ranks_by_consistency("BeginningYearBalanceAmt",
         legend.text = element_text(size = 12),
         legend.title=element_text(size = 16),
         strip.text=element_text(size = 16, color = "white"),
-        plot.title=element_text(hjust = .5, face="bold", size = 25)) 
+        plot.title=element_text(hjust = .5, face="bold", size = 25))  
 
 
 ggsave(here('final_report/images/compare-rankings-balance-contributions.pdf'))
@@ -1315,8 +1321,8 @@ var2 <- "ContributionsAmt"
 
 
 prop_balanced_ranked_higher <- endowment_data_wide %>%
-     filter(fiscal_year > 2010 & fiscal_year < 2021) %>%
-    group_by(fiscal_year) %>%
+     filter(fiscal_year > 2010 & fiscal_year < 2024) %>%
+    #group_by(fiscal_year) %>%
    # arrange(var1) %>%
     mutate("{var1}_rank" := rank(-!!sym(var1)), na.last = "keep") %>%
 #    arrange(var2) %>%
@@ -1329,7 +1335,7 @@ prop_balanced_ranked_higher <- endowment_data_wide %>%
      ungroup() %>% 
    mutate(prop_positive = sum_pos / (sum_pos + sum_neg + sum_zero),
           prop_same = sum_zero / (sum_pos + sum_neg + sum_zero) ) %>%
-  select(prop_positive, organization_name, sum_pos, sum_neg, sum_zero)  %>%
+  select(fiscal_year, prop_positive, organization_name, sum_pos, sum_neg, sum_zero)  %>%
   distinct()
 
 
@@ -1341,8 +1347,8 @@ prop_balanced_ranked_higher <- endowment_data_wide %>%
 
 
 
-prop_balanced_ranked_higher %>%
-  select(contains("sum"), organization_name, prop_positive) %>%
+df <- prop_balanced_ranked_higher %>%
+  select(contains("sum"), organization_name, prop_positive, fiscal_year) %>%
   pivot_longer(contains('sum')) %>% group_by(organization_name) %>%
   mutate(n_years = sum(value)) %>%
   mutate(prop = value/n_years,
@@ -1355,8 +1361,9 @@ prop_balanced_ranked_higher %>%
   mutate(name = factor(name, 
                        levels = c("Beginning of Year Balance\nRanked Higher",
                                   "Ranked the Same",
-                                  "Beginning of Year Balance\nRanked Lower") )) %>%
-  ggplot(aes(y = fct_reorder(organization_name,prop_positive),x=  prop, fill=name)) +
+                                  "Beginning of Year Balance\nRanked Lower") ))
+
+  ggplot(df, aes(y = fct_reorder(organization_name,prop_positive),x=  prop, fill=name)) +
   geom_bar(position="stack", stat="identity", alpha = .8) +
  # geom_point(aes(x=prop_positive), size = .8) +
   labs(x = "Proportion",
@@ -1378,6 +1385,44 @@ prop_balanced_ranked_higher %>%
 
 ggsave(here('final_report/images/compare-rankings-balance-contributions-barplot.pdf'))
 
+```
+
+```{r}
+#New plot
+df_new <- endowment_data_wide %>% 
+  mutate(name = case_when(
+    as.numeric(unlist(BeginningYearBalanceAmt)) > as.numeric(unlist(ContributionsAmt)) ~ "Beginning of Year Balance\nIs Higher",
+    as.numeric(unlist(BeginningYearBalanceAmt)) < as.numeric(unlist(ContributionsAmt)) ~ "Beginning of Year Balance\nIs Lower",
+    as.numeric(unlist(BeginningYearBalanceAmt)) == as.numeric(unlist(ContributionsAmt)) ~"The Same"
+  )) 
+
+df_group <- df_new %>%
+  filter(!is.na(name)) %>%
+  group_by(fiscal_year, name) %>% 
+  summarise(n = n()) %>% 
+  filter(fiscal_year < 2023)
+
+ggplot(df_group, aes(x=as.factor(fiscal_year), y= n, color = as.factor(name), fill = as.factor(name))) +
+  geom_bar(stat = "identity", position = "dodge")+
+  geom_text(aes(label= n), vjust=-0.3, size=3.5)+
+  theme_bw() + 
+  labs(title = "Number of Ballet Companies Where Beginning of Year Balance Is Higher, Lower, or Equal to Contribution",
+       y = "Number of Ballet Companies",
+       x = "Fiscal Year") + 
+  theme(axis.text.x = element_text(size =25),
+        axis.text.y=  element_text(size =25),
+         axis.title = element_text(size=20),
+        legend.text = element_text(size = 20),
+         legend.title=element_text(size = 20),
+        strip.text=element_text(size = 16, color = "white"),
+        plot.title=element_text(hjust = .5, face="bold", size = 35))
+```
+
+```{r}
+df_name <- df_new %>% 
+  select(EIN, organization_name, fiscal_year, name) %>% 
+  filter(!is.na(name)) %>% 
+  write.csv(here('data', 'contribution_vs_BOY.csv'))
 ```
 
 ## Beginning of Year Balance versus Other Expenditures
@@ -1415,7 +1460,7 @@ var2 <- "OtherExpendituresAmt"
 
 
 prop_balanced_ranked_higher <- endowment_data_wide %>%
-     filter(fiscal_year > 2010 & fiscal_year < 2021) %>%
+     filter(fiscal_year > 2010 & fiscal_year < 2024) %>%
     group_by(fiscal_year) %>%
    # arrange(var1) %>%
     mutate("{var1}_rank" := rank(-!!sym(var1)), na.last = "keep") %>%
@@ -1503,7 +1548,7 @@ var <- "BeginningYearBalanceAmt"
 
 
 balance_ranks <- endowment_data_wide %>%
-    filter(fiscal_year >=2011 & fiscal_year <=2020) %>%
+    filter(fiscal_year >=2011 & fiscal_year <=2024) %>%
     group_by(fiscal_year) %>%
     mutate(rank = rank(-!!sym(var), na.last = "keep")) %>%
     filter(!is.na(rank)) %>%
@@ -1556,7 +1601,7 @@ balance_ranks <- balance_ranks %>%
    group_by(organization_name) %>%
    mutate(minyear = min(fiscal_year,na.rm=TRUE),
           maxyear = max(fiscal_year, na.rm=TRUE)) %>%
-   mutate(organization_name = ifelse(maxyear == 2020, organization_name, NA)) %>%
+   mutate(organization_name = ifelse(maxyear == 2023, organization_name, NA)) %>%
    filter(fiscal_year == maxyear) %>%
    select(organization_name, minyear, rank,cont_rank) %>%
    distinct()
@@ -1575,7 +1620,7 @@ balance_ranks <- balance_ranks %>%
     scale_color_manual(values=pal, na.value=NA, breaks =top_ranks$organization_name) +
     theme_c() +
     scale_y_reverse(n.breaks = 10) +
-    scale_x_continuous(breaks=2010:2020,limits=c(2010,2022)) +
+    scale_x_continuous(breaks=2012:2022,limits=c(2012,2022)) +
     labs(y = paste("Rank of ", var),
          x = "Fiscal Year",
          title = paste0("Rank over time for ", var)) +
@@ -1604,7 +1649,7 @@ balance_ranks <- balance_ranks %>%
    labs(title = "Rank of Beginning of Year Balance over Time",
         x = "Fiscal Year",
         y = "Rank of Beginning of Year Balance") +
-   geom_text(aes(x=2020, label = organization_name, y  = rank), 
+   geom_text(aes(x=2023, label = organization_name, y  = rank), 
              data=labels_all, nudge_x=.1, size = 3.1, hjust=0)
  
  
@@ -1713,7 +1758,7 @@ var <- "ContributionsAmt"
 
 
 balance_ranks <- endowment_data_wide %>%
-    filter(fiscal_year >=2011 & fiscal_year <=2020) %>%
+    filter(fiscal_year >=2011 & fiscal_year <=2023) %>%
     group_by(fiscal_year) %>%
     mutate(rank = rank(-!!sym(var), na.last = "keep")) %>%
     filter(!is.na(rank)) %>%
@@ -1754,7 +1799,7 @@ balance_ranks <- endowment_data_wide %>%
    group_by(organization_name) %>%
    mutate(minyear = min(fiscal_year,na.rm=TRUE),
           maxyear = max(fiscal_year, na.rm=TRUE)) %>%
-   mutate(organization_name = ifelse(maxyear == 2020, organization_name, NA)) %>%
+   mutate(organization_name = ifelse(maxyear == 2023, organization_name, NA)) %>% #???
    filter(fiscal_year == maxyear) %>%
    select(organization_name, minyear, rank) %>%
    distinct()
@@ -1768,11 +1813,11 @@ balance_ranks <- endowment_data_wide %>%
     scale_color_manual(values=pal, na.value=NA) +
     theme_c() +
     scale_y_reverse(n.breaks = 10) +
-    scale_x_continuous(breaks=2011:2020,limits=c(2010,2022)) +
+    scale_x_continuous(breaks=2012:2022,limits=c(2012,2022)) +
     labs(y = paste("Rank of ", var),
          x = "Fiscal Year",
          title = paste0("Rank over time for ", var)) +
-   geom_text_repel(aes(x = 2020,
+   geom_text_repel(aes(x = 2023,
                   label = organization_name,
                   color=organization_name,
                  y =rank),

@@ -82,9 +82,11 @@ beginmeans_plot / endmeans_plot
 means_wide <- read_csv(here("data", "means_wide.csv"))
 
 means_wide <- means_wide %>% 
-  rename("Legend" = when)
+  rename("Legend" = when) %>% 
+  filter(Legend == "End") %>% 
+  select(Type, mean)
 
-means_plot <- ggplot(means_wide, aes(x = Type, y = mean, fill = Legend)) + geom_histogram(stat = "identity", position = "stack") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Average Endowment Size at Beginning and End of Fiscal Years") + xlab("Type Of Company") + ylab("Endowment Balance ($)")
+means_plot <- ggplot(means_wide, aes(x = Type, y = mean, fill = "Pink1")) + geom_histogram(stat = "identity", position = "stack") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Average Endowment Size at End of Fiscal Years") + xlab("Type Of Company") + ylab("Endowment Balance ($)") + guides(fill = FALSE)
 means_plot
 
 ggsave(here('final_report/images/endowment_size_bars.png'))
@@ -121,6 +123,8 @@ mean_by_endowment_type <- endowment_types_names %>%
   mutate(mean_board = round((100 * mean_board), digits = 2), mean_perm = round((100 * mean_perm), digits = 2), mean_term = round((100 * mean_term), digits = 2)) %>% 
   mutate(mean_board = paste0(mean_board, "%"), mean_perm = paste0(mean_perm, "%"), mean_term = paste0(mean_term, "%"))
 
+
+
 ```
 
 
@@ -135,4 +139,36 @@ endowment_lengths <- endowment_lengths %>%
 ```
 
 
+```{r}
 
+types_means <- read_csv(here("data", "endowment_type_means_wide.csv")) %>% 
+  mutate(Mean = as.numeric(sub("%", "", Mean)))
+
+types_plot <- ggplot(types_means, aes(x = Type, y = Mean, fill = Legend)) + geom_histogram(stat = "identity", position = "stack") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Average Endowment Types of Companies") + xlab("Type Of Company") + ylab("Endowment Type (%)")
+types_plot
+
+ggsave(here('final_report/images/endowment_type_bars_stack.png'))
+
+types_plot2 <- ggplot(types_means, aes(x = Type, y = Mean, fill = Legend)) + geom_histogram(stat = "identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Average Endowment Types of Companies") + xlab("Type Of Company") + ylab("Endowment Type (%)")
+types_plot2
+
+ggsave(here('final_report/images/endowment_type_bars_dodge.png'))
+
+```
+```{r}
+
+# finding companies that filed FY23
+company_diffs %>% 
+  filter(fiscal_year == "2023")
+# only Miami City Ballet (592578534)
+
+#budget calcs
+budget_info <- read_csv(here("data", "budget_companies.csv")) %>% 
+  rename(expense_avg = "Expense Avg", last_expense = "Last Expense")
+
+budgets_by_type <- budget_info %>% 
+  group_by(Type) %>% 
+  summarize(avg_budget = mean(expense_avg), avg_last_budget = mean(last_expense))
+
+
+```

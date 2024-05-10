@@ -36,7 +36,14 @@ building_info <- companies %>%
 total_buildingvals <- building_info %>% 
   select(Company, EIN, Type, TotalBookValueLandBuildingsAmt) %>% 
   mutate(TotalBookValueLandBuildingsAmt = as.numeric(as.character(TotalBookValueLandBuildingsAmt))) %>% 
-  group_by(Type) %>% 
+  group_by(Type) %>%
+  summarise(mean_type = mean(TotalBookValueLandBuildingsAmt, na.rm = TRUE))
+
+recent_buildingvals <- building_info %>% 
+  filter(fiscal_year == 2022 | fiscal_year == 2023) %>% 
+  select(Company, EIN, Type, TotalBookValueLandBuildingsAmt) %>% 
+  mutate(TotalBookValueLandBuildingsAmt = as.numeric(as.character(TotalBookValueLandBuildingsAmt))) %>% 
+  group_by(Type) %>%
   summarise(mean_type = mean(TotalBookValueLandBuildingsAmt, na.rm = TRUE))
 
 ```

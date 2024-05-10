@@ -47,3 +47,102 @@ total_expense_data <- total_expense_data %>%
 write.csv(total_expense_data, "expenses_data.csv")
 
 ```
+
+
+```{r}
+
+library(dplyr) 
+library(readr) 
+library(ggplot2) 
+library(janitor) 
+library(plotly)
+library(DT) 
+
+## Cleaning column names
+schedule_d <- schedule_d %>% clean_names()
+
+schedule_d_cleaned <- 
+  schedule_d %>% 
+  rename(administrative_expenses = return_return_data_irs990schedule_d_cy_endwmt_fund_grp_administrative_expenses_amt, 
+    boy_balance = 
+return_return_data_irs990schedule_d_cy_endwmt_fund_grp_beginning_year_balance_amt,
+    contributions = 
+return_return_data_irs990schedule_d_cy_endwmt_fund_grp_contributions_amt,
+    eoy_balance=
+return_return_data_irs990schedule_d_cy_endwmt_fund_grp_end_year_balance_amt,
+    grants_or_scholarships =
+return_return_data_irs990schedule_d_cy_endwmt_fund_grp_grants_or_scholarships_amt,
+    investment_earnings_or_losses = return_return_data_irs990schedule_d_cy_endwmt_fund_grp_investment_earnings_or_losses_amt,
+    other_expenditure = 
+return_return_data_irs990schedule_d_cy_endwmt_fund_grp_other_expenditures_amt,
+    total_expenses =
+return_return_data_irs990schedule_d_total_expenses_per_form990amt)
+
+## schedule_d_cleaned - change data type
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(fiscal_year = as.character(fiscal_year)) 
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(ein = as.character(ein)) 
+
+## Changing EIN to character - companies
+companies <- companies_to_ein %>%
+  mutate(ein = as.character(EIN), organization_name = Company) %>%
+  select(ein, organization_name)
+
+## new df with main columns
+schedule_d_cleaned <- schedule_d_cleaned %>% 
+  select("ein", 
+      "fiscal_year",
+      "administrative_expenses", 
+      "boy_balance", 
+      "contributions", 
+      "eoy_balance", 
+      "grants_or_scholarships", 
+      "investment_earnings_or_losses", 
+      "other_expenditure",
+      "total_expenses")
+
+schedule_d_cleaned$boy_balance = as.numeric(as.character(schedule_d_cleaned$boy_balance))
+schedule_d_cleaned$contributions = as.numeric(as.character(schedule_d_cleaned$contributions))
+schedule_d_cleaned$eoy_balance = as.numeric(as.character(schedule_d_cleaned$eoy_balance))
+schedule_d_cleaned$grants_or_scholarships = as.numeric(as.character(schedule_d_cleaned$grants_or_scholarships))
+schedule_d_cleaned$investment_earnings_or_losses = as.numeric(as.character(schedule_d_cleaned$investment_earnings_or_losses))
+schedule_d_cleaned$other_expenditure = as.numeric(as.character(schedule_d_cleaned$other_expenditure))
+schedule_d_cleaned$total_expenses = as.numeric(as.character(schedule_d_cleaned$total_expenses))
+
+## Joining datasets 
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  left_join(companies , by = 'ein', relationship = "many-to-many")
+
+schedule_d_cleaned <- schedule_d_cleaned %>%
+  mutate(difference = (eoy_balance - boy_balance))
+
+schedule_d_cleaned <- schedule_d_cleaned %>% 
+  select(ein, organization_name, fiscal_year, boy_balance, eoy_balance, 
+         difference, contributions, investment_earnings_or_losses, 
+         grants_or_scholarships, other_expenditure, administrative_expenses, total_expenses)
+
+# schedule_d_cleaned <- schedule_d %>% 
+#   left_join(companies_to_ein, by = "EIN") %>% 
+#   rename(TotalExpenses = `/Return/ReturnData/IRS990ScheduleD/TotalExpensesPerForm990Amt`)
+
+scheduleD_groups <- schedule_d_cleaned %>%
+  select(ein, organization_name, fiscal_year, total_expenses) %>%
+  filter(fiscal_year %in% c("2018", "2019", "2020", "2021", "2022"))
+
+expense_summary_table <- scheduleD_groups %>%
+  group_by(organization_name) %>%
+  summarize(
+    group_n = n(), 
+    average = mean(total_expenses),
+    median = median(total_expenses),
+    max = max(total_expenses),
+    min = min(total_expenses))
+
+```
+
+
+
+
+
+

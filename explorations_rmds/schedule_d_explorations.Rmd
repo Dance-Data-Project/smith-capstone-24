@@ -158,22 +158,18 @@ all_eins <- filed_schd_d %>%
   select(EIN) %>%
   distinct()
 
-# EINs that reported endowments
 reported_eins <- filed_schd_d %>%
   filter(Filled_Sch_D == "Yes") %>%
   select(EIN) %>%
   distinct()
 
-# Finding EINs that did NOT report endowments
 never_reported_eins <- setdiff(all_eins, reported_eins)
 
-# Joining with names to get organization names
 never_reported_eins <- never_reported_eins %>%
   left_join(names, by = "EIN") %>%
   select(EIN, organization_name) %>%
-  mutate(num_times_fil_sche_D = 0)  # Adding a column to show no filings
+  mutate(num_times_fil_sche_D = 0)  
 
-# Create a table to display the result
 never_reported_eins %>%
   kable("html", booktabs = TRUE) %>%
   kable_styling(full_width = FALSE) %>%
@@ -183,13 +179,10 @@ never_reported_eins %>%
 ```
 
 ```{r}
-# Finding EINs that did NOT report endowments
 never_reported_eins <- setdiff(all_eins, reported_eins)
 
-# Counting the number of companies that never reported an endowment
 num_never_reported <- nrow(never_reported_eins)
 
-# Print the count
 print(paste("Number of companies that never reported an endowment:", num_never_reported))
 ```
 
@@ -474,7 +467,6 @@ There are seven EINs which do not always fill out Schedule D when they fill out 
 # Checking Endowment Reporting - Is the Math Right?  
 
 ```{r}
-## Using Quinn's endowment data 
 endowment_data <- read_rds(here("data", "endowments_by_most_recent_filings.RDS"))
 ```
 
@@ -498,19 +490,6 @@ test_diff <- endowment_data %>%
          same_end = ifelse(end_bal_calc == EndYearBalanceAmt, TRUE, FALSE),
          diff_end = EndYearBalanceAmt - end_bal_calc)
 
-## MEAGHAN FIX THIS CODE BLOCK
-## as_tibble validate vs name_repair error
-
-# Looking at differences
-# test_diff %>%
-#   filter(same_end == FALSE) %>%
-# #  arrange(desc(abs(diff_end))) %>%
-#   left_join(names, by = "EIN") %>%
-#   select(organization_name, fiscal_year, EndYearBalanceAmt, end_bal_calc, diff_end) %>%
-#   make_table("Differences in Reported End Year Balances", 
-#              col_names = c("Organization Name", "Year", "Reported End Balance", 
-#                            "Calculated End Balance", "Difference")) %>%
-#   scroll_box(height = "450px")
 
 ## Misreports by company
 test_diff %>%
@@ -638,20 +617,6 @@ test_diff %>%
         legend.key.size = unit(1, 'mm'),
         legend.text = element_text(size=7)) + 
   labs( title = "Miscalculations per Year End Year Balance")
-
-##MEAGHAN FIX THIS CODE BLOCK
-## same problem as above
-
-## Table showing same information as plot above, total miscalculations
-# test_diff %>%
-#   filter(same_end == FALSE) %>%
-#   arrange(desc(abs(diff_end))) %>%
-#   left_join(names, by = "EIN") %>%
-#   group_by(organization_name) %>%
-#   summarize(n = n()) %>%
-#   make_table("List of Misreported Companies", 
-#              col_names = c("Organization Name", "Total Miscalculations")) %>%
-#   scroll_box(height = "450px")
 ```
 
 ```{r}

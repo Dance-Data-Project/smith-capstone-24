@@ -182,10 +182,10 @@ endowment_data %>%
 # dotted lines represent where there was a missing year between observations
 
 
-# UPDATED TIME FRAME - TIME SERIES LINE GRAPH
+# TIME SERIES LINE GRAPH
 plot_line <- function(var) {
   
-  # Get EINs with at least one observation of the variable
+  # get EINs with at least one observation of the variable
   eins_with_variable <- endowment_data %>%
     filter(variable_name == var) %>%
     group_by(EIN) %>%
@@ -193,7 +193,7 @@ plot_line <- function(var) {
     filter(number_observations > 0) %>%
     pull(EIN)
 
-  # Split into quartiles based on EIN mean
+  # split into quartiles based on EIN mean
   data <- endowment_data %>%
     filter(EIN %in% eins_with_variable & variable_name == var) %>%
     group_by(EIN) %>%
@@ -207,7 +207,6 @@ plot_line <- function(var) {
     mutate(organization_name = ifelse(is.na(organization_name), "Not Available", organization_name)) %>%
     ungroup()
 
-  # Plotting
   data %>%
     ggplot(aes(x = fiscal_year, y = value, color = EIN, label = organization_name)) +
     geom_line(aes(group = EIN), color = "darkgray", linetype = "dotted") + 
@@ -239,7 +238,7 @@ plot_line <- function(var) {
 # BAR GRAPH W/ AVERAGE CHANGE
 plot_variable_bar <- function(var) {
   
-  # Get EINs with at least one observation of the variable
+  # get EINs with at least one observation of the variable
   eins_with_variable <- endowment_data %>%
     filter(variable_name == var) %>%
     group_by(EIN) %>%
@@ -247,7 +246,7 @@ plot_variable_bar <- function(var) {
     filter(number_observations != 0) %>%
     pull(EIN)
   
-  # Split into quartiles based on EIN mean
+  # split into quartiles based on EIN mean
   data <- endowment_data %>%
       filter(EIN %in% eins_with_variable & variable_name == var) %>%
       group_by(EIN) %>%
@@ -256,22 +255,20 @@ plot_variable_bar <- function(var) {
       mutate(quartile_group = ntile(-EIN_mean, n = 4)) %>%
       group_by(EIN) %>%
       mutate(quartile_group = max(quartile_group)) %>%
-      # Ensure capitalization of quartile labels
       mutate(quartile_group_labels = factor(paste0("Quartile ", quartile_group), levels = paste0("Quartile ", 1:4))) %>%
       mutate(organization_name = ifelse(is.na(organization_name), "Not Available", organization_name)) %>%
       ungroup()
 
-  # Calculate change from previous year and aggregate by fiscal year and quartile
+  # calculate change from previous year and aggregate by fiscal year and quartile
   data <- data %>%
     arrange(EIN, fiscal_year) %>%
     mutate(change = value - dplyr::lag(value)) %>%
-    filter(!is.na(change))  # Remove NAs which result from the lag subtraction
+    filter(!is.na(change))
 
   aggregated_data <- data %>%
     group_by(fiscal_year, quartile_group_labels) %>%
     summarize(mean_change = mean(change, na.rm = TRUE), .groups = 'drop')
 
-  # Plotting conditionally on data availability
   if (any(table(aggregated_data$quartile_group_labels) > 0)) {
     ggplot(aggregated_data, aes(x = fiscal_year, y = mean_change, fill = quartile_group_labels)) +
       geom_col(position = "dodge") +
@@ -290,9 +287,6 @@ plot_variable_bar <- function(var) {
 }
 
 ```
-
-
-
 
 
 ```{r, fig.width = 12, fig.height = 6}
@@ -318,11 +312,10 @@ unique_variable_names_list <- c("BeginningYearBalanceAmt", "EndYearBalanceAmt",
                                 "AdministrativeExpensesAmt", "PrmnntEndowmentBalanceEOYPct",
                                 "TermEndowmentBalanceEOYPct","BoardDesignatedBalanceEOYPct")
 
-# Function to list companies by quartile for a given variable
+# function to list companies by quartile for a given variable
 companies_by_quartile <- function(data, var) {
-  # Wrap the potentially problematic code in a tryCatch block
   tryCatch({
-    # Get EINs with at least one observation of the variable
+    # get EINs with at least one observation of the variable
     eins_with_variable <- data %>%
       filter(variable_name == var) %>%
       group_by(EIN) %>%
@@ -330,12 +323,11 @@ companies_by_quartile <- function(data, var) {
       filter(number_observations > 0) %>%
       pull(EIN)
     
-    # Check if there are any EINs with observations
     if (length(eins_with_variable) == 0) {
       return(paste("No valid data found for variable:", var))
     }
 
-    # Split into quartiles based on EIN mean
+    # split into quartiles based on EIN mean
     quartile_data <- data %>%
       filter(EIN %in% eins_with_variable, variable_name == var) %>%
       group_by(EIN) %>%
@@ -346,8 +338,6 @@ companies_by_quartile <- function(data, var) {
       select(organization_name, quartile_group) %>%
       arrange(quartile_group, organization_name)
 
-
-    # Display in a table
     if (nrow(quartile_data) == 0) {
       return(paste("No quartile data available for variable:", var))
     }
@@ -365,7 +355,7 @@ companies_by_quartile <- function(data, var) {
   })
 }
 
-# Run the function for each variable
+# run the function for each variable
 lapply(unique_variable_names_list, function(var_name) {
   cat("\n\n## Processing variable:", var_name, "\n")
   result <- companies_by_quartile(endowment_data, var_name)
@@ -382,13 +372,12 @@ process_variable_safely <- function(var_name, data) {
   cat("Processing variable:", var_name, "\n")
   tryCatch({
     result <- list_companies_by_quartile_all(data, var_name)
-    print(result)  # Print the result if successful
+    print(result) 
   }, error = function(e) {
-    cat("Error processing variable", var_name, ": ", e$message, "\n")  # Print the error message
+    cat("Error processing variable", var_name, ": ", e$message, "\n")  
   })
 }
 
-# Use lapply to run the function for each variable name
 result_tables <- lapply(unique_variable_names_list, function(var_name) {
   process_variable_safely(var_name, endowment_data)
 })
@@ -401,7 +390,7 @@ result_tables <- lapply(unique_variable_names_list, function(var_name) {
 
 ```{r}
 list_companies_by_quartile_list <- function(data, var) {
-  # Get EINs with at least one observation of the variable
+  # get EINs with at least one observation of the variable
   eins_with_variable <- data %>%
     filter(variable_name == var) %>%
     group_by(EIN) %>%
@@ -409,12 +398,11 @@ list_companies_by_quartile_list <- function(data, var) {
     filter(number_observations > 0) %>%
     pull(EIN)
   
-  # If no EINs, return a message
   if (length(eins_with_variable) == 0) {
     return(paste("No valid data found for variable:", var))
   }
 
-  # Split into quartiles based on EIN mean
+  # split into quartiles based on EIN mean
   quartile_data <- data %>%
     filter(EIN %in% eins_with_variable, variable_name == var) %>%
     group_by(EIN) %>%
@@ -425,7 +413,6 @@ list_companies_by_quartile_list <- function(data, var) {
     select(organization_name, quartile_group) %>%
     arrange(quartile_group, organization_name)
 
-  # Return a list of names grouped by quartile
   quartile_groups <- split(quartile_data$organization_name, quartile_data$quartile_group)
   names(quartile_groups) <- paste("quartile", names(quartile_groups))
   return(quartile_groups)

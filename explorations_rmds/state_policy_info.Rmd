@@ -264,13 +264,14 @@ add <- add %>%
     is.na(business_state_cd) & is.na(books_state_cd) ~ as.character(books_state)
   )) 
 
-add %>%
+# turn every name into the same form ??
+add_new <- add %>%
   select(EIN,
-         name,
          organization_name,
          business_state_cd = state_cd,
          books_state_cd,
          state) %>%
+  distinct() %>%
   saveRDS(here('data', 'ein_to_state.RDS'))
 
 ```
